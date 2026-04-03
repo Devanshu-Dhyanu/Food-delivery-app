@@ -18,6 +18,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const redirectTo = `${window.location.origin}/auth/callback`;
 
   const openModal = (m: 'signup' | 'signin') => {
     setMode(m);
@@ -30,7 +31,7 @@ export default function Login() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'https://food.vajracognixia.in/auth/callback',
+        redirectTo,
       },
     });
   };
@@ -41,7 +42,7 @@ export default function Login() {
     setMessage('');
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: 'https://food.vajracognixia.in/auth/callback' },
+      options: { emailRedirectTo: redirectTo },
     });
     if (error) {
       setMessage('Something went wrong. Try again.');

@@ -24,10 +24,19 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     setLoading(true);
 
     try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error('You must be signed in to place an order.');
+
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([
           {
+            user_id: user.id,
             customer_name: formData.customerName,
             customer_phone: formData.customerPhone,
             delivery_address: formData.deliveryAddress,

@@ -18,9 +18,21 @@ export default function OrderTracking() {
 
   const fetchOrders = async () => {
     try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) {
+        setOrders([]);
+        return;
+      }
+
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(10);
 

@@ -8,6 +8,7 @@ import Checkout from './components/Checkout';
 import OrderTracking from './components/OrderTracking';
 import Login from './components/Login';
 import AuthCallback from './components/AuthCallback';
+import Onboarding from './components/Onboarding';
 import { supabase } from './lib/supabase';
 
 type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed';
@@ -17,26 +18,130 @@ function App() {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
   const [user, setUser] = useState<any>(null);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    let isMounted = true;
+    const loadingFallback = window.setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 2000);
+
+    const loadUserProfile = async (userId: string) => {
+      if (!isMounted) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (!isMounted) return;
+
+        if (error) {
+          console.error('Error checking user profile:', error);
+          setHasProfile(false);
+          return;
+        }
+
+        setHasProfile(!!data);
+      } catch (error) {
+        console.error('Unexpected error checking user profile:', error);
+        if (isMounted) {
+          setHasProfile(false);
+        }
+      }
+    };
+
+    const syncSession = (session: any) => {
+      if (!isMounted) return;
+
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+
+      if (!nextUser) {
+        setHasProfile(false);
+        setLoading(false);
+        return;
+      }
+
+      setHasProfile(null);
       setLoading(false);
+      void loadUserProfile(nextUser.id);
+    };
+
+    const loadSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        syncSession(session);
+      } catch (error) {
+        console.error('Error loading auth session:', error);
+        if (isMounted) {
+          setUser(null);
+          setHasProfile(false);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncSession(session);
     });
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(loadingFallback);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#1a1a1a' }}>Loading...</p>
-    </div>
-  );
-
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
+  if (loading) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#1a1a1a' }}>Loading...</p>
+      </div>
+    );
+  }
+
   if (!user) return <Login />;
+
+  if (hasProfile === null) {
+    return (
+      <CartProvider>
+        <div className="min-h-screen bg-gray-900">
+          <Header currentPage={currentPage} onNavigate={setCurrentPage} showNavigation={false} />
+          <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4">
+            <p className="text-gray-300">Checking your profile...</p>
+          </div>
+        </div>
+      </CartProvider>
+    );
+  }
+
+  if (hasProfile === false) {
+    return (
+      <CartProvider>
+        <div className="min-h-screen bg-gray-900">
+          <Header currentPage={currentPage} onNavigate={setCurrentPage} showNavigation={false} />
+          <Onboarding userId={user.id} onComplete={() => setHasProfile(true)} />
+        </div>
+      </CartProvider>
+    );
+  }
 
   const handleSelectRestaurant = (restaurantId: string) => {
     setSelectedRestaurantId(restaurantId);

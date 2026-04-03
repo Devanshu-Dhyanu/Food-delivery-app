@@ -32,6 +32,7 @@ export type MenuItem = {
 
 export type Order = {
   id: string;
+  user_id: string | null;
   customer_name: string;
   customer_phone: string;
   delivery_address: string;
@@ -53,4 +54,21 @@ export type OrderItem = {
 
 export type CartItem = MenuItem & {
   quantity: number;
+};
+
+export type UserProfile = {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  gender: string;
+  location_type: string;
+  hostel_name: string | null;
+  block: string | null;
+  room_number: string | null;
+  building_number: string | null;
+  exact_location: string | null;
+  uid: string;
+  created_at: string;
+  updated_at: string;
 };
