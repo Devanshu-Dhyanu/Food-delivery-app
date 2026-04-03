@@ -1,0 +1,201 @@
+import { useEffect, useState } from 'react';
+import { ArrowLeft, Plus, Star, Clock, Leaf } from 'lucide-react';
+import { supabase, Restaurant, MenuItem } from '../lib/supabase';
+import { useCart } from '../context/CartContext';
+
+interface RestaurantMenuProps {
+  restaurantId: string;
+  onBack: () => void;
+}
+
+export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuProps) {
+  const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetchRestaurantAndMenu();
+  }, [restaurantId]);
+
+  const fetchRestaurantAndMenu = async () => {
+    try {
+      const [restaurantRes, menuRes] = await Promise.all([
+        supabase.from('restaurants').select('*').eq('id', restaurantId).maybeSingle(),
+        supabase.from('menu_items').select('*').eq('restaurant_id', restaurantId).order('category')
+      ]);
+
+      if (restaurantRes.error) throw restaurantRes.error;
+      if (menuRes.error) throw menuRes.error;
+
+      setRestaurant(restaurantRes.data);
+      setMenuItems(menuRes.data || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = (item: MenuItem) => {
+    addToCart(item);
+    setAddedItems(prev => new Set(prev).add(item.id));
+    setTimeout(() => {
+      setAddedItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(item.id);
+        return newSet;
+      });
+    }, 1000);
+  };
+
+  const groupedItems = menuItems.reduce((acc, item) => {
+    if (!acc[item.category]) {
+      acc[item.category] = [];
+    }
+    acc[item.category].push(item);
+    return acc;
+  }, {} as Record<string, MenuItem[]>);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-gray-400">Loading menu...</div>
+      </div>
+    );
+  }
+
+  if (!restaurant) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-gray-400">Restaurant not found</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <button
+        onClick={onBack}
+        className="flex items-center space-x-2 text-gray-400 hover:text-white mb-6 transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span>Back to Restaurants</span>
+      </button>
+
+      <div className="bg-gray-800 rounded-xl overflow-hidden mb-8">
+        <div className="h-64 bg-gray-700 overflow-hidden">
+          {restaurant.image_url ? (
+            <img
+              src={restaurant.image_url}
+              alt={restaurant.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-gray-600 text-6xl">🍽️</span>
+            </div>
+          )}
+        </div>
+
+        <div className="p-6">
+          <div className="flex items-start justify-between mb-3">
+            <h1 className="text-3xl font-bold text-white">{restaurant.name}</h1>
+            {!restaurant.is_open && (
+              <span className="bg-red-600 text-white px-3 py-1 rounded text-sm">
+                Currently Closed
+              </span>
+            )}
+          </div>
+
+          <p className="text-gray-400 mb-4">{restaurant.description}</p>
+
+          <div className="flex items-center space-x-6 text-sm">
+            <div className="flex items-center space-x-1">
+              <Star className="w-5 h-5 text-yellow-500 fill-current" />
+              <span className="text-white font-medium">{restaurant.rating}</span>
+            </div>
+
+            <div className="flex items-center space-x-1 text-gray-400">
+              <Clock className="w-5 h-5" />
+              <span>{restaurant.delivery_time}</span>
+            </div>
+
+            <span className="text-gray-400">{restaurant.cuisine_type}</span>
+          </div>
+        </div>
+      </div>
+
+      {Object.keys(groupedItems).length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-400">No menu items available</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {Object.entries(groupedItems).map(([category, items]) => (
+            <div key={category}>
+              <h2 className="text-2xl font-bold text-white mb-4">{category}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-gray-800 rounded-lg p-4 flex space-x-4"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
+                            <span>{item.name}</span>
+                            {item.is_vegetarian && (
+                              <Leaf className="w-4 h-4 text-green-500" />
+                            )}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-gray-400 mb-3 line-clamp-2">
+                        {item.description}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-orange-500">
+                          ₹{item.price}
+                        </span>
+
+                        <button
+                          onClick={() => handleAddToCart(item)}
+                          disabled={!item.is_available}
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            !item.is_available
+                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              : addedItems.has(item.id)
+                              ? 'bg-green-600 text-white'
+                              : 'bg-orange-500 text-white hover:bg-orange-600'
+                          }`}
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>{addedItems.has(item.id) ? 'Added' : 'Add'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {item.image_url && (
+                      <div className="w-24 h-24 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
