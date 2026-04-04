@@ -26,6 +26,11 @@
   .float-up-fade {
     animation: float-up-fade 850ms ease-out forwards;
   }
+
+  .reveal-card {
+    opacity: 0;
+    animation: reveal-card 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
 }
 
 @keyframes shimmer-slide {
@@ -65,5 +70,17 @@
   100% {
     opacity: 0;
     transform: translateY(-18px) scale(1);
+  }
+}
+
+@keyframes reveal-card {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

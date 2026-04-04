@@ -70,6 +70,34 @@ export default function RestaurantList({
   const currentHour = new Date().getHours();
   const greetingLabel =
     currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
+  const moodBanner =
+    currentHour >= 5 && currentHour < 11
+      ? {
+          eyebrow: 'Morning picks',
+          title: 'Start easy with fresh breakfast runs and quick campus coffee stops.',
+          summary: 'Open kitchens are serving the fastest warm meals right now.',
+          accent: 'border-amber-400/20 bg-amber-500/10 text-amber-200',
+        }
+      : currentHour >= 11 && currentHour < 16
+      ? {
+          eyebrow: 'Lunch rush',
+          title: 'Midday cravings are live. Find fast meals before the hostel queue gets long.',
+          summary: 'Top-rated and open restaurants are surfaced first for faster decisions.',
+          accent: 'border-orange-400/20 bg-orange-500/10 text-orange-200',
+        }
+      : currentHour >= 16 && currentHour < 22
+      ? {
+          eyebrow: 'Evening cravings',
+          title: 'This is the best window for comfort food, snacks, and late study fuel.',
+          summary: 'Explore popular dinner spots and evening-ready kitchens near you.',
+          accent: 'border-fuchsia-400/20 bg-fuchsia-500/10 text-fuchsia-200',
+        }
+      : {
+          eyebrow: 'Late-night mode',
+          title: 'Need something after hours? Check what is still serving right now.',
+          summary: 'Closed restaurants stay visible below, while active options remain up top.',
+          accent: 'border-cyan-400/20 bg-cyan-500/10 text-cyan-200',
+        };
   const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
   const visibleRestaurants = [...restaurants]
     .filter((restaurant) => {
@@ -101,6 +129,95 @@ export default function RestaurantList({
           return b.rating - a.rating;
       }
     });
+  const openRestaurants = visibleRestaurants.filter((restaurant) => restaurant.is_open);
+  const closedRestaurants = visibleRestaurants.filter((restaurant) => !restaurant.is_open);
+
+  const renderRestaurantCard = (restaurant: Restaurant, index: number) => {
+    const isLocked = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
+    const statusLabel = isLocked ? 'Locked' : restaurant.is_open ? 'Open Now' : 'Closed';
+    const statusClasses = isLocked
+      ? 'border-white/10 bg-black/45 text-white/85'
+      : restaurant.is_open
+      ? 'border-emerald-400/25 bg-emerald-500/20 text-emerald-100'
+      : 'border-red-400/25 bg-red-500/20 text-red-100';
+
+    return (
+      <button
+        key={restaurant.id}
+        onClick={() => onSelectRestaurant(restaurant.id)}
+        disabled={isLocked}
+        className={`reveal-card group overflow-hidden rounded-[24px] border text-left transition-all duration-300 ${
+          isLocked
+            ? 'cursor-not-allowed border-white/5 bg-gray-900/70 opacity-80'
+            : 'border-white/5 bg-gray-900 hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-2xl hover:shadow-orange-500/10'
+        }`}
+        style={{ animationDelay: `${index * 70}ms` }}
+      >
+        <div className="relative h-64 overflow-hidden bg-gray-700">
+          {restaurant.image_url ? (
+            <img
+              src={restaurant.image_url}
+              alt={restaurant.name}
+              className={`h-full w-full object-cover transition duration-500 ${
+                isLocked ? 'scale-100 blur-[1px] saturate-50' : 'group-hover:scale-105'
+              }`}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <span className="text-gray-600 text-sm font-semibold tracking-wide">FOOD</span>
+            </div>
+          )}
+
+          <div className={`absolute inset-0 bg-gradient-to-t ${isLocked ? 'from-black via-black/75 to-black/25' : 'from-black via-black/55 to-black/10'}`} />
+
+          <div className="absolute left-4 top-4">
+            <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/95 px-3 py-2 text-sm font-semibold text-gray-900 shadow-lg shadow-black/20">
+              <Star className="h-4 w-4 fill-current text-yellow-500" />
+              <span>{restaurant.rating.toFixed(1)}</span>
+            </div>
+          </div>
+
+          <div className="absolute right-4 top-4">
+            <span className={`inline-flex items-center rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] shadow-lg shadow-black/20 ${statusClasses}`}>
+              {statusLabel}
+            </span>
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 p-5">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <h3 className="mb-2 text-2xl font-bold text-white drop-shadow-md">{restaurant.name}</h3>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-white/85">
+                  <span className="rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm">{restaurant.cuisine_type}</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm">
+                    <Clock className="h-3.5 w-3.5" />
+                    {restaurant.delivery_time}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5">
+          <p className="mb-4 line-clamp-2 text-sm leading-6 text-gray-400">
+            {restaurant.description}
+          </p>
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-xs uppercase tracking-[0.18em] text-gray-500">
+              {isLocked ? 'Finish current cart first' : restaurant.is_open ? 'Ready to explore' : 'Currently unavailable'}
+            </div>
+            <div className={`text-sm font-semibold transition-colors ${
+              isLocked ? 'text-gray-500' : 'text-orange-400 group-hover:text-orange-300'
+            }`}>
+              View Menu
+            </div>
+          </div>
+        </div>
+      </button>
+    );
+  };
 
   if (loading) {
     return (
@@ -162,6 +279,30 @@ export default function RestaurantList({
               <p className="text-sm font-semibold text-orange-300">
                 {cartRestaurantName ? `Locked to ${cartRestaurantName}` : 'Fresh picks waiting'}
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 shadow-xl shadow-black/20">
+        <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-3xl">
+            <p className={`mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] ${moodBanner.accent}`}>
+              <Clock className="h-4 w-4" />
+              {moodBanner.eyebrow}
+            </p>
+            <h2 className="mb-2 text-xl font-bold text-white sm:text-2xl">{moodBanner.title}</h2>
+            <p className="text-sm leading-6 text-gray-400">{moodBanner.summary}</p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[320px]">
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Open section</p>
+              <p className="text-lg font-semibold text-white">{openRestaurants.length} restaurants</p>
+            </div>
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Closed section</p>
+              <p className="text-lg font-semibold text-white">{closedRestaurants.length} restaurants</p>
             </div>
           </div>
         </div>
@@ -292,92 +433,42 @@ export default function RestaurantList({
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
-          {visibleRestaurants.map((restaurant) => {
-            const isLocked = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
-            const statusLabel = isLocked ? 'Locked' : restaurant.is_open ? 'Open Now' : 'Closed';
-            const statusClasses = isLocked
-              ? 'border-white/10 bg-black/45 text-white/85'
-              : restaurant.is_open
-              ? 'border-emerald-400/25 bg-emerald-500/20 text-emerald-100'
-              : 'border-red-400/25 bg-red-500/20 text-red-100';
-
-            return (
-              <button
-                key={restaurant.id}
-                onClick={() => onSelectRestaurant(restaurant.id)}
-                disabled={isLocked}
-                className={`group overflow-hidden rounded-[24px] border text-left transition-all duration-300 ${
-                  isLocked
-                    ? 'cursor-not-allowed border-white/5 bg-gray-900/70 opacity-80'
-                    : 'border-white/5 bg-gray-900 hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-2xl hover:shadow-orange-500/10'
-                }`}
-              >
-                <div className="relative h-64 overflow-hidden bg-gray-700">
-                  {restaurant.image_url ? (
-                    <img
-                      src={restaurant.image_url}
-                      alt={restaurant.name}
-                      className={`h-full w-full object-cover transition duration-500 ${
-                        isLocked ? 'scale-100 blur-[1px] saturate-50' : 'group-hover:scale-105'
-                      }`}
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <span className="text-gray-600 text-sm font-semibold tracking-wide">FOOD</span>
-                    </div>
-                  )}
-
-                  <div className={`absolute inset-0 bg-gradient-to-t ${isLocked ? 'from-black via-black/75 to-black/25' : 'from-black via-black/55 to-black/10'}`} />
-
-                  <div className="absolute left-4 top-4">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/95 px-3 py-2 text-sm font-semibold text-gray-900 shadow-lg shadow-black/20">
-                      <Star className="h-4 w-4 fill-current text-yellow-500" />
-                      <span>{restaurant.rating.toFixed(1)}</span>
-                    </div>
-                  </div>
-
-                  <div className="absolute right-4 top-4">
-                    <span className={`inline-flex items-center rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] shadow-lg shadow-black/20 ${statusClasses}`}>
-                      {statusLabel}
-                    </span>
-                  </div>
-
-                  <div className="absolute inset-x-0 bottom-0 p-5">
-                    <div className="flex items-end justify-between gap-4">
-                      <div>
-                        <h3 className="mb-2 text-2xl font-bold text-white drop-shadow-md">{restaurant.name}</h3>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-white/85">
-                          <span className="rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm">{restaurant.cuisine_type}</span>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm">
-                            <Clock className="h-3.5 w-3.5" />
-                            {restaurant.delivery_time}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+        <div className="space-y-10">
+          {openRestaurants.length > 0 && (
+            <section>
+              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Open right now</h2>
+                  <p className="text-sm text-gray-400">Fastest way to order from currently serving restaurants.</p>
                 </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                  {openRestaurants.length} open
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
+                {openRestaurants.map((restaurant, index) => renderRestaurantCard(restaurant, index))}
+              </div>
+            </section>
+          )}
 
-                <div className="p-5">
-                  <p className="mb-4 line-clamp-2 text-sm leading-6 text-gray-400">
-                    {restaurant.description}
-                  </p>
-
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-gray-500">
-                      {isLocked ? 'Finish current cart first' : restaurant.is_open ? 'Ready to explore' : 'Currently unavailable'}
-                    </div>
-                    <div className={`text-sm font-semibold transition-colors ${
-                      isLocked ? 'text-gray-500' : 'text-orange-400 group-hover:text-orange-300'
-                    }`}>
-                      View Menu
-                    </div>
-                  </div>
+          {closedRestaurants.length > 0 && (
+            <section>
+              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Closed for now</h2>
+                  <p className="text-sm text-gray-400">Still visible so you can browse favorites and check back later.</p>
                 </div>
-              </button>
-            );
-          })}
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                  {closedRestaurants.length} closed
+                </p>
+              </div>
+              <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
+                {closedRestaurants.map((restaurant, index) =>
+                  renderRestaurantCard(restaurant, openRestaurants.length + index)
+                )}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>
