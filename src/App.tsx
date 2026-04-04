@@ -38,6 +38,7 @@ function App() {
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
   const [user, setUser] = useState<any>(null);
+  const [userDisplayName, setUserDisplayName] = useState('');
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -65,7 +66,7 @@ function App() {
       try {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('id')
+          .select('id, name')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -77,10 +78,12 @@ function App() {
           return;
         }
 
+        setUserDisplayName(data?.name?.trim() ?? '');
         setHasProfile(!!data);
       } catch (error) {
         console.error('Unexpected error checking user profile:', error);
         if (isMounted) {
+          setUserDisplayName('');
           setHasProfile(false);
         }
       }
@@ -91,13 +94,20 @@ function App() {
 
       const nextUser = session?.user ?? null;
       setUser(nextUser);
+      const fallbackName =
+        nextUser?.user_metadata?.full_name ||
+        nextUser?.user_metadata?.name ||
+        nextUser?.email?.split('@')?.[0] ||
+        '';
 
       if (!nextUser) {
+        setUserDisplayName('');
         setHasProfile(false);
         setLoading(false);
         return;
       }
 
+      setUserDisplayName(fallbackName);
       setHasProfile(null);
       setLoading(false);
       void loadUserProfile(nextUser.id);
@@ -114,6 +124,7 @@ function App() {
         console.error('Error loading auth session:', error);
         if (isMounted) {
           setUser(null);
+          setUserDisplayName('');
           setHasProfile(false);
         }
       } finally {
@@ -345,6 +356,7 @@ function App() {
         return (
           <RestaurantList
             onSelectRestaurant={handleSelectRestaurant}
+            greetingName={userDisplayName}
             featuredAnnouncement={featuredAnnouncement}
             announcementsLoading={announcementsLoading}
             onAnnouncementAction={handleAnnouncementAction}

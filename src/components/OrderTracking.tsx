@@ -255,37 +255,37 @@ export default function OrderTracking() {
 
   if (loading) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
-        <div className="mb-8 h-10 w-48 rounded-full bg-gray-800" />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="shimmer-block mb-8 h-10 w-48 rounded-full" />
 
         <div className="space-y-6">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-2xl border border-gray-800 bg-gray-900/80 p-6">
+            <div key={index} className="shimmer-shell rounded-2xl border border-gray-800 bg-gray-900/80 p-6">
               <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-3">
-                  <div className="h-4 w-24 rounded-full bg-gray-800" />
-                  <div className="h-6 w-40 rounded-full bg-gray-800" />
-                  <div className="h-4 w-32 rounded-full bg-gray-800" />
+                  <div className="shimmer-block h-4 w-24 rounded-full" />
+                  <div className="shimmer-block h-6 w-40 rounded-full" />
+                  <div className="shimmer-block h-4 w-32 rounded-full" />
                 </div>
-                <div className="h-10 w-32 rounded-full bg-gray-800" />
+                <div className="shimmer-block h-10 w-32 rounded-full" />
               </div>
 
               <div className="grid gap-4 md:grid-cols-[1.1fr,0.9fr]">
                 <div className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4">
-                  <div className="mb-4 h-4 w-24 rounded-full bg-gray-800" />
+                  <div className="shimmer-block mb-4 h-4 w-24 rounded-full" />
                   <div className="space-y-3">
-                    <div className="h-4 w-32 rounded-full bg-gray-800" />
-                    <div className="h-4 w-24 rounded-full bg-gray-800" />
-                    <div className="h-4 w-full rounded-full bg-gray-800" />
+                    <div className="shimmer-block h-4 w-32 rounded-full" />
+                    <div className="shimmer-block h-4 w-24 rounded-full" />
+                    <div className="shimmer-block h-4 w-full rounded-full" />
                   </div>
                 </div>
 
                 <div className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4">
-                  <div className="mb-4 h-4 w-20 rounded-full bg-gray-800" />
+                  <div className="shimmer-block mb-4 h-4 w-20 rounded-full" />
                   <div className="space-y-3">
-                    <div className="h-4 w-full rounded-full bg-gray-800" />
-                    <div className="h-4 w-4/5 rounded-full bg-gray-800" />
-                    <div className="h-4 w-3/4 rounded-full bg-gray-800" />
+                    <div className="shimmer-block h-4 w-full rounded-full" />
+                    <div className="shimmer-block h-4 w-4/5 rounded-full" />
+                    <div className="shimmer-block h-4 w-3/4 rounded-full" />
                   </div>
                 </div>
               </div>
@@ -293,7 +293,7 @@ export default function OrderTracking() {
               <div className="mt-5 space-y-3">
                 <div className="flex gap-2">
                   {Array.from({ length: 4 }).map((__, stepIndex) => (
-                    <div key={stepIndex} className="h-2 flex-1 rounded-full bg-gray-800" />
+                    <div key={stepIndex} className="shimmer-block h-2 flex-1 rounded-full" />
                   ))}
                 </div>
                 <div className="grid grid-cols-4 gap-2 text-xs text-gray-600">
@@ -413,25 +413,25 @@ export default function OrderTracking() {
                     </div>
 
                     <div className="flex space-x-2">
-                    {isRejected ? (
-                      <>
-                        <div className="flex-1 h-2 rounded-full bg-red-500" />
-                        <div className="flex-1 h-2 rounded-full bg-red-500/60" />
-                        <div className="flex-1 h-2 rounded-full bg-gray-700" />
-                        <div className="flex-1 h-2 rounded-full bg-gray-700" />
-                      </>
-                    ) : (
-                      <>
-                        {['Placed', 'Confirmed', 'Preparing', 'On the way'].map((_, index) => (
-                          <div
-                            key={index}
-                            className={`h-2 flex-1 rounded-full ${
-                              timelineProgress > index ? 'bg-green-500' : 'bg-gray-700'
-                            }`}
-                          />
-                        ))}
-                      </>
-                    )}
+                      {isRejected ? (
+                        <>
+                          <div className="flex-1 h-2 rounded-full bg-red-500" />
+                          <div className="flex-1 h-2 rounded-full bg-red-500/60" />
+                          <div className="flex-1 h-2 rounded-full bg-gray-700" />
+                          <div className="flex-1 h-2 rounded-full bg-gray-700" />
+                        </>
+                      ) : (
+                        <>
+                          {['Placed', 'Confirmed', 'Preparing', 'On the way'].map((_, index) => (
+                            <div
+                              key={index}
+                              className={`h-2 flex-1 rounded-full ${
+                                timelineProgress > index ? 'bg-green-500' : 'bg-gray-700'
+                              }`}
+                            />
+                          ))}
+                        </>
+                      )}
                     </div>
 
                     <div className="mt-3 grid grid-cols-4 gap-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">

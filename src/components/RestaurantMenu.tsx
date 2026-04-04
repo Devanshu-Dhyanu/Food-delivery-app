@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Plus, Star, Clock, Leaf } from 'lucide-react';
+import { ArrowLeft, Check, Plus, Star, Clock, Leaf } from 'lucide-react';
 import { supabase, Restaurant, MenuItem } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 
@@ -64,24 +64,24 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
-        <div className="mb-6 h-6 w-40 rounded-full bg-gray-800" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="shimmer-block mb-6 h-6 w-40 rounded-full" />
 
-        <div className="mb-8 overflow-hidden rounded-xl border border-gray-800 bg-gray-900/80">
-          <div className="h-64 bg-gray-800" />
+        <div className="shimmer-shell mb-8 overflow-hidden rounded-xl border border-gray-800 bg-gray-900/80">
+          <div className="shimmer-block h-64" />
           <div className="space-y-4 p-6">
             <div className="flex items-start justify-between gap-4">
-              <div className="h-10 w-52 rounded-full bg-gray-800" />
-              <div className="h-7 w-28 rounded-full bg-gray-800" />
+              <div className="shimmer-block h-10 w-52 rounded-full" />
+              <div className="shimmer-block h-7 w-28 rounded-full" />
             </div>
             <div className="space-y-2">
-              <div className="h-4 w-full rounded-full bg-gray-800" />
-              <div className="h-4 w-3/4 rounded-full bg-gray-800" />
+              <div className="shimmer-block h-4 w-full rounded-full" />
+              <div className="shimmer-block h-4 w-3/4 rounded-full" />
             </div>
             <div className="flex flex-wrap gap-3">
-              <div className="h-5 w-16 rounded-full bg-gray-800" />
-              <div className="h-5 w-24 rounded-full bg-gray-800" />
-              <div className="h-5 w-20 rounded-full bg-gray-800" />
+              <div className="shimmer-block h-5 w-16 rounded-full" />
+              <div className="shimmer-block h-5 w-24 rounded-full" />
+              <div className="shimmer-block h-5 w-20 rounded-full" />
             </div>
           </div>
         </div>
@@ -89,23 +89,23 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
         <div className="space-y-8">
           {Array.from({ length: 2 }).map((_, sectionIndex) => (
             <div key={sectionIndex}>
-              <div className="mb-4 h-8 w-40 rounded-full bg-gray-800" />
+              <div className="shimmer-block mb-4 h-8 w-40 rounded-full" />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {Array.from({ length: 4 }).map((__, cardIndex) => (
-                  <div key={cardIndex} className="rounded-lg border border-gray-800 bg-gray-900/80 p-4">
+                  <div key={cardIndex} className="shimmer-shell rounded-lg border border-gray-800 bg-gray-900/80 p-4">
                     <div className="flex gap-4">
                       <div className="flex-1 space-y-3">
-                        <div className="h-6 w-36 rounded-full bg-gray-800" />
+                        <div className="shimmer-block h-6 w-36 rounded-full" />
                         <div className="space-y-2">
-                          <div className="h-4 w-full rounded-full bg-gray-800" />
-                          <div className="h-4 w-4/5 rounded-full bg-gray-800" />
+                          <div className="shimmer-block h-4 w-full rounded-full" />
+                          <div className="shimmer-block h-4 w-4/5 rounded-full" />
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <div className="h-6 w-20 rounded-full bg-gray-800" />
-                          <div className="h-10 w-24 rounded-lg bg-gray-800" />
+                          <div className="shimmer-block h-6 w-20 rounded-full" />
+                          <div className="shimmer-block h-10 w-24 rounded-lg" />
                         </div>
                       </div>
-                      <div className="h-24 w-24 rounded-lg bg-gray-800" />
+                      <div className="shimmer-block h-24 w-24 rounded-lg" />
                     </div>
                   </div>
                 ))}
@@ -224,34 +224,49 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
                           Rs. {item.price}
                         </span>
 
-                        <button
-                          onClick={() => handleAddToCart(item)}
-                          disabled={!item.is_available || isLockedToAnotherRestaurant || isRestaurantClosed}
-                          className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                            !item.is_available
-                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                              : isRestaurantClosed
-                              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                              : isLockedToAnotherRestaurant
-                              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                              : addedItems.has(item.id)
-                              ? 'bg-green-600 text-white'
-                              : 'bg-orange-500 text-white hover:bg-orange-600'
-                          }`}
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span>
-                            {!item.is_available
-                              ? 'Unavailable'
-                              : isRestaurantClosed
-                              ? 'Closed'
-                              : isLockedToAnotherRestaurant
-                              ? 'Locked'
-                              : addedItems.has(item.id)
-                              ? 'Added'
-                              : 'Add'}
-                          </span>
-                        </button>
+                        <div className="relative">
+                          {addedItems.has(item.id) && (
+                            <div className="float-up-fade pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 rounded-full border border-green-400/30 bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-200">
+                              Added to cart
+                            </div>
+                          )}
+
+                          <button
+                            onClick={() => handleAddToCart(item)}
+                            disabled={!item.is_available || isLockedToAnotherRestaurant || isRestaurantClosed}
+                            className={`relative flex items-center space-x-2 overflow-hidden rounded-xl px-4 py-2 font-medium transition-all ${
+                              !item.is_available
+                                ? 'cursor-not-allowed bg-gray-700 text-gray-500'
+                                : isRestaurantClosed
+                                ? 'cursor-not-allowed bg-gray-700 text-gray-400'
+                                : isLockedToAnotherRestaurant
+                                ? 'cursor-not-allowed bg-gray-700 text-gray-400'
+                                : addedItems.has(item.id)
+                                ? 'soft-pop bg-green-600 text-white shadow-lg shadow-green-500/20'
+                                : 'bg-orange-500 text-white hover:-translate-y-0.5 hover:bg-orange-600 hover:shadow-lg hover:shadow-orange-500/20'
+                            }`}
+                          >
+                            {addedItems.has(item.id) && (
+                              <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/15 to-white/0" />
+                            )}
+                            {addedItems.has(item.id) ? (
+                              <Check className="relative z-10 h-4 w-4" />
+                            ) : (
+                              <Plus className="relative z-10 h-4 w-4" />
+                            )}
+                            <span className="relative z-10">
+                              {!item.is_available
+                                ? 'Unavailable'
+                                : isRestaurantClosed
+                                ? 'Closed'
+                                : isLockedToAnotherRestaurant
+                                ? 'Locked'
+                                : addedItems.has(item.id)
+                                ? 'Added'
+                                : 'Add'}
+                            </span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 

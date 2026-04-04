@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 
 interface RestaurantListProps {
   onSelectRestaurant: (restaurantId: string) => void;
+  greetingName?: string;
   featuredAnnouncement?: Announcement | null;
   announcementsLoading?: boolean;
   onAnnouncementAction?: (link?: string | null) => void;
@@ -31,6 +32,7 @@ const parseDeliveryTimeValue = (value: string) => {
 
 export default function RestaurantList({
   onSelectRestaurant,
+  greetingName,
   featuredAnnouncement,
   announcementsLoading = false,
   onAnnouncementAction,
@@ -64,6 +66,11 @@ export default function RestaurantList({
   };
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
+  const firstName = greetingName?.trim().split(/\s+/)[0] || 'there';
+  const currentHour = new Date().getHours();
+  const greetingLabel =
+    currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
+  const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
   const visibleRestaurants = [...restaurants]
     .filter((restaurant) => {
       if (!normalizedQuery) return true;
@@ -97,28 +104,28 @@ export default function RestaurantList({
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <div className="h-10 w-72 rounded-full bg-gray-800" />
+          <div className="shimmer-block h-10 w-72 rounded-full" />
         </div>
 
         <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="overflow-hidden rounded-[24px] border border-gray-800 bg-gray-900/80">
-              <div className="h-64 bg-gray-800" />
+            <div key={index} className="shimmer-shell overflow-hidden rounded-[24px] border border-gray-800 bg-gray-900/80">
+              <div className="shimmer-block h-64" />
               <div className="space-y-4 p-5">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="h-6 w-36 rounded-full bg-gray-800" />
-                  <div className="h-8 w-20 rounded-full bg-gray-800" />
+                  <div className="shimmer-block h-6 w-36 rounded-full" />
+                  <div className="shimmer-block h-8 w-20 rounded-full" />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-4 w-full rounded-full bg-gray-800" />
-                  <div className="h-4 w-4/5 rounded-full bg-gray-800" />
+                  <div className="shimmer-block h-4 w-full rounded-full" />
+                  <div className="shimmer-block h-4 w-4/5 rounded-full" />
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <div className="h-8 w-16 rounded-full bg-gray-800" />
-                  <div className="h-4 w-20 rounded-full bg-gray-800" />
-                  <div className="h-4 w-16 rounded-full bg-gray-800" />
+                  <div className="shimmer-block h-8 w-16 rounded-full" />
+                  <div className="shimmer-block h-4 w-20 rounded-full" />
+                  <div className="shimmer-block h-4 w-16 rounded-full" />
                 </div>
               </div>
             </div>
@@ -130,6 +137,36 @@ export default function RestaurantList({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-white/5 via-gray-900 to-gray-900 shadow-xl shadow-black/20">
+        <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+              {greetingLabel}, {firstName}
+            </p>
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">
+              Ready for your next campus meal?
+            </h2>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Open now</p>
+              <p className="text-lg font-semibold text-white">{openRestaurantsCount}</p>
+            </div>
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Visible spots</p>
+              <p className="text-lg font-semibold text-white">{visibleRestaurants.length}</p>
+            </div>
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Quick note</p>
+              <p className="text-sm font-semibold text-orange-300">
+                {cartRestaurantName ? `Locked to ${cartRestaurantName}` : 'Fresh picks waiting'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-white">Restaurants Near You</h1>
@@ -168,15 +205,15 @@ export default function RestaurantList({
       </div>
 
       {announcementsLoading && (
-        <div className="mb-6 overflow-hidden rounded-[28px] border border-gray-800 bg-gray-900/80 p-5 animate-pulse">
+        <div className="shimmer-shell mb-6 overflow-hidden rounded-[28px] border border-gray-800 bg-gray-900/80 p-5">
           <div className="flex flex-col gap-5 lg:flex-row">
-            <div className="h-32 w-full rounded-2xl bg-gray-800 lg:w-52" />
+            <div className="shimmer-block h-32 w-full rounded-2xl lg:w-52" />
             <div className="flex-1 space-y-3">
-              <div className="h-6 w-28 rounded-full bg-gray-800" />
-              <div className="h-8 w-3/4 rounded-full bg-gray-800" />
-              <div className="h-4 w-full rounded-full bg-gray-800" />
-              <div className="h-4 w-5/6 rounded-full bg-gray-800" />
-              <div className="h-10 w-44 rounded-full bg-gray-800" />
+              <div className="shimmer-block h-6 w-28 rounded-full" />
+              <div className="shimmer-block h-8 w-3/4 rounded-full" />
+              <div className="shimmer-block h-4 w-full rounded-full" />
+              <div className="shimmer-block h-4 w-5/6 rounded-full" />
+              <div className="shimmer-block h-10 w-44 rounded-full" />
             </div>
           </div>
         </div>

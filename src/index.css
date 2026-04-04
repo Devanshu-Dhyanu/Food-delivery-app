@@ -1,3 +1,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .shimmer-shell {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-block {
+    background: linear-gradient(
+      110deg,
+      rgba(31, 41, 55, 0.92) 8%,
+      rgba(55, 65, 81, 0.95) 18%,
+      rgba(31, 41, 55, 0.92) 33%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-slide 1.6s linear infinite;
+  }
+
+  .soft-pop {
+    animation: soft-pop 260ms ease-out;
+  }
+
+  .float-up-fade {
+    animation: float-up-fade 850ms ease-out forwards;
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes soft-pop {
+  0% {
+    transform: scale(0.88);
+  }
+
+  60% {
+    transform: scale(1.06);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes float-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.94);
+  }
+
+  18% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-18px) scale(1);
+  }
+}

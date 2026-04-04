@@ -20,23 +20,23 @@ export default function AnnouncementsScreen({
 }: AnnouncementsScreenProps) {
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
-        <div className="mb-8 h-10 w-72 rounded-full bg-gray-800" />
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="shimmer-block mb-8 h-10 w-72 rounded-full" />
         <div className="grid gap-6 lg:grid-cols-2">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="overflow-hidden rounded-[24px] border border-gray-800 bg-gray-900/80">
-              <div className="h-52 bg-gray-800" />
+            <div key={index} className="shimmer-shell overflow-hidden rounded-[24px] border border-gray-800 bg-gray-900/80">
+              <div className="shimmer-block h-52" />
               <div className="space-y-4 p-5">
                 <div className="flex items-center justify-between gap-4">
-                  <div className="h-6 w-32 rounded-full bg-gray-800" />
-                  <div className="h-8 w-20 rounded-full bg-gray-800" />
+                  <div className="shimmer-block h-6 w-32 rounded-full" />
+                  <div className="shimmer-block h-8 w-20 rounded-full" />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-5 w-3/4 rounded-full bg-gray-800" />
-                  <div className="h-4 w-full rounded-full bg-gray-800" />
-                  <div className="h-4 w-4/5 rounded-full bg-gray-800" />
+                  <div className="shimmer-block h-5 w-3/4 rounded-full" />
+                  <div className="shimmer-block h-4 w-full rounded-full" />
+                  <div className="shimmer-block h-4 w-4/5 rounded-full" />
                 </div>
-                <div className="h-10 w-36 rounded-full bg-gray-800" />
+                <div className="shimmer-block h-10 w-36 rounded-full" />
               </div>
             </div>
           ))}
