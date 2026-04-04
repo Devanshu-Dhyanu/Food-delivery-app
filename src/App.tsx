@@ -170,16 +170,51 @@ function App() {
         return <OrderTracking />;
       case 'order-placed':
         return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+          <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
+            <div className="w-full max-w-2xl overflow-hidden rounded-[28px] border border-green-500/20 bg-gradient-to-br from-emerald-500/10 via-gray-900 to-gray-900 shadow-2xl shadow-black/30">
+              <div className="border-b border-white/5 px-6 py-4 text-center sm:px-8">
+                <span className="inline-flex items-center rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-green-300">
+                  Order confirmed
+                </span>
               </div>
-              <h2 className="text-3xl font-bold text-white mb-2">Order Placed Successfully!</h2>
-              <p className="text-gray-400 mb-4">Order ID: {placedOrderId.slice(0, 8)}</p>
-              <p className="text-gray-400">Redirecting to order tracking...</p>
+
+              <div className="px-6 py-10 text-center sm:px-8">
+                <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-green-400/30 bg-green-500 shadow-lg shadow-green-500/20">
+                  <svg className="h-12 w-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+
+                <h2 className="mb-3 text-3xl font-bold text-white sm:text-4xl">Order placed successfully</h2>
+                <p className="mx-auto mb-6 max-w-xl text-sm leading-6 text-gray-300 sm:text-base">
+                  Your restaurant has received the order. We will keep your status updated as it moves from preparation to delivery.
+                </p>
+
+                <div className="mx-auto mb-6 grid max-w-lg grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                    <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Order ID</p>
+                    <p className="font-semibold text-white">{placedOrderId.slice(0, 8)}</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                    <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Status</p>
+                    <p className="font-semibold text-green-300">Pending confirmation</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                    <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Next step</p>
+                    <p className="font-semibold text-white">Track your order</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <button
+                    onClick={() => setCurrentPage('orders')}
+                    className="inline-flex items-center justify-center rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+                  >
+                    Track order now
+                  </button>
+                  <p className="text-sm text-gray-400">Redirecting automatically in a moment...</p>
+                </div>
+              </div>
             </div>
           </div>
         );

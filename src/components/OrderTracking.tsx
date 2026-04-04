@@ -132,6 +132,41 @@ export default function OrderTracking() {
       .join(' ');
   };
 
+  const getStatusBadgeClasses = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 'border-yellow-500/30 bg-yellow-500/10 text-yellow-300';
+      case 'confirmed':
+        return 'border-blue-500/30 bg-blue-500/10 text-blue-300';
+      case 'preparing':
+        return 'border-purple-500/30 bg-purple-500/10 text-purple-300';
+      case 'out_for_delivery':
+        return 'border-orange-500/30 bg-orange-500/10 text-orange-300';
+      case 'delivered':
+        return 'border-green-500/30 bg-green-500/10 text-green-300';
+      case 'rejected':
+        return 'border-red-500/30 bg-red-500/10 text-red-300';
+      default:
+        return 'border-gray-700 bg-gray-800 text-gray-300';
+    }
+  };
+
+  const getTimelineProgress = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return 1;
+      case 'confirmed':
+        return 2;
+      case 'preparing':
+        return 3;
+      case 'out_for_delivery':
+      case 'delivered':
+        return 4;
+      default:
+        return 0;
+    }
+  };
+
   const latestDeliveredOrder = orders.find((order) => order.status === 'delivered');
 
   useEffect(() => {
@@ -220,8 +255,57 @@ export default function OrderTracking() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400">Loading orders...</div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+        <div className="mb-8 h-10 w-48 rounded-full bg-gray-800" />
+
+        <div className="space-y-6">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="rounded-2xl border border-gray-800 bg-gray-900/80 p-6">
+              <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-3">
+                  <div className="h-4 w-24 rounded-full bg-gray-800" />
+                  <div className="h-6 w-40 rounded-full bg-gray-800" />
+                  <div className="h-4 w-32 rounded-full bg-gray-800" />
+                </div>
+                <div className="h-10 w-32 rounded-full bg-gray-800" />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-[1.1fr,0.9fr]">
+                <div className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4">
+                  <div className="mb-4 h-4 w-24 rounded-full bg-gray-800" />
+                  <div className="space-y-3">
+                    <div className="h-4 w-32 rounded-full bg-gray-800" />
+                    <div className="h-4 w-24 rounded-full bg-gray-800" />
+                    <div className="h-4 w-full rounded-full bg-gray-800" />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-gray-800 bg-gray-950/40 p-4">
+                  <div className="mb-4 h-4 w-20 rounded-full bg-gray-800" />
+                  <div className="space-y-3">
+                    <div className="h-4 w-full rounded-full bg-gray-800" />
+                    <div className="h-4 w-4/5 rounded-full bg-gray-800" />
+                    <div className="h-4 w-3/4 rounded-full bg-gray-800" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <div className="flex gap-2">
+                  {Array.from({ length: 4 }).map((__, stepIndex) => (
+                    <div key={stepIndex} className="h-2 flex-1 rounded-full bg-gray-800" />
+                  ))}
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-xs text-gray-600">
+                  <span>Placed</span>
+                  <span>Confirmed</span>
+                  <span>Preparing</span>
+                  <span>On the way</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -241,16 +325,18 @@ export default function OrderTracking() {
           <div className="space-y-6">
             {orders.map((order) => {
               const isRejected = order.status === 'rejected';
+              const timelineProgress = getTimelineProgress(order.status);
+              const statusText = getStatusText(order.status);
 
               return (
-                <div key={order.id} className="bg-gray-800 rounded-lg p-6">
-                  <div className="flex items-start justify-between mb-4">
+                <div key={order.id} className="rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-lg shadow-black/20">
+                  <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                      <p className="text-sm text-gray-400 mb-1">
+                      <p className="mb-1 text-xs uppercase tracking-[0.18em] text-gray-500">
                         Order ID: {order.id.slice(0, 8)}
                       </p>
                       {order.restaurant_name && (
-                        <p className="text-sm font-medium text-orange-400 mb-1">
+                        <p className="mb-1 text-lg font-semibold text-white">
                           Restaurant: {order.restaurant_name}
                         </p>
                       )}
@@ -258,61 +344,75 @@ export default function OrderTracking() {
                         {new Date(order.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <div className={`flex items-center space-x-2 ${getStatusColor(order.status)}`}>
+                    <div className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-semibold ${getStatusBadgeClasses(order.status)}`}>
                       {getStatusIcon(order.status)}
-                      <span className="font-semibold">{getStatusText(order.status)}</span>
+                      <span>{statusText}</span>
                     </div>
                   </div>
 
                   {isRejected && (
-                    <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                    <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
                       This order was rejected by the restaurant.
                     </div>
                   )}
 
-                  <div className="border-t border-gray-700 pt-4 mb-4">
-                    <div className="flex items-start space-x-2 text-gray-400 mb-2">
-                      <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-white">{order.customer_name}</p>
-                        <p className="text-sm">{order.customer_phone}</p>
-                        <p className="text-sm">{order.delivery_address}</p>
+                  <div className="grid gap-4 md:grid-cols-[1.1fr,0.9fr]">
+                    <div className="rounded-2xl border border-gray-800 bg-gray-950/30 p-4">
+                      <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                        <MapPin className="h-4 w-4" />
+                        Delivery Details
+                      </div>
+                      <div className="space-y-1 text-sm text-gray-400">
+                        <p className="font-medium text-white">{order.customer_name}</p>
+                        <p>{order.customer_phone}</p>
+                        <p>{order.delivery_address}</p>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="border-t border-gray-700 pt-4">
-                    <h3 className="text-sm font-semibold text-white mb-3">Order Items</h3>
-                    <div className="space-y-2 mb-4">
-                      {order.items.map((item) => (
-                        <div key={item.id} className="flex justify-between text-gray-400 text-sm">
-                          <span>
-                            {item.item_name} x {item.quantity}
-                          </span>
-                          <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-2 pt-3 border-t border-gray-700">
-                      <div className="flex justify-between text-gray-400 text-sm">
-                        <span>Subtotal</span>
-                        <span>Rs. {(order.subtotal_amount ?? Math.max(order.total_amount - 20, 0)).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-gray-400 text-sm">
-                        <span>Delivery Fee</span>
-                        <span>Rs. {(order.delivery_fee ?? 20).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-1">
-                        <span className="text-white font-semibold">Total Amount</span>
-                        <span className="text-xl font-bold text-orange-500">
-                          Rs. {order.total_amount.toFixed(2)}
+                    <div className="rounded-2xl border border-gray-800 bg-gray-950/30 p-4">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Order Summary</h3>
+                        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-300">
+                          {order.items.length} item{order.items.length === 1 ? '' : 's'}
                         </span>
                       </div>
+                      <div className="space-y-3">
+                        {order.items.map((item) => (
+                          <div key={item.id} className="flex justify-between gap-4 text-sm text-gray-400">
+                            <span>
+                              {item.item_name} x {item.quantity}
+                            </span>
+                            <span className="whitespace-nowrap">Rs. {(item.price * item.quantity).toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 space-y-2 border-t border-gray-800 pt-4">
+                        <div className="flex justify-between text-sm text-gray-400">
+                          <span>Subtotal</span>
+                          <span>Rs. {(order.subtotal_amount ?? Math.max(order.total_amount - 20, 0)).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-gray-400">
+                          <span>Delivery Fee</span>
+                          <span>Rs. {(order.delivery_fee ?? 20).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between items-center pt-1">
+                          <span className="font-semibold text-white">Total Amount</span>
+                          <span className="text-xl font-bold text-orange-500">
+                            Rs. {order.total_amount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex space-x-2">
+                  <div className="mt-5">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Order Timeline</p>
+                      <p className={`text-xs font-medium ${getStatusColor(order.status)}`}>{statusText}</p>
+                    </div>
+
+                    <div className="flex space-x-2">
                     {isRejected ? (
                       <>
                         <div className="flex-1 h-2 rounded-full bg-red-500" />
@@ -322,12 +422,35 @@ export default function OrderTracking() {
                       </>
                     ) : (
                       <>
-                        <div className={`flex-1 h-2 rounded-full ${order.status !== 'pending' ? 'bg-green-500' : 'bg-gray-700'}`} />
-                        <div className={`flex-1 h-2 rounded-full ${order.status !== 'pending' && order.status !== 'confirmed' ? 'bg-green-500' : 'bg-gray-700'}`} />
-                        <div className={`flex-1 h-2 rounded-full ${order.status === 'out_for_delivery' || order.status === 'delivered' ? 'bg-green-500' : 'bg-gray-700'}`} />
-                        <div className={`flex-1 h-2 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-gray-700'}`} />
+                        {['Placed', 'Confirmed', 'Preparing', 'On the way'].map((_, index) => (
+                          <div
+                            key={index}
+                            className={`h-2 flex-1 rounded-full ${
+                              timelineProgress > index ? 'bg-green-500' : 'bg-gray-700'
+                            }`}
+                          />
+                        ))}
                       </>
                     )}
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-4 gap-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">
+                      {isRejected ? (
+                        <>
+                          <span className="text-red-300">Placed</span>
+                          <span className="text-red-300">Reviewed</span>
+                          <span>Stopped</span>
+                          <span>Closed</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className={timelineProgress > 0 ? 'text-green-300' : undefined}>Placed</span>
+                          <span className={timelineProgress > 1 ? 'text-green-300' : undefined}>Confirmed</span>
+                          <span className={timelineProgress > 2 ? 'text-green-300' : undefined}>Preparing</span>
+                          <span className={timelineProgress > 3 ? 'text-green-300' : undefined}>On the way</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

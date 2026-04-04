@@ -34,8 +34,33 @@ export default function RestaurantList({ onSelectRestaurant }: RestaurantListPro
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400">Loading restaurants...</div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+        <div className="mb-8">
+          <div className="h-10 w-72 rounded-full bg-gray-800" />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900/80">
+              <div className="h-48 bg-gray-800" />
+              <div className="space-y-4 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="h-6 w-32 rounded-full bg-gray-800" />
+                  <div className="h-6 w-16 rounded-full bg-gray-800" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-full rounded-full bg-gray-800" />
+                  <div className="h-4 w-4/5 rounded-full bg-gray-800" />
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="h-4 w-14 rounded-full bg-gray-800" />
+                  <div className="h-4 w-20 rounded-full bg-gray-800" />
+                  <div className="h-4 w-16 rounded-full bg-gray-800" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

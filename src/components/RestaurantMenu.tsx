@@ -64,8 +64,55 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-gray-400">Loading menu...</div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+        <div className="mb-6 h-6 w-40 rounded-full bg-gray-800" />
+
+        <div className="mb-8 overflow-hidden rounded-xl border border-gray-800 bg-gray-900/80">
+          <div className="h-64 bg-gray-800" />
+          <div className="space-y-4 p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="h-10 w-52 rounded-full bg-gray-800" />
+              <div className="h-7 w-28 rounded-full bg-gray-800" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-full rounded-full bg-gray-800" />
+              <div className="h-4 w-3/4 rounded-full bg-gray-800" />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className="h-5 w-16 rounded-full bg-gray-800" />
+              <div className="h-5 w-24 rounded-full bg-gray-800" />
+              <div className="h-5 w-20 rounded-full bg-gray-800" />
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-8">
+          {Array.from({ length: 2 }).map((_, sectionIndex) => (
+            <div key={sectionIndex}>
+              <div className="mb-4 h-8 w-40 rounded-full bg-gray-800" />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {Array.from({ length: 4 }).map((__, cardIndex) => (
+                  <div key={cardIndex} className="rounded-lg border border-gray-800 bg-gray-900/80 p-4">
+                    <div className="flex gap-4">
+                      <div className="flex-1 space-y-3">
+                        <div className="h-6 w-36 rounded-full bg-gray-800" />
+                        <div className="space-y-2">
+                          <div className="h-4 w-full rounded-full bg-gray-800" />
+                          <div className="h-4 w-4/5 rounded-full bg-gray-800" />
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="h-6 w-20 rounded-full bg-gray-800" />
+                          <div className="h-10 w-24 rounded-lg bg-gray-800" />
+                        </div>
+                      </div>
+                      <div className="h-24 w-24 rounded-lg bg-gray-800" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
