@@ -1,0 +1,17 @@
+{
+  "name": "The Vajra",
+  "short_name": "The Vajra",
+  "description": "Campus food delivery from The Vajra.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f131a",
+  "theme_color": "#0f131a",
+  "icons": [
+    {
+      "src": "/the-vajra-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

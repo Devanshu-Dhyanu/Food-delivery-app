@@ -65,7 +65,11 @@ export default function Login() {
         {/* NAVBAR */}
         <nav style={styles.navbar}>
           <div style={styles.logo}>
-            Vajra<span style={styles.logoAccent}>cognixia</span>
+            <img src="/the-vajra-mark.svg" alt="The Vajra" style={styles.logoIcon} />
+            <div style={styles.logoTextGroup}>
+              <span style={styles.logoTitle}>The Vajra</span>
+              <span style={styles.logoAccent}>Campus delivery</span>
+            </div>
           </div>
           <div style={styles.navRight}>
             <button style={styles.navLink} onClick={() => openModal('signin')}>Sign in</button>
@@ -95,7 +99,7 @@ export default function Login() {
 
       <footer style={styles.siteFooter}>
         <div style={styles.footerBar}>
-          <p style={styles.footerCopy}>© {new Date().getFullYear()} VajraCognixia. All rights reserved.</p>
+          <p style={styles.footerCopy}>© {new Date().getFullYear()} The Vajra. All rights reserved.</p>
           <div style={styles.footerLinks}>
             <a href="/privacy" style={styles.footerBarLink}>Privacy Policy</a>
             <span style={{ color: '#555' }}>·</span>
@@ -110,7 +114,7 @@ export default function Login() {
           <div style={styles.modal}>
             <button style={styles.closeBtn} onClick={() => setModalOpen(false)}>×</button>
             <h2 style={styles.modalTitle}>
-              {mode === 'signup' ? 'Join VajraCognixia.' : 'Welcome back.'}
+              {mode === 'signup' ? 'Join The Vajra.' : 'Welcome back.'}
             </h2>
 
             <button style={styles.socialBtn} onClick={handleGoogleLogin}>
@@ -165,8 +169,11 @@ export default function Login() {
 const styles: Record<string, React.CSSProperties> = {
   page: { minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', background: '#fff' },
   navbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 40px', borderBottom: '1px solid #e8e8e8' },
-  logo: { fontFamily: "'Source Serif 4', serif", fontSize: 24, fontWeight: 600, color: '#1a1a1a' },
-  logoAccent: { color: '#C0572A' },
+  logo: { display: 'flex', alignItems: 'center', gap: 12 },
+  logoIcon: { width: 44, height: 44, borderRadius: 16, display: 'block', boxShadow: '0 18px 36px rgba(15, 19, 26, 0.2)' },
+  logoTextGroup: { display: 'flex', flexDirection: 'column', gap: 2 },
+  logoTitle: { fontFamily: "'Source Serif 4', serif", fontSize: 24, fontWeight: 600, color: '#1a1a1a', lineHeight: 1 },
+  logoAccent: { color: '#C0572A', fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' },
   navRight: { display: 'flex', alignItems: 'center', gap: 16 },
   navLink: { fontSize: 14, color: '#555', background: 'none', border: 'none', fontFamily: 'inherit', padding: '8px 4px' },
   navBtn: { padding: '9px 22px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 40, fontSize: 14, fontFamily: 'inherit' },

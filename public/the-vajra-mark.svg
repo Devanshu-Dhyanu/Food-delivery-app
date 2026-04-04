@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>The Vajra</title>
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="#0F131A" />
+  <rect x="24" y="24" width="464" height="464" rx="112" stroke="#202733" stroke-width="12" />
+  <path
+    d="M156 138V214M112 138V184M200 138V184M156 138V366"
+    stroke="#F57C1F"
+    stroke-width="22"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M316 138V366M316 138C372 138 416 182 416 238V266C416 322 372 366 316 366"
+    stroke="#F57C1F"
+    stroke-width="22"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

@@ -41,12 +41,16 @@ export default function Header({
         <div className="flex min-h-16 items-center justify-between gap-4 py-3">
           <button
             onClick={() => handleNavigate('home')}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
           >
-            <Utensils className="w-8 h-8 text-orange-500" />
+            <img
+              src="/the-vajra-mark.svg"
+              alt="The Vajra"
+              className="h-10 w-10 rounded-2xl border border-white/10 shadow-lg shadow-black/30 sm:h-11 sm:w-11"
+            />
             <div className="flex flex-col items-start">
-              <span className="text-xl font-bold text-white">vajraCognixia</span>
-              <span className="text-xs text-gray-400">Campus Food Delivery</span>
+              <span className="text-lg font-bold tracking-tight text-white sm:text-xl">The Vajra</span>
+              <span className="hidden text-xs text-gray-400 sm:block">Campus Food Delivery</span>
             </div>
           </button>
 
