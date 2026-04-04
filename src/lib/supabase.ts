@@ -52,6 +52,16 @@ export type OrderItem = {
   created_at: string;
 };
 
+export type DeliveryFeedback = {
+  id: string;
+  order_id: string;
+  user_id: string;
+  rating: number | null;
+  feedback_text: string | null;
+  skipped_at: string | null;
+  created_at: string;
+};
+
 export type CartItem = MenuItem & {
   quantity: number;
 };
