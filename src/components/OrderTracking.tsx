@@ -14,6 +14,7 @@ export default function OrderTracking() {
   const [activeFeedbackOrder, setActiveFeedbackOrder] = useState<OrderWithItems | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [dismissedOrderIds, setDismissedOrderIds] = useState<string[]>([]);
+  const [feedbackEnabled, setFeedbackEnabled] = useState(true);
 
   useEffect(() => {
     fetchOrders();
@@ -46,18 +47,21 @@ export default function OrderTracking() {
       const orderIds = (ordersData || []).map((order) => order.id);
       let feedbackByOrderId: Record<string, DeliveryFeedback> = {};
 
-      if (orderIds.length > 0) {
+      if (feedbackEnabled && orderIds.length > 0) {
         const { data: feedbackData, error: feedbackError } = await supabase
           .from('delivery_feedback')
           .select('*')
           .in('order_id', orderIds);
 
-        if (feedbackError) throw feedbackError;
-
-        feedbackByOrderId = (feedbackData || []).reduce<Record<string, DeliveryFeedback>>((acc, feedback) => {
-          acc[feedback.order_id] = feedback;
-          return acc;
-        }, {});
+        if (feedbackError) {
+          console.warn('Delivery feedback is unavailable. Orders will still be shown.', feedbackError);
+          setFeedbackEnabled(false);
+        } else {
+          feedbackByOrderId = (feedbackData || []).reduce<Record<string, DeliveryFeedback>>((acc, feedback) => {
+            acc[feedback.order_id] = feedback;
+            return acc;
+          }, {});
+        }
       }
 
       const ordersWithItems = await Promise.all(
@@ -127,12 +131,13 @@ export default function OrderTracking() {
   const latestDeliveredOrder = orders.find((order) => order.status === 'delivered');
 
   useEffect(() => {
+    if (!feedbackEnabled) return;
     if (!latestDeliveredOrder || activeFeedbackOrder) return;
     if (latestDeliveredOrder.feedback) return;
     if (dismissedOrderIds.includes(latestDeliveredOrder.id)) return;
 
     setActiveFeedbackOrder(latestDeliveredOrder);
-  }, [activeFeedbackOrder, dismissedOrderIds, latestDeliveredOrder]);
+  }, [activeFeedbackOrder, dismissedOrderIds, feedbackEnabled, latestDeliveredOrder]);
 
   const handleDismissFeedback = () => {
     if (!activeFeedbackOrder) return;
