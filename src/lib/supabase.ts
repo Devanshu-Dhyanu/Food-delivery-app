@@ -33,9 +33,13 @@ export type MenuItem = {
 export type Order = {
   id: string;
   user_id: string | null;
+  restaurant_id: string | null;
+  restaurant_name: string | null;
   customer_name: string;
   customer_phone: string;
   delivery_address: string;
+  subtotal_amount: number | null;
+  delivery_fee: number | null;
   total_amount: number;
   status: string;
   created_at: string;
@@ -64,6 +68,7 @@ export type DeliveryFeedback = {
 
 export type CartItem = MenuItem & {
   quantity: number;
+  restaurant_name: string;
 };
 
 export type UserProfile = {

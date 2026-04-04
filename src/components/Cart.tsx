@@ -6,7 +6,7 @@ interface CartProps {
 }
 
 export default function Cart({ onCheckout }: CartProps) {
-  const { cart, removeFromCart, updateQuantity, getTotalAmount, getTotalItems } = useCart();
+  const { cart, cartRestaurantName, removeFromCart, updateQuantity, getTotalAmount, getTotalItems } = useCart();
   const totalAmount = getTotalAmount();
   const totalItems = getTotalItems();
 
@@ -26,6 +26,13 @@ export default function Cart({ onCheckout }: CartProps) {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold text-white mb-8">Your Cart</h1>
 
+      {cartRestaurantName && (
+        <div className="mb-6 rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-gray-300">
+          Ordering from <span className="font-semibold text-white">{cartRestaurantName}</span>. To switch restaurants,
+          remove these items first.
+        </div>
+      )}
+
       <div className="space-y-4 mb-8">
         {cart.map((item) => (
           <div key={item.id} className="bg-gray-800 rounded-lg p-4 flex items-center space-x-4">
@@ -42,7 +49,7 @@ export default function Cart({ onCheckout }: CartProps) {
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-white mb-1">{item.name}</h3>
               <p className="text-sm text-gray-400 mb-2 line-clamp-1">{item.description}</p>
-              <p className="text-lg font-bold text-orange-500">₹{item.price}</p>
+              <p className="text-lg font-bold text-orange-500">Rs. {item.price}</p>
             </div>
 
             <div className="flex items-center space-x-3">
@@ -77,15 +84,15 @@ export default function Cart({ onCheckout }: CartProps) {
         <div className="space-y-3 mb-6">
           <div className="flex justify-between text-gray-400">
             <span>Items ({totalItems})</span>
-            <span>₹{totalAmount.toFixed(2)}</span>
+            <span>Rs. {totalAmount.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-gray-400">
             <span>Delivery Fee</span>
-            <span>₹20.00</span>
+            <span>Rs. 20.00</span>
           </div>
           <div className="border-t border-gray-700 pt-3 flex justify-between text-xl font-bold">
             <span className="text-white">Total</span>
-            <span className="text-orange-500">₹{(totalAmount + 20).toFixed(2)}</span>
+            <span className="text-orange-500">Rs. {(totalAmount + 20).toFixed(2)}</span>
           </div>
         </div>
 

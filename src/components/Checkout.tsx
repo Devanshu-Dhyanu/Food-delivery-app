@@ -9,7 +9,7 @@ interface CheckoutProps {
 }
 
 export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
-  const { cart, getTotalAmount, clearCart } = useCart();
+  const { cart, cartRestaurantId, cartRestaurantName, getTotalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     customerName: '',
@@ -17,13 +17,24 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     deliveryAddress: '',
   });
 
-  const totalAmount = getTotalAmount() + 20;
+  const subtotalAmount = getTotalAmount();
+  const deliveryFee = 20;
+  const totalAmount = subtotalAmount + deliveryFee;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      if (cart.length === 0 || !cartRestaurantId || !cartRestaurantName) {
+        throw new Error('Please add items from one restaurant before checkout.');
+      }
+
+      const hasMixedRestaurantItems = cart.some((item) => item.restaurant_id !== cartRestaurantId);
+      if (hasMixedRestaurantItems) {
+        throw new Error('Cart contains items from multiple restaurants.');
+      }
+
       const {
         data: { user },
         error: userError,
@@ -37,9 +48,13 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         .insert([
           {
             user_id: user.id,
+            restaurant_id: cartRestaurantId,
+            restaurant_name: cartRestaurantName,
             customer_name: formData.customerName,
             customer_phone: formData.customerPhone,
             delivery_address: formData.deliveryAddress,
+            subtotal_amount: subtotalAmount,
+            delivery_fee: deliveryFee,
             total_amount: totalAmount,
             status: 'pending',
           },
@@ -84,6 +99,12 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       </button>
 
       <h1 className="text-3xl font-bold text-white mb-8">Checkout</h1>
+
+      {cartRestaurantName && (
+        <div className="mb-6 rounded-xl border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-gray-300">
+          Order will be placed for <span className="font-semibold text-white">{cartRestaurantName}</span>.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-gray-800 rounded-lg p-6 space-y-4">
@@ -144,7 +165,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
                 <span>
                   {item.name} x {item.quantity}
                 </span>
-                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
           </div>
@@ -152,15 +173,15 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
           <div className="border-t border-gray-700 pt-4 space-y-2">
             <div className="flex justify-between text-gray-400">
               <span>Subtotal</span>
-              <span>₹{getTotalAmount().toFixed(2)}</span>
+              <span>Rs. {subtotalAmount.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Delivery Fee</span>
-              <span>₹20.00</span>
+              <span>Rs. {deliveryFee.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xl font-bold">
               <span className="text-white">Total</span>
-              <span className="text-orange-500">₹{totalAmount.toFixed(2)}</span>
+              <span className="text-orange-500">Rs. {totalAmount.toFixed(2)}</span>
             </div>
           </div>
         </div>

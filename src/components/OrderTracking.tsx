@@ -237,6 +237,11 @@ export default function OrderTracking() {
                     <p className="text-sm text-gray-400 mb-1">
                       Order ID: {order.id.slice(0, 8)}
                     </p>
+                    {order.restaurant_name && (
+                      <p className="text-sm font-medium text-orange-400 mb-1">
+                        Restaurant: {order.restaurant_name}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-400">
                       {new Date(order.created_at).toLocaleString()}
                     </p>
@@ -266,16 +271,26 @@ export default function OrderTracking() {
                         <span>
                           {item.item_name} x {item.quantity}
                         </span>
-                        <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                        <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="flex justify-between items-center pt-3 border-t border-gray-700">
-                    <span className="text-white font-semibold">Total Amount</span>
-                    <span className="text-xl font-bold text-orange-500">
-                      ₹{order.total_amount.toFixed(2)}
-                    </span>
+                  <div className="space-y-2 pt-3 border-t border-gray-700">
+                    <div className="flex justify-between text-gray-400 text-sm">
+                      <span>Subtotal</span>
+                      <span>Rs. {(order.subtotal_amount ?? Math.max(order.total_amount - 20, 0)).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-400 text-sm">
+                      <span>Delivery Fee</span>
+                      <span>Rs. {(order.delivery_fee ?? 20).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-white font-semibold">Total Amount</span>
+                      <span className="text-xl font-bold text-orange-500">
+                        Rs. {order.total_amount.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

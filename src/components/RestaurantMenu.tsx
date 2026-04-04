@@ -12,7 +12,7 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
+  const { addToCart, canAddFromRestaurant, cartRestaurantId, cartRestaurantName } = useCart();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
     try {
       const [restaurantRes, menuRes] = await Promise.all([
         supabase.from('restaurants').select('*').eq('id', restaurantId).maybeSingle(),
-        supabase.from('menu_items').select('*').eq('restaurant_id', restaurantId).order('category')
+        supabase.from('menu_items').select('*').eq('restaurant_id', restaurantId).order('category'),
       ]);
 
       if (restaurantRes.error) throw restaurantRes.error;
@@ -39,10 +39,14 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
   };
 
   const handleAddToCart = (item: MenuItem) => {
-    addToCart(item);
-    setAddedItems(prev => new Set(prev).add(item.id));
+    if (!restaurant || !canAddFromRestaurant(restaurant.id)) {
+      return;
+    }
+
+    addToCart(item, restaurant.name);
+    setAddedItems((prev) => new Set(prev).add(item.id));
     setTimeout(() => {
-      setAddedItems(prev => {
+      setAddedItems((prev) => {
         const newSet = new Set(prev);
         newSet.delete(item.id);
         return newSet;
@@ -74,6 +78,8 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
     );
   }
 
+  const isLockedToAnotherRestaurant = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button
@@ -94,7 +100,7 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-gray-600 text-6xl">🍽️</span>
+              <span className="text-gray-600 text-lg font-semibold tracking-[0.2em]">FOOD</span>
             </div>
           )}
         </div>
@@ -126,6 +132,13 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
           </div>
         </div>
       </div>
+
+      {isLockedToAnotherRestaurant && cartRestaurantName && (
+        <div className="mb-8 rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 py-3 text-sm text-orange-100">
+          Your cart already has items from <span className="font-semibold text-white">{cartRestaurantName}</span>.
+          Remove them first to order from {restaurant.name}.
+        </div>
+      )}
 
       {Object.keys(groupedItems).length === 0 ? (
         <div className="text-center py-12">
@@ -160,22 +173,32 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
 
                       <div className="flex items-center justify-between">
                         <span className="text-lg font-bold text-orange-500">
-                          ₹{item.price}
+                          Rs. {item.price}
                         </span>
 
                         <button
                           onClick={() => handleAddToCart(item)}
-                          disabled={!item.is_available}
+                          disabled={!item.is_available || isLockedToAnotherRestaurant}
                           className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                             !item.is_available
                               ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              : isLockedToAnotherRestaurant
+                              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                               : addedItems.has(item.id)
                               ? 'bg-green-600 text-white'
                               : 'bg-orange-500 text-white hover:bg-orange-600'
                           }`}
                         >
                           <Plus className="w-4 h-4" />
-                          <span>{addedItems.has(item.id) ? 'Added' : 'Add'}</span>
+                          <span>
+                            {!item.is_available
+                              ? 'Unavailable'
+                              : isLockedToAnotherRestaurant
+                              ? 'Locked'
+                              : addedItems.has(item.id)
+                              ? 'Added'
+                              : 'Add'}
+                          </span>
                         </button>
                       </div>
                     </div>
