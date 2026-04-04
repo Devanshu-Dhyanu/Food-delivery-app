@@ -8,6 +8,13 @@ interface CheckoutProps {
   onOrderPlaced: (orderId: string) => void;
 }
 
+type OrderItemPayload = {
+  menu_item_id: string;
+  quantity: number;
+  price: number;
+  item_name: string;
+};
+
 export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const { cart, cartRestaurantId, cartRestaurantName, getTotalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
@@ -20,6 +27,56 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const subtotalAmount = getTotalAmount();
   const deliveryFee = 20;
   const totalAmount = subtotalAmount + deliveryFee;
+
+  const orderItemsPayload: OrderItemPayload[] = cart.map((item) => ({
+    menu_item_id: item.id,
+    quantity: item.quantity,
+    price: item.price,
+    item_name: item.name,
+  }));
+
+  const shouldUseLegacyOrderFallback = (error: unknown) => {
+    const maybeError = error as { code?: string; message?: string; details?: string };
+    const details = `${maybeError?.message ?? ''} ${maybeError?.details ?? ''}`.toLowerCase();
+
+    return (
+      maybeError?.code === 'PGRST202' ||
+      maybeError?.code === '42883' ||
+      details.includes('create_order_with_items')
+    );
+  };
+
+  const createOrderWithLegacyInsert = async (userId: string) => {
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert([
+        {
+          user_id: userId,
+          customer_name: formData.customerName,
+          customer_phone: formData.customerPhone,
+          delivery_address: formData.deliveryAddress,
+          total_amount: totalAmount,
+          status: 'pending',
+        },
+      ])
+      .select()
+      .single();
+
+    if (orderError) throw orderError;
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(
+        orderItemsPayload.map((item) => ({
+          order_id: order.id,
+          ...item,
+        }))
+      );
+
+    if (itemsError) throw itemsError;
+
+    return order.id as string;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,43 +100,36 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       if (userError) throw userError;
       if (!user) throw new Error('You must be signed in to place an order.');
 
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert([
-          {
-            user_id: user.id,
-            restaurant_id: cartRestaurantId,
-            restaurant_name: cartRestaurantName,
-            customer_name: formData.customerName,
-            customer_phone: formData.customerPhone,
-            delivery_address: formData.deliveryAddress,
-            subtotal_amount: subtotalAmount,
-            delivery_fee: deliveryFee,
-            total_amount: totalAmount,
-            status: 'pending',
-          },
-        ])
-        .select()
-        .single();
+      let orderId = '';
 
-      if (orderError) throw orderError;
+      try {
+        const { data, error } = await supabase.rpc('create_order_with_items', {
+          p_customer_name: formData.customerName,
+          p_customer_phone: formData.customerPhone,
+          p_delivery_address: formData.deliveryAddress,
+          p_restaurant_id: cartRestaurantId,
+          p_restaurant_name: cartRestaurantName,
+          p_subtotal_amount: subtotalAmount,
+          p_delivery_fee: deliveryFee,
+          p_total_amount: totalAmount,
+          p_items: orderItemsPayload,
+        });
 
-      const orderItems = cart.map((item) => ({
-        order_id: order.id,
-        menu_item_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-        item_name: item.name,
-      }));
+        if (error) throw error;
+        if (!data) throw new Error('Failed to create order.');
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+        orderId = data as string;
+      } catch (error) {
+        if (!shouldUseLegacyOrderFallback(error)) {
+          throw error;
+        }
 
-      if (itemsError) throw itemsError;
+        console.warn('Transactional RPC unavailable, falling back to legacy checkout path.', error);
+        orderId = await createOrderWithLegacyInsert(user.id);
+      }
 
       clearCart();
-      onOrderPlaced(order.id);
+      onOrderPlaced(orderId);
     } catch (error) {
       console.error('Error placing order:', error);
       alert('Failed to place order. Please try again.');
