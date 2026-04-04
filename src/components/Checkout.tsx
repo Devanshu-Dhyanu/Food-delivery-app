@@ -36,7 +36,6 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         .from('orders')
         .insert([
           {
-            user_id: user.id,
             customer_name: formData.customerName,
             customer_phone: formData.customerPhone,
             delivery_address: formData.deliveryAddress,
