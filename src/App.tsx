@@ -163,7 +163,7 @@ function App() {
       case 'menu':
         return <RestaurantMenu restaurantId={selectedRestaurantId} onBack={() => setCurrentPage('home')} />;
       case 'cart':
-        return <Cart onCheckout={handleCheckout} />;
+        return <Cart onCheckout={handleCheckout} onBrowseRestaurants={() => setCurrentPage('home')} />;
       case 'checkout':
         return <Checkout onBack={() => setCurrentPage('cart')} onOrderPlaced={handleOrderPlaced} />;
       case 'orders':

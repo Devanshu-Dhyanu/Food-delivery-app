@@ -3,20 +3,41 @@ import { useCart } from '../context/CartContext';
 
 interface CartProps {
   onCheckout: () => void;
+  onBrowseRestaurants?: () => void;
 }
 
-export default function Cart({ onCheckout }: CartProps) {
+export default function Cart({ onCheckout, onBrowseRestaurants }: CartProps) {
   const { cart, cartRestaurantName, removeFromCart, updateQuantity, getTotalAmount, getTotalItems } = useCart();
   const totalAmount = getTotalAmount();
   const totalItems = getTotalItems();
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center">
-          <ShoppingBag className="w-24 h-24 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Your cart is empty</h2>
-          <p className="text-gray-400">Add some delicious items to get started!</p>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="mx-auto max-w-2xl rounded-3xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 px-6 py-12 text-center shadow-2xl shadow-black/20 sm:px-10">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full border border-orange-500/30 bg-orange-500/10">
+            <ShoppingBag className="h-12 w-12 text-orange-400" />
+          </div>
+
+          <h2 className="mb-3 text-3xl font-bold text-white">Your cart is feeling light</h2>
+          <p className="mx-auto mb-6 max-w-md text-sm leading-6 text-gray-400 sm:text-base">
+            Looks like you have not added anything yet. Explore restaurants and pick your next meal in just a few taps.
+          </p>
+
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-3 text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
+            <span className="rounded-full border border-gray-700 bg-gray-800/80 px-4 py-2">Fresh picks</span>
+            <span className="rounded-full border border-gray-700 bg-gray-800/80 px-4 py-2">Fast delivery</span>
+            <span className="rounded-full border border-gray-700 bg-gray-800/80 px-4 py-2">Campus favorites</span>
+          </div>
+
+          {onBrowseRestaurants && (
+            <button
+              onClick={onBrowseRestaurants}
+              className="inline-flex items-center justify-center rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600"
+            >
+              Browse Restaurants
+            </button>
+          )}
         </div>
       </div>
     );
