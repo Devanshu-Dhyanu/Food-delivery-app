@@ -31,6 +31,7 @@ DECLARE
   v_order_id uuid;
   v_item jsonb;
   v_user_id uuid;
+  v_restaurant_is_open boolean;
 BEGIN
   v_user_id := auth.uid();
 
@@ -56,6 +57,19 @@ BEGIN
 
   IF COALESCE(BTRIM(p_restaurant_name), '') = '' THEN
     RAISE EXCEPTION 'Restaurant name is required.';
+  END IF;
+
+  SELECT is_open
+  INTO v_restaurant_is_open
+  FROM public.restaurants
+  WHERE id = p_restaurant_id;
+
+  IF v_restaurant_is_open IS NULL THEN
+    RAISE EXCEPTION 'Restaurant not found.';
+  END IF;
+
+  IF v_restaurant_is_open = false THEN
+    RAISE EXCEPTION 'This restaurant is currently closed.';
   END IF;
 
   IF p_subtotal_amount IS NULL OR p_subtotal_amount < 0 THEN

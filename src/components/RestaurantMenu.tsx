@@ -39,7 +39,7 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
   };
 
   const handleAddToCart = (item: MenuItem) => {
-    if (!restaurant || !canAddFromRestaurant(restaurant.id)) {
+    if (!restaurant || !restaurant.is_open || !canAddFromRestaurant(restaurant.id)) {
       return;
     }
 
@@ -79,6 +79,7 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
   }
 
   const isLockedToAnotherRestaurant = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
+  const isRestaurantClosed = !restaurant.is_open;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -178,10 +179,12 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
 
                         <button
                           onClick={() => handleAddToCart(item)}
-                          disabled={!item.is_available || isLockedToAnotherRestaurant}
+                          disabled={!item.is_available || isLockedToAnotherRestaurant || isRestaurantClosed}
                           className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                             !item.is_available
                               ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              : isRestaurantClosed
+                              ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                               : isLockedToAnotherRestaurant
                               ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                               : addedItems.has(item.id)
@@ -193,6 +196,8 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
                           <span>
                             {!item.is_available
                               ? 'Unavailable'
+                              : isRestaurantClosed
+                              ? 'Closed'
                               : isLockedToAnotherRestaurant
                               ? 'Locked'
                               : addedItems.has(item.id)

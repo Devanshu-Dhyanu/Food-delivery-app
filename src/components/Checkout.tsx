@@ -47,6 +47,16 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   };
 
   const createOrderWithLegacyInsert = async (userId: string) => {
+    const { data: restaurant, error: restaurantError } = await supabase
+      .from('restaurants')
+      .select('is_open')
+      .eq('id', cartRestaurantId)
+      .maybeSingle();
+
+    if (restaurantError) throw restaurantError;
+    if (!restaurant) throw new Error('Restaurant not found.');
+    if (!restaurant.is_open) throw new Error('This restaurant is currently closed.');
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert([
@@ -100,6 +110,16 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       if (userError) throw userError;
       if (!user) throw new Error('You must be signed in to place an order.');
 
+      const { data: restaurant, error: restaurantError } = await supabase
+        .from('restaurants')
+        .select('is_open')
+        .eq('id', cartRestaurantId)
+        .maybeSingle();
+
+      if (restaurantError) throw restaurantError;
+      if (!restaurant) throw new Error('Restaurant not found.');
+      if (!restaurant.is_open) throw new Error('This restaurant is currently closed.');
+
       let orderId = '';
 
       try {
@@ -132,7 +152,8 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       onOrderPlaced(orderId);
     } catch (error) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to place order. Please try again.';
+      alert(message);
     } finally {
       setLoading(false);
     }

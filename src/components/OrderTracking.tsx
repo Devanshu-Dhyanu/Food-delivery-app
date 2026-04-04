@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Clock, CheckCircle, Package, Truck, MapPin } from 'lucide-react';
+import { Clock, CheckCircle, Package, Truck, MapPin, XCircle } from 'lucide-react';
 import DeliveryFeedbackModal from './DeliveryFeedbackModal';
 import { supabase, DeliveryFeedback, Order, OrderItem } from '../lib/supabase';
 
@@ -99,6 +99,8 @@ export default function OrderTracking() {
         return 'text-orange-500';
       case 'delivered':
         return 'text-green-500';
+      case 'rejected':
+        return 'text-red-500';
       default:
         return 'text-gray-500';
     }
@@ -116,6 +118,8 @@ export default function OrderTracking() {
         return <Truck className="w-6 h-6" />;
       case 'delivered':
         return <CheckCircle className="w-6 h-6" />;
+      case 'rejected':
+        return <XCircle className="w-6 h-6" />;
       default:
         return <Clock className="w-6 h-6" />;
     }
@@ -235,78 +239,99 @@ export default function OrderTracking() {
           </div>
         ) : (
           <div className="space-y-6">
-            {orders.map((order) => (
-              <div key={order.id} className="bg-gray-800 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">
-                      Order ID: {order.id.slice(0, 8)}
-                    </p>
-                    {order.restaurant_name && (
-                      <p className="text-sm font-medium text-orange-400 mb-1">
-                        Restaurant: {order.restaurant_name}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-400">
-                      {new Date(order.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div className={`flex items-center space-x-2 ${getStatusColor(order.status)}`}>
-                    {getStatusIcon(order.status)}
-                    <span className="font-semibold">{getStatusText(order.status)}</span>
-                  </div>
-                </div>
+            {orders.map((order) => {
+              const isRejected = order.status === 'rejected';
 
-                <div className="border-t border-gray-700 pt-4 mb-4">
-                  <div className="flex items-start space-x-2 text-gray-400 mb-2">
-                    <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
+              return (
+                <div key={order.id} className="bg-gray-800 rounded-lg p-6">
+                  <div className="flex items-start justify-between mb-4">
                     <div>
-                      <p className="text-sm font-medium text-white">{order.customer_name}</p>
-                      <p className="text-sm">{order.customer_phone}</p>
-                      <p className="text-sm">{order.delivery_address}</p>
+                      <p className="text-sm text-gray-400 mb-1">
+                        Order ID: {order.id.slice(0, 8)}
+                      </p>
+                      {order.restaurant_name && (
+                        <p className="text-sm font-medium text-orange-400 mb-1">
+                          Restaurant: {order.restaurant_name}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-400">
+                        {new Date(order.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <div className={`flex items-center space-x-2 ${getStatusColor(order.status)}`}>
+                      {getStatusIcon(order.status)}
+                      <span className="font-semibold">{getStatusText(order.status)}</span>
                     </div>
                   </div>
-                </div>
 
-                <div className="border-t border-gray-700 pt-4">
-                  <h3 className="text-sm font-semibold text-white mb-3">Order Items</h3>
-                  <div className="space-y-2 mb-4">
-                    {order.items.map((item) => (
-                      <div key={item.id} className="flex justify-between text-gray-400 text-sm">
-                        <span>
-                          {item.item_name} x {item.quantity}
-                        </span>
-                        <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
+                  {isRejected && (
+                    <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                      This order was rejected by the restaurant.
+                    </div>
+                  )}
+
+                  <div className="border-t border-gray-700 pt-4 mb-4">
+                    <div className="flex items-start space-x-2 text-gray-400 mb-2">
+                      <MapPin className="w-4 h-4 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-white">{order.customer_name}</p>
+                        <p className="text-sm">{order.customer_phone}</p>
+                        <p className="text-sm">{order.delivery_address}</p>
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-2 pt-3 border-t border-gray-700">
-                    <div className="flex justify-between text-gray-400 text-sm">
-                      <span>Subtotal</span>
-                      <span>Rs. {(order.subtotal_amount ?? Math.max(order.total_amount - 20, 0)).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-400 text-sm">
-                      <span>Delivery Fee</span>
-                      <span>Rs. {(order.delivery_fee ?? 20).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between items-center pt-1">
-                      <span className="text-white font-semibold">Total Amount</span>
-                      <span className="text-xl font-bold text-orange-500">
-                        Rs. {order.total_amount.toFixed(2)}
-                      </span>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-4 flex space-x-2">
-                  <div className={`flex-1 h-2 rounded-full ${order.status !== 'pending' ? 'bg-green-500' : 'bg-gray-700'}`} />
-                  <div className={`flex-1 h-2 rounded-full ${order.status !== 'pending' && order.status !== 'confirmed' ? 'bg-green-500' : 'bg-gray-700'}`} />
-                  <div className={`flex-1 h-2 rounded-full ${order.status === 'out_for_delivery' || order.status === 'delivered' ? 'bg-green-500' : 'bg-gray-700'}`} />
-                  <div className={`flex-1 h-2 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-gray-700'}`} />
+                  <div className="border-t border-gray-700 pt-4">
+                    <h3 className="text-sm font-semibold text-white mb-3">Order Items</h3>
+                    <div className="space-y-2 mb-4">
+                      {order.items.map((item) => (
+                        <div key={item.id} className="flex justify-between text-gray-400 text-sm">
+                          <span>
+                            {item.item_name} x {item.quantity}
+                          </span>
+                          <span>Rs. {(item.price * item.quantity).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2 pt-3 border-t border-gray-700">
+                      <div className="flex justify-between text-gray-400 text-sm">
+                        <span>Subtotal</span>
+                        <span>Rs. {(order.subtotal_amount ?? Math.max(order.total_amount - 20, 0)).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-400 text-sm">
+                        <span>Delivery Fee</span>
+                        <span>Rs. {(order.delivery_fee ?? 20).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-1">
+                        <span className="text-white font-semibold">Total Amount</span>
+                        <span className="text-xl font-bold text-orange-500">
+                          Rs. {order.total_amount.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex space-x-2">
+                    {isRejected ? (
+                      <>
+                        <div className="flex-1 h-2 rounded-full bg-red-500" />
+                        <div className="flex-1 h-2 rounded-full bg-red-500/60" />
+                        <div className="flex-1 h-2 rounded-full bg-gray-700" />
+                        <div className="flex-1 h-2 rounded-full bg-gray-700" />
+                      </>
+                    ) : (
+                      <>
+                        <div className={`flex-1 h-2 rounded-full ${order.status !== 'pending' ? 'bg-green-500' : 'bg-gray-700'}`} />
+                        <div className={`flex-1 h-2 rounded-full ${order.status !== 'pending' && order.status !== 'confirmed' ? 'bg-green-500' : 'bg-gray-700'}`} />
+                        <div className={`flex-1 h-2 rounded-full ${order.status === 'out_for_delivery' || order.status === 'delivered' ? 'bg-green-500' : 'bg-gray-700'}`} />
+                        <div className={`flex-1 h-2 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-gray-700'}`} />
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
