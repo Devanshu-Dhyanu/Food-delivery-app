@@ -1,4 +1,4 @@
-import { ShoppingCart, Utensils } from 'lucide-react';
+import { Bell, Package, ShoppingCart, Utensils } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 
@@ -6,11 +6,23 @@ interface HeaderProps {
   currentPage: string;
   onNavigate: (page: string) => void;
   showNavigation?: boolean;
+  hasUnreadAnnouncements?: boolean;
 }
 
-export default function Header({ currentPage, onNavigate, showNavigation = true }: HeaderProps) {
+export default function Header({
+  currentPage,
+  onNavigate,
+  showNavigation = true,
+  hasUnreadAnnouncements = false,
+}: HeaderProps) {
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
+  const getNavButtonClasses = (isActive: boolean) =>
+    `inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+      isActive
+        ? 'border-orange-500/30 bg-orange-500/15 text-orange-300 shadow-lg shadow-orange-500/10'
+        : 'border-transparent text-gray-300 hover:border-white/10 hover:bg-white/5 hover:text-white'
+    }`;
 
   return (
     <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
@@ -31,21 +43,31 @@ export default function Header({ currentPage, onNavigate, showNavigation = true 
             {showNavigation && (
               <button
                 onClick={() => onNavigate('home')}
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === 'home' ? 'text-orange-500' : 'text-gray-300 hover:text-white'
-                }`}
+                className={getNavButtonClasses(currentPage === 'home')}
               >
-                Restaurants
+                <Utensils className="h-4 w-4" />
+                <span>Restaurants</span>
+              </button>
+            )}
+            {showNavigation && (
+              <button
+                onClick={() => onNavigate('announcements')}
+                className={`${getNavButtonClasses(currentPage === 'announcements')} relative`}
+              >
+                <Bell className="h-4 w-4" />
+                <span>Offers</span>
+                {hasUnreadAnnouncements && (
+                  <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-orange-400" />
+                )}
               </button>
             )}
             {showNavigation && (
               <button
                 onClick={() => onNavigate('orders')}
-                className={`text-sm font-medium transition-colors ${
-                  currentPage === 'orders' ? 'text-orange-500' : 'text-gray-300 hover:text-white'
-                }`}
+                className={getNavButtonClasses(currentPage === 'orders')}
               >
-                Orders
+                <Package className="h-4 w-4" />
+                <span>Orders</span>
               </button>
             )}
             <button

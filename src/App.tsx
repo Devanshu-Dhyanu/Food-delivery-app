@@ -6,12 +6,32 @@ import RestaurantMenu from './components/RestaurantMenu';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
 import OrderTracking from './components/OrderTracking';
+import AnnouncementsScreen from './components/AnnouncementsScreen';
 import Login from './components/Login';
 import AuthCallback from './components/AuthCallback';
 import Onboarding from './components/Onboarding';
-import { supabase } from './lib/supabase';
+import { supabase, Announcement } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements';
+
+const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
+
+const priorityRank: Record<Announcement['priority'], number> = {
+  high: 0,
+  normal: 1,
+  low: 2,
+};
+
+const sortAnnouncements = (items: Announcement[]) =>
+  [...items].sort((a, b) => {
+    const priorityDifference = priorityRank[a.priority] - priorityRank[b.priority];
+
+    if (priorityDifference !== 0) {
+      return priorityDifference;
+    }
+
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -20,6 +40,16 @@ function App() {
   const [user, setUser] = useState<any>(null);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(false);
+  const [dismissedAnnouncementIds, setDismissedAnnouncementIds] = useState<string[]>(() => {
+    try {
+      const storedValue = window.localStorage.getItem(ANNOUNCEMENT_DISMISS_KEY);
+      return storedValue ? JSON.parse(storedValue) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -108,6 +138,159 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(ANNOUNCEMENT_DISMISS_KEY, JSON.stringify(dismissedAnnouncementIds));
+    } catch (error) {
+      console.error('Error saving dismissed announcements:', error);
+    }
+  }, [dismissedAnnouncementIds]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!user) {
+      setAnnouncements([]);
+      setAnnouncementsLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const fetchAnnouncements = async () => {
+      setAnnouncementsLoading(true);
+
+      try {
+        const { data, error } = await supabase
+          .from('announcements')
+          .select('*')
+          .eq('is_active', true)
+          // We intentionally show only broad announcements until audience targeting is implemented.
+          .eq('audience_type', 'all_users')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const now = Date.now();
+        const activeAnnouncements = (data || []).filter((announcement) => {
+          const startsAt = announcement.starts_at ? new Date(announcement.starts_at).getTime() : null;
+          const expiresAt = announcement.expires_at ? new Date(announcement.expires_at).getTime() : null;
+
+          return (startsAt === null || startsAt <= now) && (expiresAt === null || expiresAt > now);
+        }) as Announcement[];
+
+        if (isMounted) {
+          setAnnouncements(sortAnnouncements(activeAnnouncements));
+        }
+      } catch (error) {
+        console.error('Error fetching announcements:', error);
+
+        if (isMounted) {
+          setAnnouncements([]);
+        }
+      } finally {
+        if (isMounted) {
+          setAnnouncementsLoading(false);
+        }
+      }
+    };
+
+    void fetchAnnouncements();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  const handleNavigate = (page: string) => {
+    if (
+      page === 'home' ||
+      page === 'menu' ||
+      page === 'cart' ||
+      page === 'checkout' ||
+      page === 'orders' ||
+      page === 'order-placed' ||
+      page === 'announcements'
+    ) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleDismissAnnouncement = (announcementId: string) => {
+    setDismissedAnnouncementIds((prev) =>
+      prev.includes(announcementId) ? prev : [...prev, announcementId]
+    );
+  };
+
+  const handleAnnouncementAction = (link?: string | null) => {
+    if (!link) {
+      setCurrentPage('announcements');
+      return;
+    }
+
+    try {
+      const resolvedUrl = new URL(link, window.location.origin);
+      const isInternal = resolvedUrl.origin === window.location.origin;
+
+      if (!isInternal) {
+        window.open(resolvedUrl.toString(), '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      const path = resolvedUrl.pathname.toLowerCase();
+      const restaurantIdFromPath = path.startsWith('/restaurant/') ? path.split('/')[2] : null;
+      const restaurantIdFromQuery =
+        resolvedUrl.searchParams.get('restaurantId') || resolvedUrl.searchParams.get('id');
+
+      if (path === '/' || path === '/home' || path === '/restaurants') {
+        setCurrentPage('home');
+        return;
+      }
+
+      if (path === '/orders') {
+        setCurrentPage('orders');
+        return;
+      }
+
+      if (path === '/cart') {
+        setCurrentPage('cart');
+        return;
+      }
+
+      if (path === '/checkout') {
+        setCurrentPage('checkout');
+        return;
+      }
+
+      if (path === '/announcements' || path === '/offers') {
+        setCurrentPage('announcements');
+        return;
+      }
+
+      if (path === '/menu' && restaurantIdFromQuery) {
+        setSelectedRestaurantId(restaurantIdFromQuery);
+        setCurrentPage('menu');
+        return;
+      }
+
+      if (restaurantIdFromPath) {
+        setSelectedRestaurantId(restaurantIdFromPath);
+        setCurrentPage('menu');
+        return;
+      }
+
+      window.open(resolvedUrl.toString(), '_blank', 'noopener,noreferrer');
+    } catch {
+      window.open(link, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const featuredAnnouncement =
+    announcements.find((announcement) => !dismissedAnnouncementIds.includes(announcement.id)) || null;
+  const hasUnreadAnnouncements = announcements.some(
+    (announcement) => !dismissedAnnouncementIds.includes(announcement.id)
+  );
+
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
   if (loading) {
     return (
@@ -123,7 +306,7 @@ function App() {
     return (
       <CartProvider>
         <div className="min-h-screen bg-gray-900">
-          <Header currentPage={currentPage} onNavigate={setCurrentPage} showNavigation={false} />
+          <Header currentPage={currentPage} onNavigate={handleNavigate} showNavigation={false} />
           <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4">
             <p className="text-gray-300">Checking your profile...</p>
           </div>
@@ -136,7 +319,7 @@ function App() {
     return (
       <CartProvider>
         <div className="min-h-screen bg-gray-900">
-          <Header currentPage={currentPage} onNavigate={setCurrentPage} showNavigation={false} />
+          <Header currentPage={currentPage} onNavigate={handleNavigate} showNavigation={false} />
           <Onboarding userId={user.id} onComplete={() => setHasProfile(true)} />
         </div>
       </CartProvider>
@@ -159,13 +342,30 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'home':
-        return <RestaurantList onSelectRestaurant={handleSelectRestaurant} />;
+        return (
+          <RestaurantList
+            onSelectRestaurant={handleSelectRestaurant}
+            featuredAnnouncement={featuredAnnouncement}
+            announcementsLoading={announcementsLoading}
+            onAnnouncementAction={handleAnnouncementAction}
+            onOpenAnnouncements={() => setCurrentPage('announcements')}
+            onDismissAnnouncement={handleDismissAnnouncement}
+          />
+        );
       case 'menu':
         return <RestaurantMenu restaurantId={selectedRestaurantId} onBack={() => setCurrentPage('home')} />;
       case 'cart':
         return <Cart onCheckout={handleCheckout} onBrowseRestaurants={() => setCurrentPage('home')} />;
       case 'checkout':
         return <Checkout onBack={() => setCurrentPage('cart')} onOrderPlaced={handleOrderPlaced} />;
+      case 'announcements':
+        return (
+          <AnnouncementsScreen
+            announcements={announcements}
+            loading={announcementsLoading}
+            onAnnouncementAction={handleAnnouncementAction}
+          />
+        );
       case 'orders':
         return <OrderTracking />;
       case 'order-placed':
@@ -226,7 +426,11 @@ function App() {
   return (
     <CartProvider>
       <div className="min-h-screen bg-gray-900">
-        <Header currentPage={currentPage} onNavigate={setCurrentPage} />
+        <Header
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          hasUnreadAnnouncements={hasUnreadAnnouncements}
+        />
         {renderPage()}
       </div>
     </CartProvider>

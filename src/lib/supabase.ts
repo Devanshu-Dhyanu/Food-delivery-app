@@ -66,6 +66,25 @@ export type DeliveryFeedback = {
   created_at: string;
 };
 
+export type Announcement = {
+  id: string;
+  title: string;
+  message: string;
+  image_url: string | null;
+  cta_text: string | null;
+  cta_link: string | null;
+  audience_type: 'all_users' | 'hostel' | 'segment';
+  audience_value: string | null;
+  priority: 'low' | 'normal' | 'high';
+  delivery_channel: 'in_app' | 'push' | 'both';
+  is_active: boolean;
+  starts_at: string | null;
+  expires_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string | null;
+};
+
 export type CartItem = MenuItem & {
   quantity: number;
   restaurant_name: string;
