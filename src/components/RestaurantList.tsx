@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, Clock, Sparkles, Star, X } from 'lucide-react';
+import { ArrowRight, ArrowUpDown, Clock, Search, Sparkles, Star, X } from 'lucide-react';
 import { supabase, Restaurant, Announcement } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 
@@ -18,6 +18,17 @@ const announcementPriorityClasses: Record<Announcement['priority'], string> = {
   low: 'border-emerald-500/30 bg-emerald-500/15 text-emerald-200',
 };
 
+const parseDeliveryTimeValue = (value: string) => {
+  const matches = value.match(/\d+/g);
+
+  if (!matches || matches.length === 0) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const numbers = matches.map(Number);
+  return numbers.reduce((sum, current) => sum + current, 0) / numbers.length;
+};
+
 export default function RestaurantList({
   onSelectRestaurant,
   featuredAnnouncement,
@@ -28,6 +39,8 @@ export default function RestaurantList({
 }: RestaurantListProps) {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'rating' | 'delivery' | 'newest' | 'open'>('rating');
   const { cartRestaurantId, cartRestaurantName } = useCart();
 
   useEffect(() => {
@@ -49,6 +62,38 @@ export default function RestaurantList({
       setLoading(false);
     }
   };
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const visibleRestaurants = [...restaurants]
+    .filter((restaurant) => {
+      if (!normalizedQuery) return true;
+
+      const searchableText = [
+        restaurant.name,
+        restaurant.cuisine_type,
+        restaurant.description,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return searchableText.includes(normalizedQuery);
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'delivery':
+          return parseDeliveryTimeValue(a.delivery_time) - parseDeliveryTimeValue(b.delivery_time);
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        case 'open':
+          if (a.is_open !== b.is_open) {
+            return a.is_open ? -1 : 1;
+          }
+          return b.rating - a.rating;
+        case 'rating':
+        default:
+          return b.rating - a.rating;
+      }
+    });
 
   if (loading) {
     return (
@@ -85,7 +130,42 @@ export default function RestaurantList({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-3xl font-bold text-white mb-8">Restaurants Near You</h1>
+      <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold text-white">Restaurants Near You</h1>
+          <p className="text-sm text-gray-400">
+            {visibleRestaurants.length} result{visibleRestaurants.length === 1 ? '' : 's'} showing
+            {normalizedQuery ? ` for "${searchQuery.trim()}"` : ''}.
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr),220px] lg:w-[560px]">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by restaurant or cuisine"
+              className="w-full rounded-full border border-white/10 bg-gray-900/90 py-3 pl-11 pr-4 text-sm text-white outline-none transition-colors placeholder:text-gray-500 focus:border-orange-500/40 focus:bg-gray-900"
+            />
+          </label>
+
+          <label className="relative block">
+            <ArrowUpDown className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as 'rating' | 'delivery' | 'newest' | 'open')}
+              className="w-full appearance-none rounded-full border border-white/10 bg-gray-900/90 py-3 pl-11 pr-4 text-sm text-white outline-none transition-colors focus:border-orange-500/40 focus:bg-gray-900"
+            >
+              <option value="rating">Sort: Rating</option>
+              <option value="delivery">Sort: Delivery Time</option>
+              <option value="newest">Sort: Newest</option>
+              <option value="open">Sort: Open First</option>
+            </select>
+          </label>
+        </div>
+      </div>
 
       {announcementsLoading && (
         <div className="mb-6 overflow-hidden rounded-[28px] border border-gray-800 bg-gray-900/80 p-5 animate-pulse">
@@ -167,13 +247,16 @@ export default function RestaurantList({
         </div>
       )}
 
-      {restaurants.length === 0 ? (
+      {visibleRestaurants.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-400">No restaurants available at the moment.</p>
+          <p className="mb-2 text-lg font-semibold text-white">No matching restaurants found</p>
+          <p className="text-gray-400">
+            Try a different restaurant name, cuisine, or switch the sort option.
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-7 md:grid-cols-2 lg:grid-cols-3">
-          {restaurants.map((restaurant) => {
+          {visibleRestaurants.map((restaurant) => {
             const isLocked = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
             const statusLabel = isLocked ? 'Locked' : restaurant.is_open ? 'Open Now' : 'Closed';
             const statusClasses = isLocked
