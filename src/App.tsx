@@ -13,9 +13,10 @@ import Onboarding from './components/Onboarding';
 import Footer from './components/Footer';
 import SmartTabTitle from './components/SmartTabTitle';
 import ContinueOrderPill from './components/ContinueOrderPill';
+import Profile from './components/Profile';
 import { supabase, Announcement } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile';
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 
@@ -224,7 +225,8 @@ function App() {
       page === 'checkout' ||
       page === 'orders' ||
       page === 'order-placed' ||
-      page === 'announcements'
+      page === 'announcements' ||
+      page === 'profile'
     ) {
       setCurrentPage(page);
     }
@@ -278,6 +280,11 @@ function App() {
 
       if (path === '/announcements' || path === '/offers') {
         setCurrentPage('announcements');
+        return;
+      }
+
+      if (path === '/profile' || path === '/me') {
+        setCurrentPage('profile');
         return;
       }
 
@@ -341,7 +348,12 @@ function App() {
     return (
       <CartProvider>
         <div className="min-h-screen bg-gray-900">
-          <Header currentPage={currentPage} onNavigate={handleNavigate} showNavigation={false} />
+          <Header
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            showNavigation={false}
+            userDisplayName={userDisplayName}
+          />
           <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4">
             <p className="text-gray-300">Checking your profile...</p>
           </div>
@@ -354,7 +366,12 @@ function App() {
     return (
       <CartProvider>
         <div className="min-h-screen bg-gray-900">
-          <Header currentPage={currentPage} onNavigate={handleNavigate} showNavigation={false} />
+          <Header
+            currentPage={currentPage}
+            onNavigate={handleNavigate}
+            showNavigation={false}
+            userDisplayName={userDisplayName}
+          />
           <Onboarding userId={user.id} onComplete={() => setHasProfile(true)} />
         </div>
       </CartProvider>
@@ -404,6 +421,14 @@ function App() {
         );
       case 'orders':
         return <OrderTracking />;
+      case 'profile':
+        return (
+          <Profile
+            userId={user.id}
+            onBack={() => setCurrentPage('home')}
+            onProfileUpdated={(name) => setUserDisplayName(name)}
+          />
+        );
       case 'order-placed':
         return (
           <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
@@ -472,6 +497,7 @@ function App() {
           currentPage={currentPage}
           onNavigate={handleNavigate}
           hasUnreadAnnouncements={hasUnreadAnnouncements}
+          userDisplayName={userDisplayName}
         />
         <main className="flex-1">{renderPage()}</main>
         <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />

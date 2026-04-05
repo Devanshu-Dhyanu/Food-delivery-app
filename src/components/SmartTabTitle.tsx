@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 
 type SmartTabTitleProps = {
-  currentPage: 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements';
+  currentPage: 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile';
   loading: boolean;
   isAuthenticated: boolean;
   hasProfile: boolean | null;
@@ -94,6 +94,9 @@ export default function SmartTabTitle({
         break;
       case 'announcements':
         document.title = 'Campus offers | The Vajra';
+        break;
+      case 'profile':
+        document.title = 'Your profile | The Vajra';
         break;
       default:
         document.title = 'The Vajra';

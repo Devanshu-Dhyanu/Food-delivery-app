@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Bell, Menu, Package, ShoppingCart, Utensils, X } from 'lucide-react';
+import { Bell, CircleUserRound, Menu, Package, ShoppingCart, Utensils, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 
@@ -8,6 +8,7 @@ interface HeaderProps {
   onNavigate: (page: string) => void;
   showNavigation?: boolean;
   hasUnreadAnnouncements?: boolean;
+  userDisplayName?: string;
 }
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery'];
@@ -30,6 +31,7 @@ export default function Header({
   onNavigate,
   showNavigation = true,
   hasUnreadAnnouncements = false,
+  userDisplayName = '',
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoBurst, setShowLogoBurst] = useState(false);
@@ -37,6 +39,8 @@ export default function Header({
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
+  const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
+  const profileInitial = firstName.charAt(0).toUpperCase();
   const logoSignal = hasActiveOrder ? 'active-order' : totalItems > 0 ? 'cart' : 'idle';
   const logoButtonTitle =
     logoSignal === 'active-order'
@@ -295,6 +299,23 @@ export default function Header({
             )}
             {showNavigation && (
               <button
+                onClick={() => handleNavigate('profile')}
+                className={getNavButtonClasses(currentPage === 'profile')}
+              >
+                <span
+                  className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${
+                    currentPage === 'profile'
+                      ? 'border-orange-400/35 bg-orange-500/20 text-orange-100'
+                      : 'border-white/10 bg-white/5 text-gray-200'
+                  }`}
+                >
+                  {profileInitial}
+                </span>
+                <span className="max-w-[92px] truncate">{firstName}</span>
+              </button>
+            )}
+            {showNavigation && (
+              <button
                 onClick={() => handleNavigate('orders')}
                 className={getNavButtonClasses(currentPage === 'orders')}
               >
@@ -372,6 +393,18 @@ export default function Header({
                   {hasUnreadAnnouncements && (
                     <span className="absolute right-3 top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-orange-400" />
                   )}
+                </button>
+              )}
+              {showNavigation && (
+                <button
+                  onClick={() => handleNavigate('profile')}
+                  className={`w-full justify-start ${getNavButtonClasses(currentPage === 'profile')}`}
+                >
+                  <CircleUserRound className="h-4 w-4" />
+                  <span>{firstName}</span>
+                  <span className="ml-auto rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-gray-200">
+                    {profileInitial}
+                  </span>
                 </button>
               )}
               {showNavigation && (
