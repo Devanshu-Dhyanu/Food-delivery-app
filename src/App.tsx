@@ -12,6 +12,7 @@ import AuthCallback from './components/AuthCallback';
 import Onboarding from './components/Onboarding';
 import Footer from './components/Footer';
 import SmartTabTitle from './components/SmartTabTitle';
+import ContinueOrderPill from './components/ContinueOrderPill';
 import { supabase, Announcement } from './lib/supabase';
 
 type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements';
@@ -473,6 +474,7 @@ function App() {
           hasUnreadAnnouncements={hasUnreadAnnouncements}
         />
         <main className="flex-1">{renderPage()}</main>
+        <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
         <Footer />
       </div>
     </CartProvider>

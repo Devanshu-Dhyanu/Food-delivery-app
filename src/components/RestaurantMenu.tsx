@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Check, Plus, Star, Clock, Leaf } from 'lucide-react';
 import { supabase, Restaurant, MenuItem } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
@@ -14,6 +14,8 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
   const [loading, setLoading] = useState(true);
   const { addToCart, canAddFromRestaurant, cartRestaurantId, cartRestaurantName } = useCart();
   const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+  const [activeCategory, setActiveCategory] = useState('');
+  const categorySectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     fetchRestaurantAndMenu();
@@ -61,6 +63,70 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
     acc[item.category].push(item);
     return acc;
   }, {} as Record<string, MenuItem[]>);
+  const categories = Object.keys(groupedItems);
+  const categoryKey = categories.join('||');
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      setActiveCategory('');
+      return;
+    }
+
+    setActiveCategory((current) => (current && categories.includes(current) ? current : categories[0]));
+  }, [categoryKey]);
+
+  useEffect(() => {
+    if (categories.length === 0) {
+      return;
+    }
+
+    const updateActiveCategory = () => {
+      const visibleSections = categories
+        .map((category) => {
+          const section = categorySectionRefs.current[category];
+
+          if (!section) {
+            return null;
+          }
+
+          return {
+            category,
+            top: section.getBoundingClientRect().top,
+          };
+        })
+        .filter((section): section is { category: string; top: number } => section !== null);
+
+      if (visibleSections.length === 0) {
+        return;
+      }
+
+      const anchorLine = 180;
+      const reachedSections = visibleSections.filter((section) => section.top <= anchorLine);
+      const nextActiveCategory =
+        reachedSections.length > 0
+          ? reachedSections[reachedSections.length - 1].category
+          : visibleSections[0].category;
+
+      setActiveCategory((current) => (current === nextActiveCategory ? current : nextActiveCategory));
+    };
+
+    updateActiveCategory();
+    window.addEventListener('scroll', updateActiveCategory, { passive: true });
+    window.addEventListener('resize', updateActiveCategory);
+
+    return () => {
+      window.removeEventListener('scroll', updateActiveCategory);
+      window.removeEventListener('resize', updateActiveCategory);
+    };
+  }, [categoryKey]);
+
+  const handleCategoryJump = (category: string) => {
+    setActiveCategory(category);
+    categorySectionRefs.current[category]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
 
   if (loading) {
     return (
@@ -194,8 +260,41 @@ export default function RestaurantMenu({ restaurantId, onBack }: RestaurantMenuP
         </div>
       ) : (
         <div className="space-y-8">
+          <div className="sticky top-[76px] z-30 -mx-1 overflow-hidden rounded-[24px] border border-white/5 bg-gray-900/92 px-3 py-3 shadow-xl shadow-black/20 backdrop-blur">
+            <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {categories.map((category) => {
+                const isActive = activeCategory === category;
+                const itemCount = groupedItems[category]?.length ?? 0;
+
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => handleCategoryJump(category)}
+                    className={`flex-shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                      isActive
+                        ? 'border-orange-500/35 bg-orange-500/15 text-orange-200 shadow-lg shadow-orange-500/10'
+                        : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    <span>{category}</span>
+                    <span className={`ml-2 text-xs ${isActive ? 'text-orange-300' : 'text-gray-500'}`}>
+                      {itemCount}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {Object.entries(groupedItems).map(([category, items]) => (
-            <div key={category}>
+            <div
+              key={category}
+              ref={(node) => {
+                categorySectionRefs.current[category] = node;
+              }}
+              className="scroll-mt-40"
+            >
               <h2 className="text-2xl font-bold text-white mb-4">{category}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {items.map((item) => (
