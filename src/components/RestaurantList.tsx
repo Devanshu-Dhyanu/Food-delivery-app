@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ArrowUpDown, Clock, Search, Sparkles, Star, X } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpDown,
+  CarFront,
+  CarTaxiFront,
+  Clock,
+  Search,
+  Sparkles,
+  Star,
+  Store,
+  UtensilsCrossed,
+  X,
+} from 'lucide-react';
 import { supabase, Restaurant, Announcement } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 
@@ -30,6 +42,39 @@ const parseDeliveryTimeValue = (value: string) => {
   return numbers.reduce((sum, current) => sum + current, 0) / numbers.length;
 };
 
+const campusServices = [
+  {
+    id: 'restaurants',
+    label: 'Restaurants',
+    availability: 'Live now',
+    description: 'Order campus meals and track deliveries.',
+    icon: UtensilsCrossed,
+  },
+  {
+    id: 'car-rent',
+    label: 'Car Rent',
+    availability: 'Coming soon',
+    description: 'Book short campus rides and flexible rentals.',
+    icon: CarFront,
+  },
+  {
+    id: 'taxi',
+    label: 'Taxi',
+    availability: 'Coming soon',
+    description: 'Quick pickups and drop requests from one place.',
+    icon: CarTaxiFront,
+  },
+  {
+    id: 'second-hand-market',
+    label: 'Second-hand Market',
+    availability: 'Coming soon',
+    description: 'Buy and sell useful campus items with ease.',
+    icon: Store,
+  },
+] as const;
+
+type CampusService = (typeof campusServices)[number]['id'];
+
 export default function RestaurantList({
   onSelectRestaurant,
   greetingName,
@@ -43,6 +88,7 @@ export default function RestaurantList({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'rating' | 'delivery' | 'newest' | 'open'>('rating');
+  const [selectedService, setSelectedService] = useState<CampusService>('restaurants');
   const { cartRestaurantId, cartRestaurantName } = useCart();
 
   useEffect(() => {
@@ -99,6 +145,8 @@ export default function RestaurantList({
           accent: 'border-cyan-400/20 bg-cyan-500/10 text-cyan-200',
         };
   const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
+  const selectedServiceDetails =
+    campusServices.find((service) => service.id === selectedService) ?? campusServices[0];
   const visibleRestaurants = [...restaurants]
     .filter((restaurant) => {
       if (!normalizedQuery) return true;
@@ -283,6 +331,111 @@ export default function RestaurantList({
           </div>
         </div>
       </div>
+
+      <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 shadow-xl shadow-black/20">
+        <div className="flex flex-col gap-4 px-5 py-5 sm:px-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+                Service Switch
+              </p>
+              <h2 className="text-2xl font-bold text-white">Choose what you want to use on The Vajra</h2>
+            </div>
+            <p className="max-w-2xl text-sm leading-6 text-gray-400">
+              Restaurants are already live. You can also preview upcoming services here without affecting your current food ordering flow.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {campusServices.map((service) => {
+              const Icon = service.icon;
+              const isSelected = selectedService === service.id;
+              const isLive = service.availability === 'Live now';
+
+              return (
+                <button
+                  key={service.id}
+                  type="button"
+                  onClick={() => setSelectedService(service.id)}
+                  className={`rounded-[24px] border p-4 text-left transition-all ${
+                    isSelected
+                      ? 'border-orange-500/35 bg-orange-500/12 shadow-lg shadow-orange-500/10'
+                      : 'border-white/5 bg-white/5 hover:border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${
+                        isSelected
+                          ? 'border-orange-400/30 bg-orange-500/15 text-orange-200'
+                          : 'border-white/10 bg-white/5 text-gray-300'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span
+                      className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                        isLive
+                          ? 'border-emerald-400/25 bg-emerald-500/15 text-emerald-200'
+                          : 'border-blue-400/20 bg-blue-500/10 text-blue-200'
+                      }`}
+                    >
+                      {service.availability}
+                    </span>
+                  </div>
+
+                  <h3 className="mb-2 text-lg font-semibold text-white">{service.label}</h3>
+                  <p className="text-sm leading-6 text-gray-400">{service.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {selectedService !== 'restaurants' && (
+        <div className="overflow-hidden rounded-[28px] border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-gray-900 to-gray-900 shadow-xl shadow-black/20">
+          <div className="px-5 py-6 sm:px-6">
+            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
+                  {selectedServiceDetails.availability}
+                </p>
+                <h2 className="text-2xl font-bold text-white sm:text-3xl">{selectedServiceDetails.label}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedService('restaurants')}
+                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                Back to Restaurants
+              </button>
+            </div>
+
+            <p className="max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">
+              {selectedServiceDetails.label} is being prepared for The Vajra. You can keep this option visible for users right now while restaurants continue running live below whenever you switch back.
+            </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Current state</p>
+                <p className="text-sm font-semibold text-white">{selectedServiceDetails.availability}</p>
+              </div>
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Visible to users</p>
+                <p className="text-sm font-semibold text-white">Yes, as a selectable service</p>
+              </div>
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Live right now</p>
+                <p className="text-sm font-semibold text-orange-300">Restaurants</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedService === 'restaurants' && (
+        <>
 
       <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 shadow-xl shadow-black/20">
         <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
@@ -470,6 +623,8 @@ export default function RestaurantList({
             </section>
           )}
         </div>
+      )}
+        </>
       )}
     </div>
   );
