@@ -11,6 +11,7 @@ import Login from './components/Login';
 import AuthCallback from './components/AuthCallback';
 import Onboarding from './components/Onboarding';
 import Footer from './components/Footer';
+import SmartTabTitle from './components/SmartTabTitle';
 import { supabase, Announcement } from './lib/supabase';
 
 type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements';
@@ -303,6 +304,27 @@ function App() {
     (announcement) => !dismissedAnnouncementIds.includes(announcement.id)
   );
 
+  useEffect(() => {
+    if (window.location.pathname === '/auth/callback') {
+      document.title = 'Signing you in | The Vajra';
+      return;
+    }
+
+    if (loading) {
+      document.title = 'Loading The Vajra...';
+      return;
+    }
+
+    if (user && hasProfile === null) {
+      document.title = 'Checking your profile | The Vajra';
+      return;
+    }
+
+    if (user && hasProfile === false) {
+      document.title = 'Complete your profile | The Vajra';
+    }
+  }, [hasProfile, loading, user]);
+
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
   if (loading) {
     return (
@@ -439,6 +461,12 @@ function App() {
   return (
     <CartProvider>
       <div className="flex min-h-screen flex-col bg-gray-900">
+        <SmartTabTitle
+          currentPage={currentPage}
+          loading={loading}
+          isAuthenticated={!!user}
+          hasProfile={hasProfile}
+        />
         <Header
           currentPage={currentPage}
           onNavigate={handleNavigate}

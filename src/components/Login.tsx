@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 function GoogleIcon() {
@@ -19,6 +19,27 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const redirectTo = `${window.location.origin}/auth/callback`;
+
+  useEffect(() => {
+    const hour = new Date().getHours();
+
+    if (hour >= 22 || hour < 5) {
+      document.title = 'Late-night cravings at The Vajra';
+      return;
+    }
+
+    if (hour < 11) {
+      document.title = 'Fresh campus breakfast at The Vajra';
+      return;
+    }
+
+    if (hour < 17) {
+      document.title = 'Lunch is live at The Vajra';
+      return;
+    }
+
+    document.title = 'Evening cravings at The Vajra';
+  }, []);
 
   const openModal = (m: 'signup' | 'signin') => {
     setMode(m);
