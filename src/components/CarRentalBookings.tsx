@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, CalendarClock, CarFront, Clock3, MapPin, ReceiptText } from 'lucide-react';
 import {
+  cleanRentalNotes,
   formatDateTimeDisplay,
   formatInr,
+  getRentalPickupMood,
   isCarRentalSchemaMissing,
-  rentalHandoffLabels,
+  rentalPickupMoodLabels,
   rentalStatusClasses,
   rentalStatusLabels,
 } from '../lib/carRental';
@@ -184,89 +186,94 @@ export default function CarRentalBookings({ userId, onBack }: CarRentalBookingsP
 
       {schemaReady && bookings.length > 0 && (
         <div className="space-y-5">
-          {bookings.map((booking, index) => (
-            <article
-              key={booking.id}
-              className="reveal-card overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 shadow-xl shadow-black/20"
-              style={{ animationDelay: `${index * 60}ms` }}
-            >
-              <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-500/20 bg-sky-500/10 text-sky-200">
-                    {booking.rental_vehicles?.image_url ? (
-                      <img
-                        src={booking.rental_vehicles.image_url}
-                        alt={booking.rental_vehicles.name}
-                        className="h-full w-full rounded-[20px] object-cover"
-                      />
-                    ) : (
-                      <CarFront className="h-7 w-7" />
-                    )}
+          {bookings.map((booking, index) => {
+            const pickupMood = getRentalPickupMood(booking.handoff_type, booking.notes);
+            const cleanedNotes = cleanRentalNotes(booking.notes);
+
+            return (
+              <article
+                key={booking.id}
+                className="reveal-card overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 shadow-xl shadow-black/20"
+                style={{ animationDelay: `${index * 60}ms` }}
+              >
+                <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-[20px] border border-sky-500/20 bg-sky-500/10 text-sky-200">
+                      {booking.rental_vehicles?.image_url ? (
+                        <img
+                          src={booking.rental_vehicles.image_url}
+                          alt={booking.rental_vehicles.name}
+                          className="h-full w-full rounded-[20px] object-cover"
+                        />
+                      ) : (
+                        <CarFront className="h-7 w-7" />
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="mb-2 flex flex-wrap items-center gap-3">
+                        <h3 className="text-2xl font-bold text-white">
+                          {booking.rental_vehicles?.name || 'Rental vehicle'}
+                        </h3>
+                        <span
+                          className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${rentalStatusClasses[booking.status]}`}
+                        >
+                          {rentalStatusLabels[booking.status]}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400">
+                        {booking.rental_vehicles?.brand || 'Car booking'} for {booking.customer_name}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <div className="mb-2 flex flex-wrap items-center gap-3">
-                      <h3 className="text-2xl font-bold text-white">
-                        {booking.rental_vehicles?.name || 'Rental vehicle'}
-                      </h3>
-                      <span
-                        className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${rentalStatusClasses[booking.status]}`}
-                      >
-                        {rentalStatusLabels[booking.status]}
-                      </span>
+                  <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
+                    <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Total billed</p>
+                    <p className="text-lg font-semibold text-white">{formatInr(booking.total_amount)}</p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 border-t border-white/5 px-5 py-5 sm:px-6 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
+                    <div className="mb-2 flex items-center gap-2 text-gray-400">
+                      <CalendarClock className="h-4 w-4 text-sky-200" />
+                      <span className="text-sm">Rental window</span>
                     </div>
+                    <p className="font-semibold text-white">{formatDateTimeDisplay(booking.start_datetime)}</p>
+                    <p className="font-semibold text-white">{formatDateTimeDisplay(booking.end_datetime)}</p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
+                    <div className="mb-2 flex items-center gap-2 text-gray-400">
+                      <Clock3 className="h-4 w-4 text-sky-200" />
+                      <span className="text-sm">Booked hours</span>
+                    </div>
+                    <p className="font-semibold text-white">{booking.rental_hours} hour(s)</p>
+                    <p className="text-sm text-gray-400">Created {formatDateTimeDisplay(booking.created_at)}</p>
+                  </div>
+
+                  <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
+                    <div className="mb-2 flex items-center gap-2 text-gray-400">
+                      <MapPin className="h-4 w-4 text-sky-200" />
+                      <span className="text-sm">Pickup mood</span>
+                    </div>
+                    <p className="font-semibold text-white">{rentalPickupMoodLabels[pickupMood]}</p>
                     <p className="text-sm text-gray-400">
-                      {booking.rental_vehicles?.brand || 'Car booking'} for {booking.customer_name}
+                      {booking.rental_vehicles?.pickup_location || 'Campus rental desk'}
                     </p>
                   </div>
-                </div>
 
-                <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-                  <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Total billed</p>
-                  <p className="text-lg font-semibold text-white">{formatInr(booking.total_amount)}</p>
-                </div>
-              </div>
-
-              <div className="grid gap-4 border-t border-white/5 px-5 py-5 sm:px-6 md:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-                  <div className="mb-2 flex items-center gap-2 text-gray-400">
-                    <CalendarClock className="h-4 w-4 text-sky-200" />
-                    <span className="text-sm">Rental window</span>
+                  <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
+                    <div className="mb-2 flex items-center gap-2 text-gray-400">
+                      <ReceiptText className="h-4 w-4 text-sky-200" />
+                      <span className="text-sm">Notes</span>
+                    </div>
+                    <p className="font-semibold text-white">{cleanedNotes || 'No extra notes added'}</p>
                   </div>
-                  <p className="font-semibold text-white">{formatDateTimeDisplay(booking.start_datetime)}</p>
-                  <p className="font-semibold text-white">{formatDateTimeDisplay(booking.end_datetime)}</p>
                 </div>
-
-                <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-                  <div className="mb-2 flex items-center gap-2 text-gray-400">
-                    <Clock3 className="h-4 w-4 text-sky-200" />
-                    <span className="text-sm">Booked hours</span>
-                  </div>
-                  <p className="font-semibold text-white">{booking.rental_hours} hour(s)</p>
-                  <p className="text-sm text-gray-400">Created {formatDateTimeDisplay(booking.created_at)}</p>
-                </div>
-
-                <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-                  <div className="mb-2 flex items-center gap-2 text-gray-400">
-                    <MapPin className="h-4 w-4 text-sky-200" />
-                    <span className="text-sm">Handoff</span>
-                  </div>
-                  <p className="font-semibold text-white">{rentalHandoffLabels[booking.handoff_type]}</p>
-                  <p className="text-sm text-gray-400">
-                    {booking.rental_vehicles?.pickup_location || 'Campus rental desk'}
-                  </p>
-                </div>
-
-                <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-                  <div className="mb-2 flex items-center gap-2 text-gray-400">
-                    <ReceiptText className="h-4 w-4 text-sky-200" />
-                    <span className="text-sm">Notes</span>
-                  </div>
-                  <p className="font-semibold text-white">{booking.notes || 'No extra notes added'}</p>
-                </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       )}
     </div>

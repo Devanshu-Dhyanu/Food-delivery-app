@@ -12,11 +12,19 @@ import {
 } from 'lucide-react';
 import {
   addHoursToDateTimeLocal,
+  buildRentalNotes,
   formatDateTimeDisplay,
   formatInr,
+  getRentalBestTimeHint,
+  rentalCampusSpotLabels,
+  rentalConfidencePoints,
+  rentalTripIntentLabels,
   getRoundedHoursBetween,
   isCarRentalSchemaMissing,
-  rentalHandoffLabels,
+  rentalPickupMoodLabels,
+  type RentalCampusSpot,
+  type RentalPickupMood,
+  type RentalTripIntent,
 } from '../lib/carRental';
 import {
   supabase,
@@ -39,6 +47,9 @@ type BookingForm = {
   rentalHours: string;
   startDateTime: string;
   endDateTime: string;
+  tripIntent: RentalTripIntent | '';
+  pickupSpot: RentalCampusSpot | '';
+  pickupMood: RentalPickupMood;
   handoffType: RentalHandoffType;
   notes: string;
   termsAccepted: boolean;
@@ -50,6 +61,9 @@ const initialBookingForm: BookingForm = {
   rentalHours: '',
   startDateTime: '',
   endDateTime: '',
+  tripIntent: '',
+  pickupSpot: '',
+  pickupMood: 'self_pickup',
   handoffType: 'self_pickup',
   notes: '',
   termsAccepted: false,
@@ -59,6 +73,69 @@ const terms = [
   'A valid college or government ID should be shown during handoff.',
   'Late returns may lead to extra hourly billing.',
   'Fuel, safety, and visible damage are checked at the time of pickup and return.',
+];
+
+const quickDurationOptions = [2, 4, 6, 12];
+const costLadderDurations = [2, 4, 8, 12];
+
+const pickupMoodOptions: Array<{
+  value: RentalPickupMood;
+  title: string;
+  description: string;
+  handoffType: RentalHandoffType;
+}> = [
+  {
+    value: 'self_pickup',
+    title: 'Self pickup',
+    description: 'You collect the car from the rental desk or selected pickup point.',
+    handoffType: 'self_pickup',
+  },
+  {
+    value: 'delivery_to_user',
+    title: 'Need delivery',
+    description: 'The team brings the car to your side once the request is approved.',
+    handoffType: 'delivery_to_user',
+  },
+  {
+    value: 'flexible',
+    title: 'Flexible handoff',
+    description: 'You are open to either pickup or delivery depending on what works best.',
+    handoffType: 'self_pickup',
+  },
+];
+
+const tripIntentOptions: Array<{
+  value: RentalTripIntent;
+  title: string;
+  description: string;
+}> = [
+  {
+    value: 'market_run',
+    title: 'Market run',
+    description: 'Best for practical errands, quick shopping, and short city movement.',
+  },
+  {
+    value: 'station_pickup',
+    title: 'Station pickup',
+    description: 'Good for pickup timing where luggage space and handoff clarity matter.',
+  },
+  {
+    value: 'city_ride',
+    title: 'City ride',
+    description: 'A flexible option for local travel, meetings, and campus-outside plans.',
+  },
+  {
+    value: 'family_outing',
+    title: 'Family outing',
+    description: 'A better fit for longer windows and comfort-focused bookings.',
+  },
+];
+
+const campusSpotOptions: RentalCampusSpot[] = [
+  'main_gate',
+  'bh_block',
+  'academic_block',
+  'mall_road_side',
 ];
 
 export default function CarRentalBooking({
@@ -137,8 +214,43 @@ export default function CarRentalBooking({
     return vehicle.price_per_hour * hours;
   }, [form.rentalHours, vehicle.price_per_hour]);
 
+  const selectedPickupMood =
+    pickupMoodOptions.find((option) => option.value === form.pickupMood) ?? pickupMoodOptions[0];
+  const bestTimeHint = useMemo(
+    () => getRentalBestTimeHint(form.startDateTime),
+    [form.startDateTime]
+  );
+
   const updateForm = (field: keyof BookingForm, value: string | boolean) => {
     setForm((current) => ({ ...current, [field]: value }));
+    setErrorMessage('');
+    setSuccessMessage('');
+  };
+
+  const applyRentalHours = (hours: number) => {
+    const value = String(hours);
+
+    setForm((current) => ({
+      ...current,
+      rentalHours: value,
+      endDateTime:
+        current.startDateTime && hours > 0
+          ? syncEndFromHours(current.startDateTime, value)
+          : current.endDateTime,
+    }));
+    setErrorMessage('');
+    setSuccessMessage('');
+  };
+
+  const updatePickupMood = (pickupMood: RentalPickupMood) => {
+    const nextMood =
+      pickupMoodOptions.find((option) => option.value === pickupMood) ?? pickupMoodOptions[0];
+
+    setForm((current) => ({
+      ...current,
+      pickupMood: nextMood.value,
+      handoffType: nextMood.handoffType,
+    }));
     setErrorMessage('');
     setSuccessMessage('');
   };
@@ -252,7 +364,7 @@ export default function CarRentalBooking({
           handoff_type: form.handoffType,
           terms_accepted: form.termsAccepted,
           terms_accepted_at: form.termsAccepted ? new Date().toISOString() : null,
-          notes: form.notes.trim() || null,
+          notes: buildRentalNotes(form.notes, form.pickupMood, form.tripIntent, form.pickupSpot),
           total_amount: vehicle.price_per_hour * roundedHours,
           status: 'pending',
         },
@@ -303,8 +415,8 @@ export default function CarRentalBooking({
               </p>
             </div>
             <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Handoff mode</p>
-              <p className="text-sm font-semibold text-white">{rentalHandoffLabels[form.handoffType]}</p>
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Pickup mood</p>
+              <p className="text-sm font-semibold text-white">{rentalPickupMoodLabels[form.pickupMood]}</p>
             </div>
             <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
               <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Estimated total</p>
@@ -399,12 +511,67 @@ export default function CarRentalBooking({
               placeholder="How many hours?"
               className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-sky-500/40"
             />
+            <div className="mt-3 flex flex-wrap gap-2">
+              {quickDurationOptions.map((hours) => {
+                const isSelected = Number(form.rentalHours) === hours;
+
+                return (
+                  <button
+                    key={hours}
+                    type="button"
+                    onClick={() => applyRentalHours(hours)}
+                    className={`rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
+                      isSelected
+                        ? 'border-sky-500/35 bg-sky-500/12 text-sky-100'
+                        : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {hours}h
+                  </button>
+                );
+              })}
+            </div>
           </label>
 
           <div className="rounded-2xl border border-sky-500/20 bg-sky-500/10 px-4 py-4">
             <p className="mb-1 text-xs uppercase tracking-[0.16em] text-sky-200">Estimated total</p>
             <p className="text-2xl font-bold text-white">{totalAmount > 0 ? formatInr(totalAmount) : '--'}</p>
             <p className="mt-1 text-sm text-sky-100/75">{formatInr(vehicle.price_per_hour)} per hour</p>
+          </div>
+
+          <div className="sm:col-span-2 rounded-[24px] border border-white/5 bg-white/5 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-white">Instant Cost Ladder</p>
+                <p className="text-sm text-gray-400">Compare a few common rental lengths at a glance.</p>
+              </div>
+              <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-300">
+                {formatInr(vehicle.price_per_hour)}/hr
+              </span>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-4">
+              {costLadderDurations.map((hours) => {
+                const total = vehicle.price_per_hour * hours;
+                const isSelected = Number(form.rentalHours) === hours;
+
+                return (
+                  <button
+                    key={hours}
+                    type="button"
+                    onClick={() => applyRentalHours(hours)}
+                    className={`rounded-[22px] border px-4 py-4 text-left transition-all ${
+                      isSelected
+                        ? 'border-sky-500/35 bg-sky-500/12 shadow-lg shadow-sky-500/10'
+                        : 'border-white/10 bg-gray-900/50 hover:border-white/20 hover:bg-white/5'
+                    }`}
+                  >
+                    <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">{hours} hours</p>
+                    <p className="text-lg font-bold text-white">{formatInr(total)}</p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <label className="block">
@@ -427,6 +594,45 @@ export default function CarRentalBooking({
             />
           </label>
 
+          {bestTimeHint && (
+            <div className="sm:col-span-2 rounded-[24px] border border-amber-400/20 bg-amber-500/10 px-4 py-4 text-sm text-amber-100">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-200">
+                Best time hint
+              </p>
+              <p>{bestTimeHint}</p>
+            </div>
+          )}
+
+          <div className="sm:col-span-2 rounded-[24px] border border-white/5 bg-white/5 p-5">
+            <div className="mb-4">
+              <p className="mb-1 text-sm font-semibold text-white">Trip Intent Chips</p>
+              <p className="text-sm leading-6 text-gray-400">
+                Tell the team what this booking is mainly for so the request feels more specific and easier to review.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {tripIntentOptions.map((option) => {
+                const isSelected = form.tripIntent === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateForm('tripIntent', option.value)}
+                    className={`rounded-[24px] border px-4 py-4 text-left transition-all ${
+                      isSelected
+                        ? 'border-sky-500/35 bg-sky-500/12'
+                        : 'border-white/10 bg-gray-900/50 hover:border-white/20 hover:bg-white/5'
+                    }`}
+                  >
+                    <p className="mb-1 font-semibold text-white">{option.title}</p>
+                    <p className="text-sm leading-6 text-gray-400">{option.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <label className="block sm:col-span-2">
             <span className="mb-2 block text-sm font-medium text-gray-300">Special note</span>
             <textarea
@@ -440,33 +646,27 @@ export default function CarRentalBooking({
         </div>
 
         <div className="mt-6 rounded-[24px] border border-white/5 bg-white/5 p-5">
-          <p className="mb-3 text-sm font-semibold text-white">How should the car be handed over?</p>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(
-              [
-                {
-                  value: 'delivery_to_user',
-                  title: 'Bring the car to me',
-                  description: 'You can coordinate a handoff location during approval.',
-                },
-                {
-                  value: 'self_pickup',
-                  title: 'I will pick it up',
-                  description: 'The user comes to the rental desk or pickup point.',
-                },
-              ] satisfies Array<{
-                value: RentalHandoffType;
-                title: string;
-                description: string;
-              }>
-            ).map((option) => {
-              const isSelected = form.handoffType === option.value;
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-sm font-semibold text-white">Pickup Mood Toggle</p>
+              <p className="text-sm leading-6 text-gray-400">
+                Choose whether you want delivery, self pickup, or a flexible handoff before booking.
+              </p>
+            </div>
+            <span className="rounded-full border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-200">
+              {rentalPickupMoodLabels[form.pickupMood]}
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {pickupMoodOptions.map((option) => {
+              const isSelected = form.pickupMood === option.value;
 
               return (
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => updateForm('handoffType', option.value)}
+                  onClick={() => updatePickupMood(option.value)}
                   className={`rounded-[24px] border px-4 py-4 text-left transition-all ${
                     isSelected
                       ? 'border-sky-500/35 bg-sky-500/12'
@@ -475,6 +675,43 @@ export default function CarRentalBooking({
                 >
                   <p className="mb-1 font-semibold text-white">{option.title}</p>
                   <p className="text-sm leading-6 text-gray-400">{option.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-[24px] border border-white/5 bg-white/5 p-5">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-sm font-semibold text-white">Campus Pickup Spots</p>
+              <p className="text-sm leading-6 text-gray-400">
+                Choose a preferred campus handoff spot so the team has a starting point during confirmation.
+              </p>
+            </div>
+            {form.pickupSpot && (
+              <span className="rounded-full border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-200">
+                {rentalCampusSpotLabels[form.pickupSpot]}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {campusSpotOptions.map((spot) => {
+              const isSelected = form.pickupSpot === spot;
+
+              return (
+                <button
+                  key={spot}
+                  type="button"
+                  onClick={() => updateForm('pickupSpot', isSelected ? '' : spot)}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                    isSelected
+                      ? 'border-sky-500/35 bg-sky-500/12 text-sky-100'
+                      : 'border-white/10 bg-gray-900/50 text-gray-300 hover:border-white/20 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  {rentalCampusSpotLabels[spot]}
                 </button>
               );
             })}
@@ -534,6 +771,17 @@ export default function CarRentalBooking({
               {vehicle.description || 'Flexible campus-ready rental vehicle with manual booking approval.'}
             </p>
 
+            <div className="flex flex-wrap gap-2">
+              {rentalConfidencePoints.map((point) => (
+                <span
+                  key={point}
+                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-gray-200"
+                >
+                  {point}
+                </span>
+              ))}
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
                 <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Rate</p>
@@ -548,8 +796,20 @@ export default function CarRentalBooking({
         </div>
 
         <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-5 shadow-xl shadow-black/20">
-          <h3 className="mb-4 text-lg font-bold text-white">Booking summary</h3>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h3 className="text-lg font-bold text-white">Live booking summary</h3>
+            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-300">
+              Updates instantly
+            </span>
+          </div>
           <div className="space-y-4 text-sm">
+            <div className="flex items-start gap-3">
+              <CarFront className="mt-0.5 h-4 w-4 text-sky-200" />
+              <div>
+                <p className="text-gray-500">Car selected</p>
+                <p className="font-semibold text-white">{vehicle.name}</p>
+              </div>
+            </div>
             <div className="flex items-start gap-3">
               <User className="mt-0.5 h-4 w-4 text-sky-200" />
               <div>
@@ -586,8 +846,34 @@ export default function CarRentalBooking({
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-4 w-4 text-sky-200" />
               <div>
-                <p className="text-gray-500">Handoff mode</p>
-                <p className="font-semibold text-white">{rentalHandoffLabels[form.handoffType]}</p>
+                <p className="text-gray-500">Pickup mood</p>
+                <p className="font-semibold text-white">{rentalPickupMoodLabels[form.pickupMood]}</p>
+                <p className="text-sm text-gray-400">{selectedPickupMood.description}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <MapPin className="mt-0.5 h-4 w-4 text-sky-200" />
+              <div>
+                <p className="text-gray-500">Campus spot</p>
+                <p className="font-semibold text-white">
+                  {form.pickupSpot ? rentalCampusSpotLabels[form.pickupSpot] : 'Not selected yet'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <CalendarClock className="mt-0.5 h-4 w-4 text-sky-200" />
+              <div>
+                <p className="text-gray-500">Trip intent</p>
+                <p className="font-semibold text-white">
+                  {form.tripIntent ? rentalTripIntentLabels[form.tripIntent] : 'Not selected yet'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-4 w-4 text-sky-200" />
+              <div>
+                <p className="text-gray-500">Estimated total</p>
+                <p className="font-semibold text-white">{totalAmount > 0 ? formatInr(totalAmount) : '--'}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
