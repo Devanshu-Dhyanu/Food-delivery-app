@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Clock, CheckCircle, Package, Truck, MapPin, XCircle } from 'lucide-react';
 import DeliveryFeedbackModal from './DeliveryFeedbackModal';
 import { supabase, DeliveryFeedback, Order, OrderItem } from '../lib/supabase';
+import { parseDeliveryPreference } from '../lib/deliveryPreferences';
 
 interface OrderWithItems extends Order {
   items: OrderItem[];
@@ -327,6 +328,7 @@ export default function OrderTracking() {
               const isRejected = order.status === 'rejected';
               const timelineProgress = getTimelineProgress(order.status);
               const statusText = getStatusText(order.status);
+              const deliveryDetails = parseDeliveryPreference(order.delivery_address);
 
               return (
                 <div key={order.id} className="rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-lg shadow-black/20">
@@ -365,7 +367,14 @@ export default function OrderTracking() {
                       <div className="space-y-1 text-sm text-gray-400">
                         <p className="font-medium text-white">{order.customer_name}</p>
                         <p>{order.customer_phone}</p>
-                        <p>{order.delivery_address}</p>
+                        <p>{deliveryDetails.address}</p>
+                        {deliveryDetails.preference && (
+                          <div className="pt-2">
+                            <span className="inline-flex rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-200">
+                              {deliveryDetails.preference}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 

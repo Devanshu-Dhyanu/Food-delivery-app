@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { ArrowLeft, User, Phone, MapPin } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import {
+  appendDeliveryPreference,
+  DELIVERY_PREFERENCES,
+  type DeliveryPreference,
+} from '../lib/deliveryPreferences';
 
 interface CheckoutProps {
   onBack: () => void;
@@ -18,6 +23,7 @@ type OrderItemPayload = {
 export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const { cart, cartRestaurantId, cartRestaurantName, getTotalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [deliveryPreference, setDeliveryPreference] = useState<DeliveryPreference | null>(null);
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -27,6 +33,10 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const subtotalAmount = getTotalAmount();
   const deliveryFee = 20;
   const totalAmount = subtotalAmount + deliveryFee;
+  const deliveryAddressForOrder = appendDeliveryPreference(
+    formData.deliveryAddress,
+    deliveryPreference
+  );
 
   const orderItemsPayload: OrderItemPayload[] = cart.map((item) => ({
     menu_item_id: item.id,
@@ -64,7 +74,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
           user_id: userId,
           customer_name: formData.customerName,
           customer_phone: formData.customerPhone,
-          delivery_address: formData.deliveryAddress,
+          delivery_address: deliveryAddressForOrder,
           total_amount: totalAmount,
           status: 'pending',
         },
@@ -126,7 +136,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         const { data, error } = await supabase.rpc('create_order_with_items', {
           p_customer_name: formData.customerName,
           p_customer_phone: formData.customerPhone,
-          p_delivery_address: formData.deliveryAddress,
+          p_delivery_address: deliveryAddressForOrder,
           p_restaurant_id: cartRestaurantId,
           p_restaurant_name: cartRestaurantName,
           p_subtotal_amount: subtotalAmount,
@@ -225,6 +235,40 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
               placeholder="Enter your complete address (Room/Hostel/Block)"
             />
           </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-gray-300">Silent Delivery Chips</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Optional</p>
+            </div>
+            <p className="mb-3 text-sm leading-6 text-gray-400">
+              Pick one quick handoff preference for the delivery partner.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {DELIVERY_PREFERENCES.map((preference) => {
+                const isSelected = deliveryPreference === preference;
+
+                return (
+                  <button
+                    key={preference}
+                    type="button"
+                    onClick={() =>
+                      setDeliveryPreference((current) =>
+                        current === preference ? null : preference
+                      )
+                    }
+                    className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                      isSelected
+                        ? 'border-orange-500/40 bg-orange-500/15 text-orange-200 shadow-lg shadow-orange-500/10'
+                        : 'border-white/10 bg-gray-700/60 text-gray-300 hover:border-white/20 hover:bg-gray-700 hover:text-white'
+                    }`}
+                  >
+                    {preference}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
@@ -242,6 +286,14 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
           </div>
 
           <div className="border-t border-gray-700 pt-4 space-y-2">
+            {deliveryPreference && (
+              <div className="flex flex-col gap-2 rounded-xl border border-orange-500/20 bg-orange-500/10 px-4 py-3">
+                <span className="text-xs uppercase tracking-[0.16em] text-orange-300">
+                  Delivery preference
+                </span>
+                <span className="text-sm font-medium text-orange-100">{deliveryPreference}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-400">
               <span>Subtotal</span>
               <span>Rs. {subtotalAmount.toFixed(2)}</span>
