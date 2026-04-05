@@ -12,10 +12,14 @@ import {
   UtensilsCrossed,
   X,
 } from 'lucide-react';
-import { supabase, Restaurant, Announcement } from '../lib/supabase';
+import CarRentalBooking from './CarRentalBooking';
+import CarRentalBookings from './CarRentalBookings';
+import CarRentalList from './CarRentalList';
+import { supabase, Restaurant, Announcement, type RentalVehicle } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 
 interface RestaurantListProps {
+  userId: string;
   onSelectRestaurant: (restaurantId: string) => void;
   greetingName?: string;
   featuredAnnouncement?: Announcement | null;
@@ -53,8 +57,8 @@ const campusServices = [
   {
     id: 'car-rent',
     label: 'Car Rent',
-    availability: 'Coming soon',
-    description: 'Book short campus rides and flexible rentals.',
+    availability: 'Now booking',
+    description: 'Pick a car, choose your hours, and submit a rental request.',
     icon: CarFront,
   },
   {
@@ -74,8 +78,10 @@ const campusServices = [
 ] as const;
 
 type CampusService = (typeof campusServices)[number]['id'];
+type CarRentalScreen = 'list' | 'booking' | 'bookings';
 
 export default function RestaurantList({
+  userId,
   onSelectRestaurant,
   greetingName,
   featuredAnnouncement,
@@ -89,11 +95,20 @@ export default function RestaurantList({
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'rating' | 'delivery' | 'newest' | 'open'>('rating');
   const [selectedService, setSelectedService] = useState<CampusService>('restaurants');
+  const [carRentalScreen, setCarRentalScreen] = useState<CarRentalScreen>('list');
+  const [selectedRentalVehicle, setSelectedRentalVehicle] = useState<RentalVehicle | null>(null);
   const { cartRestaurantId, cartRestaurantName } = useCart();
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    if (selectedService !== 'car-rent') {
+      setCarRentalScreen('list');
+      setSelectedRentalVehicle(null);
+    }
+  }, [selectedService]);
 
   const fetchRestaurants = async () => {
     try {
@@ -267,6 +282,83 @@ export default function RestaurantList({
     );
   };
 
+  const renderUpcomingServicePanel = () => (
+    <div className="overflow-hidden rounded-[28px] border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-gray-900 to-gray-900 shadow-xl shadow-black/20">
+      <div className="px-5 py-6 sm:px-6">
+        <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
+              {selectedServiceDetails.availability}
+            </p>
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">{selectedServiceDetails.label}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelectedService('restaurants')}
+            className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+          >
+            Back to Restaurants
+          </button>
+        </div>
+
+        <p className="max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">
+          {selectedServiceDetails.label} is being prepared for The Vajra. You can keep this option visible for users right now while restaurants continue running live whenever you switch back.
+        </p>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+            <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Current state</p>
+            <p className="text-sm font-semibold text-white">{selectedServiceDetails.availability}</p>
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+            <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Visible to users</p>
+            <p className="text-sm font-semibold text-white">Yes, as a selectable service</p>
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+            <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Live right now</p>
+            <p className="text-sm font-semibold text-orange-300">Restaurants and Car Rent</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCarRentalContent = () => {
+    switch (carRentalScreen) {
+      case 'booking':
+        return selectedRentalVehicle ? (
+          <CarRentalBooking
+            userId={userId}
+            vehicle={selectedRentalVehicle}
+            fallbackName={greetingName}
+            onBack={() => setCarRentalScreen('list')}
+            onViewBookings={() => setCarRentalScreen('bookings')}
+          />
+        ) : (
+          <CarRentalList
+            onSelectVehicle={(vehicle) => {
+              setSelectedRentalVehicle(vehicle);
+              setCarRentalScreen('booking');
+            }}
+            onOpenBookings={() => setCarRentalScreen('bookings')}
+          />
+        );
+      case 'bookings':
+        return <CarRentalBookings userId={userId} onBack={() => setCarRentalScreen('list')} />;
+      case 'list':
+      default:
+        return (
+          <CarRentalList
+            onSelectVehicle={(vehicle) => {
+              setSelectedRentalVehicle(vehicle);
+              setCarRentalScreen('booking');
+            }}
+            onOpenBookings={() => setCarRentalScreen('bookings')}
+          />
+        );
+    }
+  };
+
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -342,7 +434,7 @@ export default function RestaurantList({
               <h2 className="text-2xl font-bold text-white">Choose what you want to use on The Vajra</h2>
             </div>
             <p className="max-w-2xl text-sm leading-6 text-gray-400">
-              Restaurants are already live. You can also preview upcoming services here without affecting your current food ordering flow.
+              Restaurants stay live as usual, and car rentals now have their own booking flow. The other services can still stay visible here without affecting food ordering.
             </p>
           </div>
 
@@ -350,7 +442,8 @@ export default function RestaurantList({
             {campusServices.map((service) => {
               const Icon = service.icon;
               const isSelected = selectedService === service.id;
-              const isLive = service.availability === 'Live now';
+              const isLive =
+                service.availability === 'Live now' || service.availability === 'Now booking';
 
               return (
                 <button
@@ -393,46 +486,9 @@ export default function RestaurantList({
         </div>
       </div>
 
-      {selectedService !== 'restaurants' && (
-        <div className="overflow-hidden rounded-[28px] border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-gray-900 to-gray-900 shadow-xl shadow-black/20">
-          <div className="px-5 py-6 sm:px-6">
-            <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
-                  {selectedServiceDetails.availability}
-                </p>
-                <h2 className="text-2xl font-bold text-white sm:text-3xl">{selectedServiceDetails.label}</h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedService('restaurants')}
-                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-              >
-                Back to Restaurants
-              </button>
-            </div>
+      {selectedService === 'car-rent' && renderCarRentalContent()}
 
-            <p className="max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">
-              {selectedServiceDetails.label} is being prepared for The Vajra. You can keep this option visible for users right now while restaurants continue running live below whenever you switch back.
-            </p>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
-                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Current state</p>
-                <p className="text-sm font-semibold text-white">{selectedServiceDetails.availability}</p>
-              </div>
-              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
-                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Visible to users</p>
-                <p className="text-sm font-semibold text-white">Yes, as a selectable service</p>
-              </div>
-              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
-                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Live right now</p>
-                <p className="text-sm font-semibold text-orange-300">Restaurants</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {selectedService !== 'restaurants' && selectedService !== 'car-rent' && renderUpcomingServicePanel()}
 
       {selectedService === 'restaurants' && (
         <>

@@ -85,6 +85,51 @@ export type Announcement = {
   updated_at: string | null;
 };
 
+export type RentalVehicle = {
+  id: string;
+  name: string;
+  brand: string;
+  description: string;
+  image_url: string;
+  seats: number;
+  transmission: string;
+  fuel_type: string;
+  price_per_hour: number;
+  deposit_amount: number;
+  pickup_location: string | null;
+  availability_notes: string | null;
+  is_available: boolean;
+  created_at: string;
+};
+
+export type RentalHandoffType = 'delivery_to_user' | 'self_pickup';
+
+export type RentalBookingStatus =
+  | 'pending'
+  | 'approved'
+  | 'active'
+  | 'completed'
+  | 'cancelled';
+
+export type RentalBooking = {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  customer_name: string;
+  customer_phone: string;
+  start_datetime: string;
+  end_datetime: string;
+  rental_hours: number;
+  handoff_type: RentalHandoffType;
+  terms_accepted: boolean;
+  terms_accepted_at: string | null;
+  notes: string | null;
+  total_amount: number;
+  status: RentalBookingStatus;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CartItem = MenuItem & {
   quantity: number;
   restaurant_name: string;

@@ -396,6 +396,7 @@ function App() {
       case 'home':
         return (
           <RestaurantList
+            userId={user.id}
             onSelectRestaurant={handleSelectRestaurant}
             greetingName={userDisplayName}
             featuredAnnouncement={featuredAnnouncement}
@@ -480,7 +481,7 @@ function App() {
           </div>
         );
       default:
-        return <RestaurantList onSelectRestaurant={handleSelectRestaurant} />;
+        return <RestaurantList userId={user.id} onSelectRestaurant={handleSelectRestaurant} />;
     }
   };
 
