@@ -10,6 +10,8 @@ interface HeaderProps {
   hasUnreadAnnouncements?: boolean;
 }
 
+const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery'];
+
 const logoParticles = [
   { x: 38, y: -24, size: 6, delay: 0, duration: 760, color: '#fb923c', glow: '0 0 18px rgba(251, 146, 60, 0.55)' },
   { x: 30, y: 10, size: 5, delay: 40, duration: 700, color: '#fff7ed', glow: '0 0 16px rgba(255, 247, 237, 0.45)' },
@@ -32,8 +34,16 @@ export default function Header({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoBurst, setShowLogoBurst] = useState(false);
   const [logoBurstKey, setLogoBurstKey] = useState(0);
+  const [hasActiveOrder, setHasActiveOrder] = useState(false);
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
+  const logoSignal = hasActiveOrder ? 'active-order' : totalItems > 0 ? 'cart' : 'idle';
+  const logoButtonTitle =
+    logoSignal === 'active-order'
+      ? 'You have an active order'
+      : logoSignal === 'cart'
+      ? `${totalItems} item${totalItems === 1 ? '' : 's'} in cart`
+      : 'Go to home';
   const getNavButtonClasses = (isActive: boolean) =>
     `inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
       isActive
@@ -55,6 +65,64 @@ export default function Header({
 
     return () => window.clearTimeout(timer);
   }, [logoBurstKey, showLogoBurst]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!showNavigation) {
+      setHasActiveOrder(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const fetchActiveOrder = async () => {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) throw userError;
+
+        if (!user) {
+          if (isMounted) {
+            setHasActiveOrder(false);
+          }
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('user_id', user.id)
+          .in('status', ACTIVE_ORDER_STATUSES)
+          .limit(1);
+
+        if (error) throw error;
+
+        if (isMounted) {
+          setHasActiveOrder((data?.length ?? 0) > 0);
+        }
+      } catch (error) {
+        console.error('Error checking active order state:', error);
+
+        if (isMounted) {
+          setHasActiveOrder(false);
+        }
+      }
+    };
+
+    void fetchActiveOrder();
+    const interval = window.setInterval(() => {
+      void fetchActiveOrder();
+    }, 20000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+    };
+  }, [currentPage, showNavigation]);
 
   const handleLogoClick = () => {
     setShowLogoBurst(true);
@@ -112,6 +180,28 @@ export default function Header({
             transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(0.15);
           }
         }
+
+        @keyframes vajra-logo-cart-breathe {
+          0%, 100% {
+            opacity: 0.52;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.9;
+            transform: scale(1.04);
+          }
+        }
+
+        @keyframes vajra-logo-order-pulse {
+          0%, 100% {
+            opacity: 0.65;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.06);
+          }
+        }
       `}</style>
 
       <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
@@ -121,8 +211,25 @@ export default function Header({
             onClick={handleLogoClick}
             className="group relative flex items-center space-x-3 rounded-full px-2 py-1.5 transition-opacity duration-300 hover:opacity-80"
             aria-label="Go to home"
+            title={logoButtonTitle}
           >
             <div className="relative flex h-10 w-10 items-center justify-center sm:h-11 sm:w-11">
+              {logoSignal !== 'idle' && (
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-[-4px] rounded-[20px] ${
+                    logoSignal === 'active-order'
+                      ? 'border border-emerald-400/45 shadow-[0_0_0_1px_rgba(52,211,153,0.08),0_0_22px_rgba(16,185,129,0.22)]'
+                      : 'border border-orange-400/35 shadow-[0_0_0_1px_rgba(251,146,60,0.06),0_0_18px_rgba(251,146,60,0.16)]'
+                  }`}
+                  style={{
+                    animation:
+                      logoSignal === 'active-order'
+                        ? 'vajra-logo-order-pulse 1.9s ease-in-out infinite'
+                        : 'vajra-logo-cart-breathe 2.4s ease-in-out infinite',
+                  }}
+                />
+              )}
               {showLogoBurst && (
                 <div key={logoBurstKey} className="pointer-events-none absolute inset-0">
                   <span
