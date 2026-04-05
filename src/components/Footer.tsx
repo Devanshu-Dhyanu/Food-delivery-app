@@ -1,0 +1,41 @@
+export default function Footer() {
+  return (
+    <footer className="border-t border-white/5 bg-black/20">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1.15fr,0.85fr] lg:items-start">
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-orange-300">
+              The Vajra
+            </p>
+            <h2 className="mb-3 text-2xl font-bold text-white sm:text-3xl">
+              Campus platform for daily essentials, starting with food delivery.
+            </h2>
+            <p className="max-w-2xl text-sm leading-6 text-gray-400 sm:text-base">
+              Restaurants are live right now, while rentals and other campus services can plug into
+              the same experience as the platform grows.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Live now</p>
+              <p className="text-lg font-semibold text-white">Food delivery</p>
+              <p className="mt-2 text-sm text-gray-400">Browse restaurants, place orders, and track delivery.</p>
+            </div>
+
+            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Coming soon</p>
+              <p className="text-lg font-semibold text-white">Rentals and more</p>
+              <p className="mt-2 text-sm text-gray-400">Cars, bikes, and campus marketplace flows can expand here next.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-3 border-t border-white/5 pt-5 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; {new Date().getFullYear()} The VajraCognixia. All rights reserved.</p>
+          <p>Built for fast campus ordering and future campus services.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}

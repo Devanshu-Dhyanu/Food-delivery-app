@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Bell, Menu, Package, ShoppingCart, Utensils, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
@@ -10,6 +10,19 @@ interface HeaderProps {
   hasUnreadAnnouncements?: boolean;
 }
 
+const logoParticles = [
+  { x: 38, y: -24, size: 6, delay: 0, duration: 760, color: '#fb923c', glow: '0 0 18px rgba(251, 146, 60, 0.55)' },
+  { x: 30, y: 10, size: 5, delay: 40, duration: 700, color: '#fff7ed', glow: '0 0 16px rgba(255, 247, 237, 0.45)' },
+  { x: 12, y: 34, size: 4, delay: 20, duration: 740, color: '#fdba74', glow: '0 0 14px rgba(253, 186, 116, 0.45)' },
+  { x: -18, y: 30, size: 5, delay: 60, duration: 720, color: '#ffffff', glow: '0 0 16px rgba(255, 255, 255, 0.42)' },
+  { x: -36, y: 18, size: 4, delay: 20, duration: 700, color: '#fb923c', glow: '0 0 14px rgba(251, 146, 60, 0.5)' },
+  { x: -34, y: -18, size: 5, delay: 0, duration: 760, color: '#fff7ed', glow: '0 0 16px rgba(255, 247, 237, 0.45)' },
+  { x: -12, y: -34, size: 4, delay: 30, duration: 680, color: '#fdba74', glow: '0 0 14px rgba(253, 186, 116, 0.45)' },
+  { x: 16, y: -38, size: 6, delay: 10, duration: 760, color: '#fb923c', glow: '0 0 18px rgba(251, 146, 60, 0.55)' },
+  { x: 0, y: -44, size: 3, delay: 70, duration: 640, color: '#ffffff', glow: '0 0 12px rgba(255, 255, 255, 0.4)' },
+  { x: 42, y: 20, size: 3, delay: 50, duration: 650, color: '#ffffff', glow: '0 0 12px rgba(255, 255, 255, 0.4)' },
+];
+
 export default function Header({
   currentPage,
   onNavigate,
@@ -17,6 +30,8 @@ export default function Header({
   hasUnreadAnnouncements = false,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoBurst, setShowLogoBurst] = useState(false);
+  const [logoBurstKey, setLogoBurstKey] = useState(0);
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
   const getNavButtonClasses = (isActive: boolean) =>
@@ -29,6 +44,27 @@ export default function Header({
     setMobileMenuOpen(false);
     onNavigate(page);
   };
+  useEffect(() => {
+    if (!showLogoBurst) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowLogoBurst(false);
+    }, 900);
+
+    return () => window.clearTimeout(timer);
+  }, [logoBurstKey, showLogoBurst]);
+
+  const handleLogoClick = () => {
+    setShowLogoBurst(true);
+    setLogoBurstKey((current) => current + 1);
+
+    if (currentPage !== 'home') {
+      handleNavigate('home');
+    }
+  };
+
   const handleLogout = async () => {
     setMobileMenuOpen(false);
     await supabase.auth.signOut();
@@ -36,18 +72,92 @@ export default function Header({
   };
 
   return (
-    <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+    <>
+      <style>{`
+        @keyframes vajra-logo-core {
+          0% {
+            opacity: 0;
+            transform: scale(0.65);
+          }
+          22% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.95);
+          }
+        }
+
+        @keyframes vajra-logo-ring {
+          0% {
+            opacity: 0.45;
+            transform: scale(0.85);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1.55);
+          }
+        }
+
+        @keyframes vajra-logo-particle {
+          0% {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.35);
+          }
+          18% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            transform: translate(calc(-50% + var(--particle-x)), calc(-50% + var(--particle-y))) scale(0.15);
+          }
+        }
+      `}</style>
+
+      <header className="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex min-h-16 items-center justify-between gap-4 py-3">
           <button
-            onClick={() => handleNavigate('home')}
-            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+            onClick={handleLogoClick}
+            className="group relative flex items-center space-x-3 rounded-full px-2 py-1.5 transition-opacity duration-300 hover:opacity-80"
+            aria-label="Go to home"
           >
-            <img
-              src="/the-vajra-mark.svg"
-              alt="The Vajra"
-              className="h-10 w-10 rounded-2xl border border-white/10 shadow-lg shadow-black/30 sm:h-11 sm:w-11"
-            />
+            <div className="relative flex h-10 w-10 items-center justify-center sm:h-11 sm:w-11">
+              {showLogoBurst && (
+                <div key={logoBurstKey} className="pointer-events-none absolute inset-0">
+                  <span
+                    className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle,rgba(251,146,60,0.4)_0%,rgba(251,146,60,0.16)_38%,rgba(255,255,255,0)_72%)] opacity-0"
+                    style={{ animation: 'vajra-logo-core 700ms ease-out forwards' }}
+                  />
+                  <span
+                    className="absolute inset-0 rounded-2xl border border-orange-300/40 opacity-0"
+                    style={{ animation: 'vajra-logo-ring 780ms cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+                  />
+                  {logoParticles.map((particle, index) => (
+                    <span
+                      key={`${logoBurstKey}-${index}`}
+                      className="absolute left-1/2 top-1/2 rounded-full opacity-0"
+                      style={
+                        {
+                          '--particle-x': `${particle.x}px`,
+                          '--particle-y': `${particle.y}px`,
+                          width: `${particle.size}px`,
+                          height: `${particle.size}px`,
+                          backgroundColor: particle.color,
+                          boxShadow: particle.glow,
+                          animation: `vajra-logo-particle ${particle.duration}ms cubic-bezier(0.16, 1, 0.3, 1) ${particle.delay}ms forwards`,
+                        } as CSSProperties
+                      }
+                    />
+                  ))}
+                </div>
+              )}
+              <img
+                src="/the-vajra-mark.svg"
+                alt="The Vajra"
+                className="relative h-10 w-10 rounded-2xl border border-white/10 shadow-lg shadow-black/30 transition-transform duration-300 group-hover:scale-105 sm:h-11 sm:w-11"
+              />
+            </div>
             <div className="flex flex-col items-start">
               <span className="text-lg font-bold tracking-tight text-white sm:text-xl">The Vajra</span>
               <span className="hidden text-xs text-gray-400 sm:block">Campus Food Delivery</span>
@@ -191,5 +301,6 @@ export default function Header({
         )}
       </div>
     </header>
+    </>
   );
 }

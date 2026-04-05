@@ -10,6 +10,7 @@ import AnnouncementsScreen from './components/AnnouncementsScreen';
 import Login from './components/Login';
 import AuthCallback from './components/AuthCallback';
 import Onboarding from './components/Onboarding';
+import Footer from './components/Footer';
 import { supabase, Announcement } from './lib/supabase';
 
 type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements';
@@ -437,13 +438,14 @@ function App() {
 
   return (
     <CartProvider>
-      <div className="min-h-screen bg-gray-900">
+      <div className="flex min-h-screen flex-col bg-gray-900">
         <Header
           currentPage={currentPage}
           onNavigate={handleNavigate}
           hasUnreadAnnouncements={hasUnreadAnnouncements}
         />
-        {renderPage()}
+        <main className="flex-1">{renderPage()}</main>
+        <Footer />
       </div>
     </CartProvider>
   );
