@@ -8,6 +8,8 @@ import {
   DELIVERY_PREFERENCES,
   type DeliveryPreference,
 } from '../lib/deliveryPreferences';
+import PaymentOptions from './PaymentOptions';
+import PaymentConfirmation from './PaymentConfirmation';
 
 interface CheckoutProps {
   onBack: () => void;
@@ -30,6 +32,13 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     customerPhone: '',
     deliveryAddress: '',
   });
+
+  // Payment state
+  const [checkoutStep, setCheckoutStep] = useState<'form' | 'payment' | 'confirmation'>('form');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failure'>('pending');
+  const [transactionId, setTransactionId] = useState<string>('');
+  const [orderId, setOrderId] = useState<string>('');
 
   const subtotalAmount = getTotalAmount();
   const deliveryFee = 20;
@@ -97,13 +106,33 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Form validation
+    if (cart.length === 0 || !cartRestaurantId || !cartRestaurantName) {
+      alert('Please add items from one restaurant before checkout.');
+      return;
+    }
+
+    if (!formData.customerName.trim() || !formData.customerPhone.trim() || !formData.deliveryAddress.trim()) {
+      alert('Please fill in all delivery details.');
+      return;
+    }
+
+    // Move to payment step
+    setCheckoutStep('payment');
+  };
+
+  const handlePaymentMethodSelect = (method: string) => {
+    setSelectedPaymentMethod(method);
+  };
+
+  const handlePaymentSuccess = async (transId: string) => {
+    setTransactionId(transId);
+    setPaymentStatus('success');
+    
+    // Now create the order after payment success
     setLoading(true);
-
     try {
-      if (cart.length === 0 || !cartRestaurantId || !cartRestaurantName) {
-        throw new Error('Please add items from one restaurant before checkout.');
-      }
-
       const hasMixedRestaurantItems = cart.some((item) => item.restaurant_id !== cartRestaurantId);
       if (hasMixedRestaurantItems) {
         throw new Error('Cart contains items from multiple restaurants.');
@@ -117,12 +146,10 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       if (userError) throw userError;
       if (!user) throw new Error('You must be signed in to place an order.');
 
-      // Sanitize input
       const sanitizedName = sanitizeName(formData.customerName);
       const sanitizedPhone = sanitizePhone(formData.customerPhone);
       const sanitizedAddress = sanitizeAddress(formData.deliveryAddress);
       
-      // Append delivery preference to sanitized address
       const finalDeliveryAddress = appendDeliveryPreference(
         sanitizedAddress,
         deliveryPreference
@@ -138,7 +165,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       if (!restaurant) throw new Error('Restaurant not found.');
       if (!restaurant.is_open) throw new Error('This restaurant is currently closed.');
 
-      let orderId = '';
+      let newOrderId = '';
 
       try {
         const { data, error } = await supabase.rpc('create_order_with_items', {
@@ -156,26 +183,154 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         if (error) throw error;
         if (!data) throw new Error('Failed to create order.');
 
-        orderId = data as string;
+        newOrderId = data as string;
       } catch (error) {
         if (!shouldUseLegacyOrderFallback(error)) {
           throw error;
         }
 
         console.warn('Transactional RPC unavailable, falling back to legacy checkout path.', error);
-        orderId = await createOrderWithLegacyInsert(user.id, { name: sanitizedName, phone: sanitizedPhone, address: finalDeliveryAddress });
+        newOrderId = await createOrderWithLegacyInsert(user.id, { name: sanitizedName, phone: sanitizedPhone, address: finalDeliveryAddress });
       }
 
+      setOrderId(newOrderId);
+      setCheckoutStep('confirmation');
       clearCart();
-      onOrderPlaced(orderId);
     } catch (error) {
       console.error('Error placing order:', error);
       const message = error instanceof Error ? error.message : 'Failed to place order. Please try again.';
       alert(message);
+      setPaymentStatus('failure');
     } finally {
       setLoading(false);
     }
   };
+
+  const handleContinueShopping = () => {
+    onOrderPlaced(orderId);
+  };
+
+  // Show payment confirmation
+  if (checkoutStep === 'confirmation') {
+    return (
+      <PaymentConfirmation
+        status={paymentStatus === 'success' ? 'success' : 'failure'}
+        orderId={orderId}
+        amount={totalAmount}
+        transactionId={transactionId}
+        paymentMethod={selectedPaymentMethod || 'Unknown'}
+        onContinueShopping={handleContinueShopping}
+      />
+    );
+  }
+
+  // Show payment options
+  if (checkoutStep === 'payment') {
+    return (
+      <div className="min-h-screen bg-gray-900 px-4 py-12">
+        <div className="mb-6 max-w-2xl mx-auto">
+          <button
+            onClick={() => setCheckoutStep('form')}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Delivery Details</span>
+          </button>
+        </div>
+
+        <div className="max-w-2xl mx-auto">
+          <PaymentOptions
+            onSelectMethod={handlePaymentMethodSelect}
+            selectedMethod={selectedPaymentMethod}
+            amount={totalAmount}
+          />
+
+          <div className="mt-8 flex gap-4">
+            <button
+              onClick={() => setCheckoutStep('form')}
+              className="flex-1 border border-gray-600 text-gray-300 font-semibold py-3 rounded-lg hover:bg-white/5 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (!selectedPaymentMethod) {
+                  alert('Please select a payment method');
+                  return;
+                }
+                // Simulate payment success for now
+                handlePaymentSuccess(`TXN-${Date.now()}`);
+              }}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors"
+            >
+              Proceed to Payment
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show payment confirmation
+  if (checkoutStep === 'confirmation') {
+    return (
+      <PaymentConfirmation
+        status={paymentStatus}
+        orderId={orderId}
+        amount={totalAmount}
+        transactionId={transactionId}
+        paymentMethod={selectedPaymentMethod || 'Unknown'}
+        onContinueShopping={handleContinueShopping}
+      />
+    );
+  }
+
+  // Show payment options
+  if (checkoutStep === 'payment') {
+    return (
+      <div className="min-h-screen bg-gray-900 px-4 py-12">
+        <div className="mb-6 max-w-2xl mx-auto">
+          <button
+            onClick={() => setCheckoutStep('form')}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Back to Delivery Details</span>
+          </button>
+        </div>
+
+        <div className="max-w-2xl mx-auto">
+          <PaymentOptions
+            onSelectMethod={handlePaymentMethodSelect}
+            selectedMethod={selectedPaymentMethod}
+            amount={totalAmount}
+          />
+
+          <div className="mt-8 flex gap-4">
+            <button
+              onClick={() => setCheckoutStep('form')}
+              className="flex-1 border border-gray-600 text-gray-300 font-semibold py-3 rounded-lg hover:bg-white/5 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (!selectedPaymentMethod) {
+                  alert('Please select a payment method');
+                  return;
+                }
+                // Simulate payment success for now
+                handlePaymentSuccess(`TXN-${Date.now()}`);
+              }}
+              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors"
+            >
+              Proceed to Payment
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -322,7 +477,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
           disabled={loading}
           className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-lg transition-colors"
         >
-          {loading ? 'Placing Order...' : 'Place Order'}
+          {loading ? 'Proceeding...' : 'Continue to Payment'}
         </button>
       </form>
     </div>
