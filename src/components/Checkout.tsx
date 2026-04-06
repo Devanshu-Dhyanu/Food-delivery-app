@@ -247,6 +247,16 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentFailure={handlePaymentFailure}
             formData={formData}
+            checkoutSession={{
+              cartRestaurantId: cartRestaurantId || '',
+              cartRestaurantName: cartRestaurantName || '',
+              subtotalAmount,
+              deliveryFee,
+              totalAmount,
+              orderItems: orderItemsPayload,
+              formData,
+              deliveryPreference,
+            }}
           />
 
           <button

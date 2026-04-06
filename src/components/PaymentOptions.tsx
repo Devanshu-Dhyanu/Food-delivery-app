@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { CreditCard, Smartphone, Banknote, Wallet, Calendar, Zap, AlertCircle } from 'lucide-react';
+import { getCashfreeConfig } from '../lib/cashfreeConfig';
+import { clearPendingCheckout, savePendingCheckout } from '../lib/pendingCheckout';
 import { supabase } from '../lib/supabase';
+import type { PendingCheckoutPayload } from '../lib/pendingCheckout';
 
 interface PaymentMethod {
   id: string;
@@ -14,9 +17,10 @@ interface PaymentOptionsProps {
   onSelectMethod: (method: string) => void;
   selectedMethod: string | null;
   amount: number;
-  onPaymentSuccess: (transactionId: string) => void;
+  onPaymentSuccess?: (transactionId: string) => void;
   onPaymentFailure?: (error: string) => void;
   formData?: { customerName: string; customerPhone: string; deliveryAddress: string };
+  checkoutSession: Omit<PendingCheckoutPayload, 'selectedPaymentMethod'>;
 }
 
 const PAYMENT_METHODS: PaymentMethod[] = [
@@ -68,9 +72,10 @@ export default function PaymentOptions({
   onSelectMethod,
   selectedMethod,
   amount,
-  onPaymentSuccess,
+  onPaymentSuccess: _onPaymentSuccess,
   onPaymentFailure,
   formData,
+  checkoutSession,
 }: PaymentOptionsProps) {
   const [hoveredMethod, setHoveredMethod] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -85,6 +90,8 @@ export default function PaymentOptions({
     setProcessing(true);
     setError(null);
 
+    let gatewayOrderId = '';
+
     try {
       const {
         data: { user },
@@ -96,19 +103,23 @@ export default function PaymentOptions({
       }
 
       // Generate order ID
-      const orderId = `ORD-${Date.now()}`;
+      gatewayOrderId = `ORD-${Date.now()}`;
       
       // Initiate Cashfree payment
-      const clientId = import.meta.env.VITE_CASHFREE_CLIENT_ID;
-      const clientSecret = import.meta.env.VITE_CASHFREE_CLIENT_SECRET;
+      const cashfreeConfig = getCashfreeConfig();
       
-      if (!clientId || !clientSecret) {
+      if (!cashfreeConfig.clientId || !cashfreeConfig.clientSecret) {
         throw new Error('Cashfree credentials not configured');
       }
 
+      savePendingCheckout(gatewayOrderId, {
+        ...checkoutSession,
+        selectedPaymentMethod: selectedMethod,
+      });
+
       // Prepare payment request
       const paymentRequest = {
-        order_id: orderId,
+        order_id: gatewayOrderId,
         order_amount: amount,
         order_currency: 'INR',
         customer_details: {
@@ -118,68 +129,54 @@ export default function PaymentOptions({
           customer_name: formData?.customerName || 'Customer',
         },
         order_meta: {
-          return_url: `${window.location.origin}/payment/callback`,
+          return_url: `${window.location.origin}/payment/callback?order_id=${encodeURIComponent(gatewayOrderId)}`,
           notify_url: `${window.location.origin}/api/payment/webhook`,
         },
         order_note: `Order for ${formData?.customerName}`,
       };
 
       // Call Cashfree API to create order
-      const createOrderResponse = await fetch('https://sandbox.cashfree.com/pg/orders', {
+      const createOrderResponse = await fetch(`${cashfreeConfig.apiBaseUrl}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-version': '2023-08-01',
-          'x-client-id': clientId,
-          'x-client-secret': clientSecret,
+          'x-client-id': cashfreeConfig.clientId,
+          'x-client-secret': cashfreeConfig.clientSecret,
         },
         body: JSON.stringify(paymentRequest),
       });
 
       if (!createOrderResponse.ok) {
-        const errorData = await createOrderResponse.json();
-        throw new Error(errorData.message || 'Failed to create payment');
+        const errorData = await createOrderResponse.json().catch(() => null);
+        throw new Error(
+          errorData?.message || errorData?.error || 'Failed to create payment'
+        );
       }
 
       const orderData = await createOrderResponse.json();
-
-      // Get payment session to open payment UI
-      const sessionResponse = await fetch(
-        `https://sandbox.cashfree.com/pg/orders/${orderId}/pay`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-version': '2023-08-01',
-            'x-client-id': clientId,
-            'x-client-secret': clientSecret,
-          },
-          body: JSON.stringify({
-            payment_method: selectedMethod,
-          }),
-        }
-      );
-
-      if (!sessionResponse.ok) {
-        const errorData = await sessionResponse.json();
-        throw new Error(errorData.message || 'Payment session failed');
-      }
-
-      const sessionData = await sessionResponse.json();
+      const paymentSessionId =
+        orderData.payment_session_id || orderData.data?.payment_session_id;
+      const paymentUrl =
+        orderData.payment_link ||
+        orderData.checkout_url ||
+        orderData.data?.url ||
+        (paymentSessionId
+          ? `${cashfreeConfig.apiBaseUrl}/pay/${paymentSessionId}`
+          : null);
 
       // Redirect to Cashfree payment page
-      if (sessionData.data?.url) {
-        window.location.href = sessionData.data.url;
-      } else if (sessionData.data?.payment_session_id) {
-        // Alternative: Use Cashfree SDK
-        const paymentLink = `https://sandbox.cashfree.com/pg/pay/${sessionData.data.payment_session_id}`;
-        window.location.href = paymentLink;
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
       } else {
         throw new Error('No payment URL received from Cashfree');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Payment processing failed';
       console.error('Payment error:', err);
+      if (gatewayOrderId) {
+        clearPendingCheckout(gatewayOrderId);
+      }
       setError(message);
       onPaymentFailure?.(message);
       setProcessing(false);

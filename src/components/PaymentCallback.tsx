@@ -1,41 +1,55 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { getCashfreeConfig } from '../lib/cashfreeConfig';
+import {
+  clearPendingCheckout,
+  getCompletedCheckoutOrderId,
+  getPendingCheckout,
+  markCheckoutCompleted,
+} from '../lib/pendingCheckout';
+import { placeOrderFromPendingCheckout } from '../lib/orderPlacement';
 
 export default function PaymentCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'failure'>('loading');
   const [message, setMessage] = useState('Processing payment...');
-  const [orderId, setOrderId] = useState('');
+  const [gatewayOrderId, setGatewayOrderId] = useState('');
+  const [placedOrderId, setPlacedOrderId] = useState('');
 
   useEffect(() => {
     const verifyPayment = async () => {
       try {
         // Get URL parameters
         const params = new URLSearchParams(window.location.search);
-        const paymentSessionId = params.get('payment_session_id');
-        const orderIdParam = params.get('order_id');
+        const orderIdParam = params.get('order_id') || params.get('orderId');
 
-        if (!paymentSessionId || !orderIdParam) {
+        if (!orderIdParam) {
           throw new Error('Missing payment information');
         }
 
-        setOrderId(orderIdParam);
+        setGatewayOrderId(orderIdParam);
+
+        const existingOrderId = getCompletedCheckoutOrderId(orderIdParam);
+        if (existingOrderId) {
+          setPlacedOrderId(existingOrderId);
+          setStatus('success');
+          setMessage('Payment already verified. Your order has been placed.');
+          return;
+        }
 
         // Verify payment status
-        const clientId = import.meta.env.VITE_CASHFREE_CLIENT_ID;
-        const clientSecret = import.meta.env.VITE_CASHFREE_CLIENT_SECRET;
+        const cashfreeConfig = getCashfreeConfig();
 
-        if (!clientId || !clientSecret) {
+        if (!cashfreeConfig.clientId || !cashfreeConfig.clientSecret) {
           throw new Error('Cashfree credentials not configured');
         }
 
         const response = await fetch(
-          `https://sandbox.cashfree.com/pg/orders/${orderIdParam}/payments`,
+          `${cashfreeConfig.apiBaseUrl}/orders/${orderIdParam}/payments`,
           {
             headers: {
               'x-api-version': '2023-08-01',
-              'x-client-id': clientId,
-              'x-client-secret': clientSecret,
+              'x-client-id': cashfreeConfig.clientId,
+              'x-client-secret': cashfreeConfig.clientSecret,
             },
           }
         );
@@ -45,23 +59,49 @@ export default function PaymentCallback() {
         }
 
         const data = await response.json();
-        const payments = data.data || [];
+        const payments = Array.isArray(data)
+          ? data
+          : Array.isArray(data.data)
+            ? data.data
+            : [];
         const successfulPayment = payments.find(
           (p: any) => p.payment_status === 'SUCCESS'
         );
 
         if (successfulPayment) {
+          const pendingCheckout = getPendingCheckout(orderIdParam);
+
+          if (!pendingCheckout) {
+            setStatus('success');
+            setMessage(
+              'Payment was successful, but the checkout details were missing so the order could not be recreated automatically.'
+            );
+            return;
+          }
+
+          const { orderId } = await placeOrderFromPendingCheckout(pendingCheckout, {
+            transactionId: successfulPayment.cf_payment_id,
+            paymentMethod: pendingCheckout.selectedPaymentMethod,
+            gatewayOrderId: orderIdParam,
+            gatewayResponse: successfulPayment,
+          });
+
+          setPlacedOrderId(orderId);
+          markCheckoutCompleted(orderIdParam, orderId);
+          clearPendingCheckout(orderIdParam);
           setStatus('success');
-          setMessage('Payment successful! Your order is being confirmed...');
+          setMessage('Payment successful! Your order has been placed.');
           
           // Store transaction ID in localStorage for order creation
           localStorage.setItem('lastTransactionId', successfulPayment.cf_payment_id);
+          localStorage.setItem('lastPlacedOrderId', orderId);
           
           // Redirect to home after 2 seconds
           setTimeout(() => {
             window.location.href = '/';
-          }, 2000);
+          }, 2500);
         } else {
+          clearPendingCheckout(orderIdParam);
           setStatus('failure');
           setMessage('Payment was not completed. Please try again.');
         }
@@ -92,7 +132,10 @@ export default function PaymentCallback() {
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Payment Successful!</h2>
             <p className="text-gray-400 mb-2">{message}</p>
-            <p className="text-sm text-gray-500">Order ID: {orderId}</p>
+            {placedOrderId && (
+              <p className="text-sm text-gray-500">App Order ID: {placedOrderId}</p>
+            )}
+            <p className="text-xs text-gray-600 mt-2">Gateway Order ID: {gatewayOrderId}</p>
           </>
         )}
 
