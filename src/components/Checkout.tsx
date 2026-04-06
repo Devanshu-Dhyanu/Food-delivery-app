@@ -206,8 +206,9 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     }
   };
 
-  const handleContinueShopping = () => {
-    onOrderPlaced(orderId);
+  const handlePaymentFailure = (error?: string) => {
+    setPaymentStatus('failure');
+    console.error('Payment failed:', error);
   };
 
   // Show payment confirmation
@@ -219,7 +220,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         amount={totalAmount}
         transactionId={transactionId}
         paymentMethod={selectedPaymentMethod || 'Unknown'}
-        onContinueShopping={handleContinueShopping}
+        onContinueShopping={() => onOrderPlaced(orderId)}
       />
     );
   }
@@ -243,61 +244,21 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
             onSelectMethod={handlePaymentMethodSelect}
             selectedMethod={selectedPaymentMethod}
             amount={totalAmount}
+            onPaymentSuccess={handlePaymentSuccess}
+            onPaymentFailure={handlePaymentFailure}
+            formData={formData}
           />
 
-          <div className="mt-8 flex gap-4">
-            <button
-              onClick={() => setCheckoutStep('form')}
-              className="flex-1 border border-gray-600 text-gray-300 font-semibold py-3 rounded-lg hover:bg-white/5 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                if (!selectedPaymentMethod) {
-                  alert('Please select a payment method');
-                  return;
-                }
-                // Simulate payment success for now
-                handlePaymentSuccess(`TXN-${Date.now()}`);
-              }}
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors"
-            >
-              Proceed to Payment
-            </button>
-          </div>
+          <button
+            onClick={() => setCheckoutStep('form')}
+            className="mt-6 w-full border border-gray-600 text-gray-300 font-semibold py-3 rounded-lg hover:bg-white/5 transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       </div>
     );
   }
-
-  // Show payment confirmation
-  if (checkoutStep === 'confirmation') {
-    return (
-      <PaymentConfirmation
-        status={paymentStatus}
-        orderId={orderId}
-        amount={totalAmount}
-        transactionId={transactionId}
-        paymentMethod={selectedPaymentMethod || 'Unknown'}
-        onContinueShopping={handleContinueShopping}
-      />
-    );
-  }
-
-  // Show payment options
-  if (checkoutStep === 'payment') {
-    return (
-      <div className="min-h-screen bg-gray-900 px-4 py-12">
-        <div className="mb-6 max-w-2xl mx-auto">
-          <button
-            onClick={() => setCheckoutStep('form')}
-            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Back to Delivery Details</span>
-          </button>
-        </div>
 
         <div className="max-w-2xl mx-auto">
           <PaymentOptions

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { CreditCard, Smartphone, Banknote, Wallet, Calendar, Zap } from 'lucide-react';
+import { CreditCard, Smartphone, Banknote, Wallet, Calendar, Zap, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface PaymentMethod {
   id: string;
@@ -13,6 +14,9 @@ interface PaymentOptionsProps {
   onSelectMethod: (method: string) => void;
   selectedMethod: string | null;
   amount: number;
+  onPaymentSuccess: (transactionId: string) => void;
+  onPaymentFailure?: (error: string) => void;
+  formData?: { customerName: string; customerPhone: string; deliveryAddress: string };
 }
 
 const PAYMENT_METHODS: PaymentMethod[] = [
@@ -64,8 +68,67 @@ export default function PaymentOptions({
   onSelectMethod,
   selectedMethod,
   amount,
+  onPaymentSuccess,
+  onPaymentFailure,
+  formData,
 }: PaymentOptionsProps) {
   const [hoveredMethod, setHoveredMethod] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handlePaymentInitiate = async () => {
+    if (!selectedMethod) {
+      setError('Please select a payment method');
+      return;
+    }
+
+    setProcessing(true);
+    setError(null);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error('User authentication required');
+      }
+
+      // Generate order ID
+      const orderId = `ORD-${Date.now()}`;
+      
+      // For demo: Simulate successful payment after 2 seconds
+      // In production, this will call Cashfree initiate payment
+      setTimeout(() => {
+        const transactionId = `TXN-${Date.now()}`;
+        onPaymentSuccess(transactionId);
+        setProcessing(false);
+      }, 2000);
+
+      // TODO: Integrate with actual Cashfree payment gateway
+      // const response = await fetch('/api/payment/initiate', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     userId: user.id,
+      //     amount,
+      //     orderId,
+      //     method: selectedMethod,
+      //     customerEmail: formData?.customerName || 'customer@example.com',
+      //     customerPhone: formData?.customerPhone,
+      //   }),
+      // });
+      // const data = await response.json();
+      // if (!response.ok) throw new Error(data.error || 'Payment initiation failed');
+      // window.location.href = data.paymentLink;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Payment processing failed';
+      setError(message);
+      onPaymentFailure?.(message);
+      setProcessing(false);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -136,6 +199,30 @@ export default function PaymentOptions({
         <p className="text-sm text-gray-400">
           ✓ 100% Secure &nbsp;|&nbsp; SSL Encrypted &nbsp;|&nbsp; PCI DSS Compliant
         </p>
+      </div>
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-200">{error}</p>
+        </div>
+      )}
+
+      <div className="mt-6 flex gap-4">
+        <button
+          onClick={handlePaymentInitiate}
+          disabled={!selectedMethod || processing}
+          className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          {processing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Proceed to Payment'
+          )}
+        </button>
       </div>
     </div>
   );
