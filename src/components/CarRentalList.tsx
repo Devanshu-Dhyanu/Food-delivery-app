@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react';
+import BrandedLoader from './BrandedLoader';
 import {
   formatInr,
   getRentalAvailabilityTone,
@@ -97,35 +98,7 @@ export default function CarRentalList({ onSelectVehicle, onOpenBookings }: CarRe
   }, [vehicles]);
 
   if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="shimmer-shell overflow-hidden rounded-[28px] border border-gray-800 bg-gray-900/80 p-6">
-          <div className="mb-4 shimmer-block h-6 w-48 rounded-full" />
-          <div className="mb-3 shimmer-block h-10 w-3/4 rounded-full" />
-          <div className="shimmer-block h-4 w-full rounded-full" />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div
-              key={index}
-              className="shimmer-shell overflow-hidden rounded-[28px] border border-gray-800 bg-gray-900/80"
-            >
-              <div className="shimmer-block h-56" />
-              <div className="space-y-4 p-5">
-                <div className="shimmer-block h-6 w-48 rounded-full" />
-                <div className="shimmer-block h-4 w-full rounded-full" />
-                <div className="shimmer-block h-4 w-5/6 rounded-full" />
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="shimmer-block h-14 rounded-2xl" />
-                  <div className="shimmer-block h-14 rounded-2xl" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <BrandedLoader message="Loading rental cars..." />;
   }
 
   return (

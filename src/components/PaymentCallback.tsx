@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
+import BrandedLoader from './BrandedLoader';
 import {
   clearPendingCheckout,
   getCompletedCheckoutOrderId,
@@ -106,17 +107,13 @@ export default function PaymentCallback() {
     verifyPayment();
   }, []);
 
+  if (status === 'loading') {
+    return <BrandedLoader fullScreen message={message} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
       <div className="bg-gray-800 rounded-lg p-8 text-center max-w-md w-full">
-        {status === 'loading' && (
-          <>
-            <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Verifying Payment</h2>
-            <p className="text-gray-400">{message}</p>
-          </>
-        )}
-
         {status === 'success' && (
           <>
             <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />

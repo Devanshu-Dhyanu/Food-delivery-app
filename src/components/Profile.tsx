@@ -11,6 +11,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import BrandedLoader from './BrandedLoader';
 import { sanitizeName, sanitizePhone, sanitizeText } from '../lib/inputSanitization';
 import { supabase, type UserProfile } from '../lib/supabase';
 
@@ -213,32 +214,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
   const profileInitial = (form.name.trim().charAt(0) || 'P').toUpperCase();
 
   if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="shimmer-block mb-6 h-6 w-36 rounded-full" />
-        <div className="shimmer-shell overflow-hidden rounded-[28px] border border-gray-800 bg-gray-900/80 p-6">
-          <div className="mb-6 flex items-center gap-4">
-            <div className="shimmer-block h-16 w-16 rounded-full" />
-            <div className="space-y-3">
-              <div className="shimmer-block h-7 w-52 rounded-full" />
-              <div className="shimmer-block h-4 w-40 rounded-full" />
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-3 rounded-2xl border border-gray-800 bg-gray-950/40 p-5">
-              <div className="shimmer-block h-5 w-28 rounded-full" />
-              <div className="shimmer-block h-4 w-full rounded-full" />
-              <div className="shimmer-block h-4 w-4/5 rounded-full" />
-            </div>
-            <div className="space-y-3 rounded-2xl border border-gray-800 bg-gray-950/40 p-5">
-              <div className="shimmer-block h-5 w-32 rounded-full" />
-              <div className="shimmer-block h-4 w-full rounded-full" />
-              <div className="shimmer-block h-4 w-3/4 rounded-full" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <BrandedLoader message="Loading your profile..." />;
   }
 
   return (

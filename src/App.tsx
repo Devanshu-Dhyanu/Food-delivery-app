@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import SmartTabTitle from './components/SmartTabTitle';
 import ContinueOrderPill from './components/ContinueOrderPill';
 import Profile from './components/Profile';
+import BrandedLoader from './components/BrandedLoader';
 import ContactUs from './components/ContactUs';
 import TermsAndConditions from './components/TermsAndConditions';
 import RefundCancellationPolicy from './components/RefundCancellationPolicy';
@@ -350,11 +351,7 @@ function App() {
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
   if (window.location.pathname === '/payment/callback') return <PaymentCallback />;
   if (loading) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontFamily: 'DM Sans, sans-serif', color: '#1a1a1a' }}>Loading...</p>
-      </div>
-    );
+    return <BrandedLoader fullScreen message="Loading The Vajra..." />;
   }
 
   if (!user) return <Login />;
@@ -369,9 +366,7 @@ function App() {
             showNavigation={false}
             userDisplayName={userDisplayName}
           />
-          <div className="flex min-h-[calc(100vh-64px)] items-center justify-center px-4">
-            <p className="text-gray-300">Checking your profile...</p>
-          </div>
+          <BrandedLoader message="Checking your profile..." />
         </div>
       </CartProvider>
     );

@@ -1,4 +1,5 @@
 import { BellRing, ExternalLink, Sparkles } from 'lucide-react';
+import BrandedLoader from './BrandedLoader';
 import { Announcement } from '../lib/supabase';
 
 interface AnnouncementsScreenProps {
@@ -19,30 +20,7 @@ export default function AnnouncementsScreen({
   onAnnouncementAction,
 }: AnnouncementsScreenProps) {
   if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="shimmer-block mb-8 h-10 w-72 rounded-full" />
-        <div className="grid gap-6 lg:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="shimmer-shell overflow-hidden rounded-[24px] border border-gray-800 bg-gray-900/80">
-              <div className="shimmer-block h-52" />
-              <div className="space-y-4 p-5">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="shimmer-block h-6 w-32 rounded-full" />
-                  <div className="shimmer-block h-8 w-20 rounded-full" />
-                </div>
-                <div className="space-y-2">
-                  <div className="shimmer-block h-5 w-3/4 rounded-full" />
-                  <div className="shimmer-block h-4 w-full rounded-full" />
-                  <div className="shimmer-block h-4 w-4/5 rounded-full" />
-                </div>
-                <div className="shimmer-block h-10 w-36 rounded-full" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+    return <BrandedLoader message="Loading announcements..." />;
   }
 
   return (
