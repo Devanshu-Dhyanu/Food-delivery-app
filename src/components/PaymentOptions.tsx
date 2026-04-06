@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { CreditCard, Smartphone, Banknote, Wallet, Calendar, Zap, AlertCircle } from 'lucide-react';
-import { getCashfreeConfig } from '../lib/cashfreeConfig';
 import { clearPendingCheckout, savePendingCheckout } from '../lib/pendingCheckout';
 import { supabase } from '../lib/supabase';
 import type { PendingCheckoutPayload } from '../lib/pendingCheckout';
@@ -105,13 +104,6 @@ export default function PaymentOptions({
       // Generate order ID
       gatewayOrderId = `ORD-${Date.now()}`;
       
-      // Initiate Cashfree payment
-      const cashfreeConfig = getCashfreeConfig();
-      
-      if (!cashfreeConfig.clientId || !cashfreeConfig.clientSecret) {
-        throw new Error('Cashfree credentials not configured');
-      }
-
       savePendingCheckout(gatewayOrderId, {
         ...checkoutSession,
         selectedPaymentMethod: selectedMethod,
@@ -135,35 +127,37 @@ export default function PaymentOptions({
         order_note: `Order for ${formData?.customerName}`,
       };
 
-      // Call Cashfree API to create order
-      const createOrderResponse = await fetch(`${cashfreeConfig.apiBaseUrl}/orders`, {
+      // Call server-side API to create the Cashfree order securely
+      const createOrderResponse = await fetch('/api/payment/initiate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-version': '2023-08-01',
-          'x-client-id': cashfreeConfig.clientId,
-          'x-client-secret': cashfreeConfig.clientSecret,
         },
-        body: JSON.stringify(paymentRequest),
+        body: JSON.stringify({
+          orderId: gatewayOrderId,
+          amount,
+          customerId: user.id,
+          customerEmail: user.email || 'customer@example.com',
+          customerPhone: formData?.customerPhone || '9000090000',
+          customerName: formData?.customerName || 'Customer',
+          returnUrl: paymentRequest.order_meta.return_url,
+          notifyUrl: paymentRequest.order_meta.notify_url,
+          orderNote: paymentRequest.order_note,
+        }),
       });
 
       if (!createOrderResponse.ok) {
         const errorData = await createOrderResponse.json().catch(() => null);
+        if (createOrderResponse.status === 404 && import.meta.env.DEV) {
+          throw new Error("Local payment API not available. Run the app with 'vercel dev' for payment testing.");
+        }
         throw new Error(
           errorData?.message || errorData?.error || 'Failed to create payment'
         );
       }
 
       const orderData = await createOrderResponse.json();
-      const paymentSessionId =
-        orderData.payment_session_id || orderData.data?.payment_session_id;
-      const paymentUrl =
-        orderData.payment_link ||
-        orderData.checkout_url ||
-        orderData.data?.url ||
-        (paymentSessionId
-          ? `${cashfreeConfig.apiBaseUrl}/pay/${paymentSessionId}`
-          : null);
+      const paymentUrl = orderData.paymentUrl || null;
 
       // Redirect to Cashfree payment page
       if (paymentUrl) {

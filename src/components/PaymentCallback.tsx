@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
-import { getCashfreeConfig } from '../lib/cashfreeConfig';
 import {
   clearPendingCheckout,
   getCompletedCheckoutOrderId,
@@ -36,34 +35,22 @@ export default function PaymentCallback() {
           return;
         }
 
-        // Verify payment status
-        const cashfreeConfig = getCashfreeConfig();
-
-        if (!cashfreeConfig.clientId || !cashfreeConfig.clientSecret) {
-          throw new Error('Cashfree credentials not configured');
-        }
-
         const response = await fetch(
-          `${cashfreeConfig.apiBaseUrl}/orders/${orderIdParam}/payments`,
-          {
-            headers: {
-              'x-api-version': '2023-08-01',
-              'x-client-id': cashfreeConfig.clientId,
-              'x-client-secret': cashfreeConfig.clientSecret,
-            },
-          }
+          `/api/payment/verify?order_id=${encodeURIComponent(orderIdParam)}`
         );
 
         if (!response.ok) {
-          throw new Error('Failed to verify payment');
+          const errorData = await response.json().catch(() => null);
+          if (response.status === 404 && import.meta.env.DEV) {
+            throw new Error("Local payment API not available. Run the app with 'vercel dev' for payment testing.");
+          }
+          throw new Error(
+            errorData?.message || errorData?.error || 'Failed to verify payment'
+          );
         }
 
         const data = await response.json();
-        const payments = Array.isArray(data)
-          ? data
-          : Array.isArray(data.data)
-            ? data.data
-            : [];
+        const payments = Array.isArray(data?.payments) ? data.payments : [];
         const successfulPayment = payments.find(
           (p: any) => p.payment_status === 'SUCCESS'
         );
@@ -81,7 +68,10 @@ export default function PaymentCallback() {
 
           const { orderId } = await placeOrderFromPendingCheckout(pendingCheckout, {
             transactionId: successfulPayment.cf_payment_id,
-            paymentMethod: pendingCheckout.selectedPaymentMethod,
+            paymentMethod:
+              typeof successfulPayment.payment_method === 'string'
+                ? successfulPayment.payment_method
+                : pendingCheckout.selectedPaymentMethod,
             gatewayOrderId: orderIdParam,
             gatewayResponse: successfulPayment,
           });
