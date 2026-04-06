@@ -1,5 +1,5 @@
-import { appendDeliveryPreference } from './deliveryPreferences';
 import { sanitizeAddress, sanitizeName, sanitizePhone } from './inputSanitization';
+import { appendOrderDeliveryDetails } from './orderDeliveryDetails';
 import type { PendingCheckoutPayload } from './pendingCheckout';
 import { supabase, type WalletAccount, type WalletTransaction } from './supabase';
 
@@ -87,16 +87,49 @@ export const getWalletOverview = async (
   }
 };
 
+export const getWalletTransactions = async (
+  userId: string,
+  limit: number = 50
+): Promise<{ transactions: WalletTransaction[]; schemaReady: boolean }> => {
+  try {
+    const { data, error } = await supabase
+      .from('wallet_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      transactions: (data as WalletTransaction[] | null) ?? [],
+      schemaReady: true,
+    };
+  } catch (error) {
+    if (isWalletSchemaMissing(error)) {
+      return {
+        transactions: [],
+        schemaReady: false,
+      };
+    }
+
+    throw error;
+  }
+};
+
 export const createWalletPaidOrder = async (
   session: PendingCheckoutPayload
 ): Promise<WalletPaidOrderResult> => {
   const sanitizedName = sanitizeName(session.formData.customerName);
   const sanitizedPhone = sanitizePhone(session.formData.customerPhone);
   const sanitizedAddress = sanitizeAddress(session.formData.deliveryAddress);
-  const finalDeliveryAddress = appendDeliveryPreference(
-    sanitizedAddress,
-    session.deliveryPreference
-  );
+  const finalDeliveryAddress = appendOrderDeliveryDetails({
+    address: sanitizedAddress,
+    preference: session.deliveryPreference,
+    scheduledDeliveryAt: session.scheduledDeliveryAt ?? null,
+  });
 
   const { data, error } = await supabase.rpc('create_wallet_paid_order', {
     p_customer_name: sanitizedName,

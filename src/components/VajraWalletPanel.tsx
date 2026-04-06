@@ -3,6 +3,7 @@ import {
   AlertCircle,
   ArrowDownLeft,
   ArrowUpRight,
+  ChevronRight,
   History,
   Plus,
   Wallet,
@@ -14,7 +15,7 @@ import {
   savePendingWalletTopup,
 } from '../lib/pendingWalletTopup';
 import { supabase, type WalletTransaction } from '../lib/supabase';
-import { getWalletOverview } from '../lib/wallet';
+import { getWalletOverview, getWalletTransactions } from '../lib/wallet';
 
 interface VajraWalletPanelProps {
   userId: string;
@@ -71,10 +72,25 @@ export default function VajraWalletPanel({ userId }: VajraWalletPanelProps) {
   const [schemaReady, setSchemaReady] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [showTopupModal, setShowTopupModal] = useState(false);
+  const [showPassbookModal, setShowPassbookModal] = useState(false);
+  const [passbookTransactions, setPassbookTransactions] = useState<WalletTransaction[]>([]);
+  const [passbookLoading, setPassbookLoading] = useState(false);
+  const [passbookFilter, setPassbookFilter] = useState<'all' | 'credit' | 'debit'>('all');
   const [topupAmount, setTopupAmount] = useState('200');
   const [processingTopup, setProcessingTopup] = useState(false);
 
   const numericTopupAmount = useMemo(() => Number(topupAmount), [topupAmount]);
+  const filteredPassbookTransactions = useMemo(
+    () =>
+      passbookTransactions.filter((transaction) => {
+        if (passbookFilter === 'all') {
+          return true;
+        }
+
+        return transaction.direction === passbookFilter;
+      }),
+    [passbookFilter, passbookTransactions]
+  );
 
   const loadWallet = async () => {
     setLoading(true);
@@ -99,6 +115,21 @@ export default function VajraWalletPanel({ userId }: VajraWalletPanelProps) {
   useEffect(() => {
     void loadWallet();
   }, [userId]);
+
+  const loadPassbook = async () => {
+    setPassbookLoading(true);
+
+    try {
+      const result = await getWalletTransactions(userId, 60);
+      setSchemaReady(result.schemaReady);
+      setPassbookTransactions(result.transactions);
+    } catch (error) {
+      console.error('Error loading wallet passbook:', error);
+      setErrorMessage('We could not load your wallet passbook right now. Please try again.');
+    } finally {
+      setPassbookLoading(false);
+    }
+  };
 
   const closeTopupModal = () => {
     if (processingTopup) {
@@ -205,6 +236,12 @@ export default function VajraWalletPanel({ userId }: VajraWalletPanelProps) {
     }
   };
 
+  const handleOpenPassbook = async () => {
+    setShowPassbookModal(true);
+    setPassbookFilter('all');
+    await loadPassbook();
+  };
+
   return (
     <>
       <div className="rounded-[28px] border border-emerald-500/15 bg-gradient-to-br from-emerald-500/12 via-gray-900 to-gray-900 p-6 shadow-xl shadow-black/20">
@@ -221,14 +258,24 @@ export default function VajraWalletPanel({ userId }: VajraWalletPanelProps) {
             </div>
           </div>
 
-          <button
-            onClick={() => setShowTopupModal(true)}
-            disabled={!schemaReady || loading}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-700"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Money</span>
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={handleOpenPassbook}
+              disabled={!schemaReady || loading}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:bg-gray-700"
+            >
+              <History className="h-4 w-4" />
+              <span>View Passbook</span>
+            </button>
+            <button
+              onClick={() => setShowTopupModal(true)}
+              disabled={!schemaReady || loading}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-600 disabled:cursor-not-allowed disabled:bg-gray-700"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Money</span>
+            </button>
+          </div>
         </div>
 
         {!schemaReady && (
@@ -348,6 +395,157 @@ export default function VajraWalletPanel({ userId }: VajraWalletPanelProps) {
           )}
         </div>
       </div>
+
+      {showPassbookModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm">
+          <div className="w-full max-w-4xl rounded-[28px] border border-white/10 bg-gray-900 p-6 shadow-2xl shadow-black/40">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                  Wallet passbook
+                </p>
+                <h4 className="text-2xl font-bold text-white">Full Vajra Wallet history</h4>
+                <p className="mt-2 text-sm leading-6 text-gray-400">
+                  Review top-ups, order payments, refunds, and balance movement in one place.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowPassbookModal(false)}
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mb-5 grid gap-4 md:grid-cols-[1fr,auto] md:items-end">
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-5 py-4">
+                <p className="text-xs uppercase tracking-[0.16em] text-gray-500">
+                  Current Balance
+                </p>
+                <p className="mt-2 text-3xl font-bold text-white">{formatCurrency(balance)}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {(['all', 'credit', 'debit'] as const).map((filter) => {
+                  const isSelected = passbookFilter === filter;
+                  const label =
+                    filter === 'all'
+                      ? 'All'
+                      : filter === 'credit'
+                        ? 'Credits'
+                        : 'Debits';
+
+                  return (
+                    <button
+                      key={filter}
+                      type="button"
+                      onClick={() => setPassbookFilter(filter)}
+                      className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        isSelected
+                          ? 'border-emerald-500/35 bg-emerald-500/15 text-emerald-200'
+                          : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="max-h-[65vh] overflow-y-auto pr-1">
+              {passbookLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-16 animate-pulse rounded-2xl border border-white/5 bg-white/5"
+                    />
+                  ))}
+                </div>
+              ) : filteredPassbookTransactions.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-gray-950/50 px-4 py-8 text-center text-sm text-gray-400">
+                  No passbook entries found for this filter yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredPassbookTransactions.map((transaction) => {
+                    const isCredit = transaction.direction === 'credit';
+
+                    return (
+                      <div
+                        key={transaction.id}
+                        className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-gray-950/50 px-4 py-4 md:flex-row md:items-center md:justify-between"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`rounded-full p-2 ${
+                              isCredit
+                                ? 'bg-emerald-500/15 text-emerald-300'
+                                : 'bg-orange-500/15 text-orange-200'
+                            }`}
+                          >
+                            {isCredit ? (
+                              <ArrowDownLeft className="h-4 w-4" />
+                            ) : (
+                              <ArrowUpRight className="h-4 w-4" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white">
+                              {getTransactionTitle(transaction)}
+                            </p>
+                            <p className="mt-1 text-sm text-gray-400">
+                              {getTransactionSubtitle(transaction)}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+                              <span>{formatTransactionDate(transaction.created_at)}</span>
+                              {transaction.topup_order_id && (
+                                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
+                                  Top-up {transaction.topup_order_id}
+                                </span>
+                              )}
+                              {transaction.order_id && (
+                                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
+                                  Order {transaction.order_id.slice(0, 8)}
+                                </span>
+                              )}
+                              {transaction.gateway_payment_id && (
+                                <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5">
+                                  Gateway {transaction.gateway_payment_id}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-left md:text-right">
+                          <p
+                            className={`text-lg font-semibold ${
+                              isCredit ? 'text-emerald-300' : 'text-orange-200'
+                            }`}
+                          >
+                            {isCredit ? '+' : '-'}
+                            {formatCurrency(transaction.amount)}
+                          </p>
+                          <p className="mt-1 text-xs uppercase tracking-[0.16em] text-gray-500">
+                            Balance after {formatCurrency(transaction.balance_after)}
+                          </p>
+                          <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-300">
+                            <span>{transaction.status === 'success' ? 'Recorded' : transaction.status}</span>
+                            <ChevronRight className="h-3 w-3" />
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {showTopupModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm">

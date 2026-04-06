@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Clock, CheckCircle, Package, Truck, MapPin, XCircle } from 'lucide-react';
+import { CalendarClock, CheckCircle, Clock, MapPin, Package, Truck, XCircle } from 'lucide-react';
 import BrandedLoader from './BrandedLoader';
 import DeliveryFeedbackModal from './DeliveryFeedbackModal';
 import { supabase, DeliveryFeedback, Order, OrderItem } from '../lib/supabase';
-import { parseDeliveryPreference } from '../lib/deliveryPreferences';
+import {
+  formatScheduledDelivery,
+  parseOrderDeliveryDetails,
+} from '../lib/orderDeliveryDetails';
 
 interface OrderWithItems extends Order {
   items: OrderItem[];
@@ -276,7 +279,7 @@ export default function OrderTracking() {
               const isRejected = order.status === 'rejected';
               const timelineProgress = getTimelineProgress(order.status);
               const statusText = getStatusText(order.status);
-              const deliveryDetails = parseDeliveryPreference(order.delivery_address);
+              const deliveryDetails = parseOrderDeliveryDetails(order.delivery_address);
 
               return (
                 <div key={order.id} className="rounded-2xl border border-gray-800 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-lg shadow-black/20">
@@ -320,6 +323,14 @@ export default function OrderTracking() {
                           <div className="pt-2">
                             <span className="inline-flex rounded-full border border-orange-500/25 bg-orange-500/10 px-3 py-1 text-xs font-semibold text-orange-200">
                               {deliveryDetails.preference}
+                            </span>
+                          </div>
+                        )}
+                        {deliveryDetails.scheduledDeliveryAt && (
+                          <div className="pt-2">
+                            <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-200">
+                              <CalendarClock className="h-3.5 w-3.5" />
+                              Requested for {formatScheduledDelivery(deliveryDetails.scheduledDeliveryAt)}
                             </span>
                           </div>
                         )}

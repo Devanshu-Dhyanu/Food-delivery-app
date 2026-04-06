@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, User, Phone, MapPin } from 'lucide-react';
+import { ArrowLeft, CalendarClock, MapPin, Phone, User } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { sanitizeName, sanitizePhone, sanitizeAddress } from '../lib/inputSanitization';
 import {
-  appendDeliveryPreference,
   DELIVERY_PREFERENCES,
   type DeliveryPreference,
 } from '../lib/deliveryPreferences';
+import {
+  appendOrderDeliveryDetails,
+  formatScheduledDelivery,
+} from '../lib/orderDeliveryDetails';
 import { placeOrderFromPendingCheckout } from '../lib/orderPlacement';
 import { createWalletPaidOrder, getWalletOverview } from '../lib/wallet';
 import PaymentOptions from './PaymentOptions';
@@ -25,10 +28,39 @@ type OrderItemPayload = {
   item_name: string;
 };
 
+const formatDateTimeLocalValue = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+const getMinimumScheduledDeliveryValue = () =>
+  formatDateTimeLocalValue(new Date(Date.now() + 15 * 60 * 1000));
+
+const getScheduledDeliveryIsoValue = (value: string) => {
+  if (!value) {
+    return null;
+  }
+
+  const scheduledDate = new Date(value);
+
+  if (Number.isNaN(scheduledDate.getTime())) {
+    return null;
+  }
+
+  return scheduledDate.toISOString();
+};
+
 export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const { cart, cartRestaurantId, cartRestaurantName, getTotalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [deliveryPreference, setDeliveryPreference] = useState<DeliveryPreference | null>(null);
+  const [scheduleDelivery, setScheduleDelivery] = useState(false);
+  const [scheduledDeliveryInput, setScheduledDeliveryInput] = useState('');
   const [formData, setFormData] = useState({
     customerName: '',
     customerPhone: '',
@@ -56,6 +88,9 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     item_name: item.name,
   }));
 
+  const scheduledDeliveryAt =
+    scheduleDelivery ? getScheduledDeliveryIsoValue(scheduledDeliveryInput) : null;
+
   const checkoutSession = {
     cartRestaurantId: cartRestaurantId || '',
     cartRestaurantName: cartRestaurantName || '',
@@ -65,6 +100,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     orderItems: orderItemsPayload,
     formData,
     deliveryPreference,
+    scheduledDeliveryAt,
   };
 
   useEffect(() => {
@@ -191,6 +227,21 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       return;
     }
 
+    if (scheduleDelivery) {
+      if (!scheduledDeliveryInput) {
+        alert('Please choose a scheduled delivery time.');
+        return;
+      }
+
+      const selectedTime = new Date(scheduledDeliveryInput);
+      const minimumTime = new Date(Date.now() + 15 * 60 * 1000);
+
+      if (Number.isNaN(selectedTime.getTime()) || selectedTime <= minimumTime) {
+        alert('Scheduled delivery time must be at least 15 minutes from now.');
+        return;
+      }
+    }
+
     // Move to payment step
     setCheckoutStep('payment');
   };
@@ -222,11 +273,11 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       const sanitizedName = sanitizeName(formData.customerName);
       const sanitizedPhone = sanitizePhone(formData.customerPhone);
       const sanitizedAddress = sanitizeAddress(formData.deliveryAddress);
-      
-      const finalDeliveryAddress = appendDeliveryPreference(
-        sanitizedAddress,
-        deliveryPreference
-      );
+      const finalDeliveryAddress = appendOrderDeliveryDetails({
+        address: sanitizedAddress,
+        preference: deliveryPreference,
+        scheduledDeliveryAt,
+      });
 
       const { data: restaurant, error: restaurantError } = await supabase
         .from('restaurants')
@@ -304,6 +355,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         orderItems: orderItemsPayload,
         formData,
         deliveryPreference,
+        scheduledDeliveryAt,
         selectedPaymentMethod: 'cod',
       },
       {
@@ -502,6 +554,62 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
               })}
             </div>
           </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-gray-300">Delivery Timing</p>
+              <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Optional</p>
+            </div>
+            <p className="mb-3 text-sm leading-6 text-gray-400">
+              Place the order now, or choose a future delivery slot for later.
+            </p>
+
+            <div className="mb-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setScheduleDelivery(false)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                  !scheduleDelivery
+                    ? 'border-orange-500/40 bg-orange-500/15 text-orange-200 shadow-lg shadow-orange-500/10'
+                    : 'border-white/10 bg-gray-700/60 text-gray-300 hover:border-white/20 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
+                Deliver ASAP
+              </button>
+              <button
+                type="button"
+                onClick={() => setScheduleDelivery(true)}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                  scheduleDelivery
+                    ? 'border-orange-500/40 bg-orange-500/15 text-orange-200 shadow-lg shadow-orange-500/10'
+                    : 'border-white/10 bg-gray-700/60 text-gray-300 hover:border-white/20 hover:bg-gray-700 hover:text-white'
+                }`}
+              >
+                Schedule for later
+              </button>
+            </div>
+
+            {scheduleDelivery && (
+              <div className="rounded-xl border border-orange-500/15 bg-orange-500/10 p-4">
+                <label className="block">
+                  <span className="mb-2 flex items-center gap-2 text-sm font-medium text-orange-100">
+                    <CalendarClock className="h-4 w-4" />
+                    Requested delivery time
+                  </span>
+                  <input
+                    type="datetime-local"
+                    min={getMinimumScheduledDeliveryValue()}
+                    value={scheduledDeliveryInput}
+                    onChange={(event) => setScheduledDeliveryInput(event.target.value)}
+                    className="w-full rounded-2xl border border-orange-500/20 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                  />
+                </label>
+                <p className="mt-2 text-xs leading-5 text-orange-100/80">
+                  Choose at least 15 minutes ahead. We will save this requested slot with your order.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="bg-gray-800 rounded-lg p-6">
@@ -525,6 +633,16 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
                   Delivery preference
                 </span>
                 <span className="text-sm font-medium text-orange-100">{deliveryPreference}</span>
+              </div>
+            )}
+            {scheduledDeliveryAt && (
+              <div className="flex flex-col gap-2 rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-3">
+                <span className="text-xs uppercase tracking-[0.16em] text-blue-300">
+                  Scheduled delivery
+                </span>
+                <span className="text-sm font-medium text-blue-100">
+                  {formatScheduledDelivery(scheduledDeliveryAt)}
+                </span>
               </div>
             )}
             <div className="flex justify-between text-gray-400">

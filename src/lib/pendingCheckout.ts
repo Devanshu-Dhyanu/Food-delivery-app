@@ -22,6 +22,7 @@ export interface PendingCheckoutPayload {
   orderItems: OrderItemPayload[];
   formData: CheckoutFormData;
   deliveryPreference: DeliveryPreference | null;
+  scheduledDeliveryAt?: string | null;
   selectedPaymentMethod: string;
 }
 
@@ -57,6 +58,9 @@ const isPendingCheckoutSession = (
     typeof session.formData?.customerName === 'string' &&
     typeof session.formData?.customerPhone === 'string' &&
     typeof session.formData?.deliveryAddress === 'string' &&
+    (typeof session.scheduledDeliveryAt === 'undefined' ||
+      typeof session.scheduledDeliveryAt === 'string' ||
+      session.scheduledDeliveryAt === null) &&
     typeof session.selectedPaymentMethod === 'string' &&
     typeof session.createdAt === 'string'
   );

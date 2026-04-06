@@ -1,5 +1,5 @@
-import { appendDeliveryPreference } from './deliveryPreferences';
 import { sanitizeAddress, sanitizeName, sanitizePhone } from './inputSanitization';
+import { appendOrderDeliveryDetails } from './orderDeliveryDetails';
 import type { PendingCheckoutPayload } from './pendingCheckout';
 import { supabase } from './supabase';
 
@@ -168,10 +168,11 @@ export const placeOrderFromPendingCheckout = async (
   const sanitizedName = sanitizeName(session.formData.customerName);
   const sanitizedPhone = sanitizePhone(session.formData.customerPhone);
   const sanitizedAddress = sanitizeAddress(session.formData.deliveryAddress);
-  const finalDeliveryAddress = appendDeliveryPreference(
-    sanitizedAddress,
-    session.deliveryPreference
-  );
+  const finalDeliveryAddress = appendOrderDeliveryDetails({
+    address: sanitizedAddress,
+    preference: session.deliveryPreference,
+    scheduledDeliveryAt: session.scheduledDeliveryAt ?? null,
+  });
 
   await ensureRestaurantIsOpen(session.cartRestaurantId);
 
