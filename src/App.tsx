@@ -365,6 +365,7 @@ function App() {
             onNavigate={handleNavigate}
             showNavigation={false}
             userDisplayName={userDisplayName}
+            userId={user?.id}
           />
           <BrandedLoader message="Checking your profile..." />
         </div>
@@ -381,6 +382,7 @@ function App() {
             onNavigate={handleNavigate}
             showNavigation={false}
             userDisplayName={userDisplayName}
+            userId={user?.id}
           />
           <Onboarding userId={user.id} onComplete={() => setHasProfile(true)} />
         </div>
@@ -519,6 +521,7 @@ function App() {
           onNavigate={handleNavigate}
           hasUnreadAnnouncements={hasUnreadAnnouncements}
           userDisplayName={userDisplayName}
+          userId={user?.id}
         />
         <main className="flex-1">{renderPage()}</main>
         <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />

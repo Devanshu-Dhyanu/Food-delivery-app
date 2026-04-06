@@ -1,7 +1,8 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Bell, CircleUserRound, Menu, Package, ShoppingCart, Utensils, X } from 'lucide-react';
+import { Bell, CircleUserRound, Menu, Package, ShoppingCart, Utensils, Wallet, X } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import { getWalletOverview } from '../lib/wallet';
 
 interface HeaderProps {
   currentPage: string;
@@ -9,6 +10,7 @@ interface HeaderProps {
   showNavigation?: boolean;
   hasUnreadAnnouncements?: boolean;
   userDisplayName?: string;
+  userId?: string;
 }
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery'];
@@ -32,11 +34,13 @@ export default function Header({
   showNavigation = true,
   hasUnreadAnnouncements = false,
   userDisplayName = '',
+  userId,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showLogoBurst, setShowLogoBurst] = useState(false);
   const [logoBurstKey, setLogoBurstKey] = useState(0);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const { clearCart, getTotalItems } = useCart();
   const totalItems = getTotalItems();
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
@@ -127,6 +131,50 @@ export default function Header({
       window.clearInterval(interval);
     };
   }, [currentPage, showNavigation]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!showNavigation || !userId) {
+      setWalletBalance(null);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadWalletBalance = async () => {
+      try {
+        const overview = await getWalletOverview(userId, 1);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (!overview.schemaReady) {
+          setWalletBalance(null);
+          return;
+        }
+
+        setWalletBalance(Number(overview.account?.balance ?? 0));
+      } catch (error) {
+        console.error('Error loading wallet balance for header:', error);
+
+        if (isMounted) {
+          setWalletBalance(null);
+        }
+      }
+    };
+
+    void loadWalletBalance();
+    const interval = window.setInterval(() => {
+      void loadWalletBalance();
+    }, 20000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+    };
+  }, [showNavigation, userId, currentPage]);
 
   const handleLogoClick = () => {
     setShowLogoBurst(true);
@@ -343,6 +391,16 @@ export default function Header({
                 )}
               </button>
             )}
+            {showNavigation && walletBalance !== null && (
+              <button
+                onClick={() => handleNavigate('profile')}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-100 transition-colors hover:bg-emerald-500/15"
+                title={`Vajra Wallet balance: Rs. ${walletBalance.toFixed(2)}`}
+              >
+                <Wallet className="h-4 w-4" />
+                <span className="text-xs font-semibold">Rs. {walletBalance.toFixed(2)}</span>
+              </button>
+            )}
           </nav>
 
           <div className="flex items-center gap-2 md:hidden">
@@ -358,6 +416,16 @@ export default function Header({
                     {totalItems}
                   </span>
                 )}
+              </button>
+            )}
+            {showNavigation && walletBalance !== null && (
+              <button
+                onClick={() => handleNavigate('profile')}
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-[11px] font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/15"
+                aria-label={`Open wallet. Balance Rs. ${walletBalance.toFixed(2)}`}
+              >
+                <Wallet className="h-4 w-4" />
+                <span>Rs. {walletBalance.toFixed(0)}</span>
               </button>
             )}
 
