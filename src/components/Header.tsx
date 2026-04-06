@@ -37,7 +37,7 @@ export default function Header({
   const [showLogoBurst, setShowLogoBurst] = useState(false);
   const [logoBurstKey, setLogoBurstKey] = useState(0);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
-  const { getTotalItems } = useCart();
+  const { clearCart, getTotalItems } = useCart();
   const totalItems = getTotalItems();
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
   const profileInitial = firstName.charAt(0).toUpperCase();
@@ -139,6 +139,7 @@ export default function Header({
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
+    clearCart();
     await supabase.auth.signOut();
     window.location.reload();
   };

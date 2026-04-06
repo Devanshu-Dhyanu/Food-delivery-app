@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { CartItem, MenuItem } from '../lib/supabase';
 
 interface CartContextType {
@@ -15,9 +15,64 @@ interface CartContextType {
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const CART_STORAGE_KEY = 'vajra-cart-v1';
+
+const isCartItem = (value: unknown): value is CartItem => {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const item = value as Partial<CartItem>;
+
+  return (
+    typeof item.id === 'string' &&
+    typeof item.restaurant_id === 'string' &&
+    typeof item.name === 'string' &&
+    typeof item.description === 'string' &&
+    typeof item.price === 'number' &&
+    typeof item.image_url === 'string' &&
+    typeof item.category === 'string' &&
+    typeof item.is_vegetarian === 'boolean' &&
+    typeof item.is_available === 'boolean' &&
+    typeof item.created_at === 'string' &&
+    typeof item.quantity === 'number' &&
+    typeof item.restaurant_name === 'string'
+  );
+};
+
+const loadStoredCart = (): CartItem[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(CART_STORAGE_KEY);
+    if (!storedValue) {
+      return [];
+    }
+
+    const parsedValue: unknown = JSON.parse(storedValue);
+    return Array.isArray(parsedValue) && parsedValue.every(isCartItem) ? parsedValue : [];
+  } catch {
+    return [];
+  }
+};
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(() => loadStoredCart());
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (cart.length === 0) {
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+  }, [cart]);
 
   const cartRestaurantId = cart[0]?.restaurant_id ?? null;
   const cartRestaurantName = cart[0]?.restaurant_name ?? null;
