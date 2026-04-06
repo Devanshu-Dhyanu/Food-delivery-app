@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Phone, MapPin } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
@@ -9,6 +9,7 @@ import {
   type DeliveryPreference,
 } from '../lib/deliveryPreferences';
 import { placeOrderFromPendingCheckout } from '../lib/orderPlacement';
+import { createWalletPaidOrder, getWalletOverview } from '../lib/wallet';
 import PaymentOptions from './PaymentOptions';
 import PaymentConfirmation from './PaymentConfirmation';
 
@@ -40,6 +41,9 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failure'>('pending');
   const [transactionId, setTransactionId] = useState<string>('');
   const [orderId, setOrderId] = useState<string>('');
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletSchemaReady, setWalletSchemaReady] = useState(true);
 
   const subtotalAmount = getTotalAmount();
   const deliveryFee = 20;
@@ -51,6 +55,74 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     price: item.price,
     item_name: item.name,
   }));
+
+  const checkoutSession = {
+    cartRestaurantId: cartRestaurantId || '',
+    cartRestaurantName: cartRestaurantName || '',
+    subtotalAmount,
+    deliveryFee,
+    totalAmount,
+    orderItems: orderItemsPayload,
+    formData,
+    deliveryPreference,
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (checkoutStep !== 'payment') {
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadWalletBalance = async () => {
+      setWalletLoading(true);
+
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) throw userError;
+
+        if (!user) {
+          if (isMounted) {
+            setWalletBalance(0);
+            setWalletSchemaReady(true);
+          }
+          return;
+        }
+
+        const overview = await getWalletOverview(user.id, 6);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setWalletBalance(Number(overview.account?.balance ?? 0));
+        setWalletSchemaReady(overview.schemaReady);
+      } catch (error) {
+        console.error('Error loading Vajra Wallet balance:', error);
+
+        if (isMounted) {
+          setWalletBalance(0);
+          setWalletSchemaReady(true);
+        }
+      } finally {
+        if (isMounted) {
+          setWalletLoading(false);
+        }
+      }
+    };
+
+    void loadWalletBalance();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [checkoutStep]);
 
   const shouldUseLegacyOrderFallback = (error: unknown) => {
     const maybeError = error as { code?: string; message?: string; details?: string };
@@ -248,6 +320,33 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     clearCart();
   };
 
+  const handleVajraWalletOrder = async () => {
+    const hasMixedRestaurantItems = cart.some((item) => item.restaurant_id !== cartRestaurantId);
+    if (hasMixedRestaurantItems) {
+      throw new Error('Cart contains items from multiple restaurants.');
+    }
+
+    if (!cartRestaurantId || !cartRestaurantName) {
+      throw new Error('Please add items from one restaurant before checkout.');
+    }
+
+    const result = await createWalletPaidOrder({
+      ...checkoutSession,
+      selectedPaymentMethod: 'vajra_wallet',
+    });
+
+    if (!result.orderId || !result.paymentTransactionId) {
+      throw new Error('Wallet payment completed, but order confirmation was incomplete.');
+    }
+
+    setTransactionId(result.paymentTransactionId);
+    setPaymentStatus('success');
+    setOrderId(result.orderId);
+    setWalletBalance(result.balanceAfter);
+    setCheckoutStep('confirmation');
+    clearCart();
+  };
+
   // Show payment confirmation
   if (checkoutStep === 'confirmation') {
     return (
@@ -284,17 +383,12 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentFailure={handlePaymentFailure}
             onCashOnDeliveryOrder={handleCashOnDeliveryOrder}
+            onVajraWalletOrder={handleVajraWalletOrder}
             formData={formData}
-            checkoutSession={{
-              cartRestaurantId: cartRestaurantId || '',
-              cartRestaurantName: cartRestaurantName || '',
-              subtotalAmount,
-              deliveryFee,
-              totalAmount,
-              orderItems: orderItemsPayload,
-              formData,
-              deliveryPreference,
-            }}
+            checkoutSession={checkoutSession}
+            walletBalance={walletBalance}
+            walletLoading={walletLoading}
+            walletSchemaReady={walletSchemaReady}
           />
 
           <button

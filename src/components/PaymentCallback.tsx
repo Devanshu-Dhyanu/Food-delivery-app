@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import BrandedLoader from './BrandedLoader';
 import {
+  clearPendingWalletTopup,
+  getPendingWalletTopup,
+} from '../lib/pendingWalletTopup';
+import {
   clearPendingCheckout,
   getCompletedCheckoutOrderId,
   getPendingCheckout,
   markCheckoutCompleted,
 } from '../lib/pendingCheckout';
 import { placeOrderFromPendingCheckout } from '../lib/orderPlacement';
+import { creditWalletTopup } from '../lib/wallet';
 
 export default function PaymentCallback() {
   const [status, setStatus] = useState<'loading' | 'success' | 'failure'>('loading');
@@ -57,6 +62,27 @@ export default function PaymentCallback() {
         );
 
         if (successfulPayment) {
+          const pendingWalletTopup = getPendingWalletTopup(orderIdParam);
+          if (pendingWalletTopup) {
+            const topupResult = await creditWalletTopup({
+              gatewayOrderId: orderIdParam,
+              gatewayPaymentId: successfulPayment.cf_payment_id,
+              amount: pendingWalletTopup.amount,
+              gatewayResponse: successfulPayment,
+            });
+
+            setStatus('success');
+            setMessage(
+              `Rs. ${pendingWalletTopup.amount.toFixed(2)} was added to your Vajra Wallet. New balance: Rs. ${topupResult.balanceAfter.toFixed(2)}.`
+            );
+
+            setTimeout(() => {
+              clearPendingWalletTopup(orderIdParam);
+              window.location.href = '/';
+            }, 2500);
+            return;
+          }
+
           const pendingCheckout = getPendingCheckout(orderIdParam);
 
           if (!pendingCheckout) {
@@ -82,17 +108,16 @@ export default function PaymentCallback() {
           clearPendingCheckout(orderIdParam);
           setStatus('success');
           setMessage('Payment successful! Your order has been placed.');
-          
-          // Store transaction ID in localStorage for order creation
+
           localStorage.setItem('lastTransactionId', successfulPayment.cf_payment_id);
           localStorage.setItem('lastPlacedOrderId', orderId);
-          
-          // Redirect to home after 2 seconds
+
           setTimeout(() => {
             window.location.href = '/';
           }, 2500);
         } else {
           clearPendingCheckout(orderIdParam);
+          clearPendingWalletTopup(orderIdParam);
           setStatus('failure');
           setMessage('Payment was not completed. Please try again.');
         }

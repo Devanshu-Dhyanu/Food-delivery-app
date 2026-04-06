@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import BrandedLoader from './BrandedLoader';
+import VajraWalletPanel from './VajraWalletPanel';
 import { sanitizeName, sanitizePhone, sanitizeText } from '../lib/inputSanitization';
 import { supabase, type UserProfile } from '../lib/supabase';
 
@@ -273,130 +274,184 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       )}
 
       {editing ? (
-        <form onSubmit={handleSave} className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
-          <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-xl shadow-black/20">
-            <div className="mb-6">
-              <h2 className="mb-2 text-2xl font-bold text-white">Basic Details</h2>
-              <p className="text-sm text-gray-400">Keep your saved identity and contact details up to date.</p>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-300">Full Name</span>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(event) => updateField('name', event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                  placeholder="Your name"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-300">Phone Number</span>
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) => updateField('phone', event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                  placeholder="10-digit mobile number"
-                />
-              </label>
-
-              <div className="sm:col-span-2">
-                <span className="mb-2 block text-sm font-medium text-gray-300">Gender</span>
-                <div className="flex flex-wrap gap-2">
-                  {genders.map((gender) => {
-                    const isSelected = form.gender === gender;
-
-                    return (
-                      <button
-                        key={gender}
-                        type="button"
-                        onClick={() => updateField('gender', gender)}
-                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                          isSelected
-                            ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
-                            : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
-                        }`}
-                      >
-                        {gender}
-                      </button>
-                    );
-                  })}
-                </div>
+        <div className="space-y-6">
+          <form onSubmit={handleSave} className="grid gap-6 xl:grid-cols-[1.1fr,0.9fr]">
+            <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-xl shadow-black/20">
+              <div className="mb-6">
+                <h2 className="mb-2 text-2xl font-bold text-white">Basic Details</h2>
+                <p className="text-sm text-gray-400">Keep your saved identity and contact details up to date.</p>
               </div>
 
-              <label className="block sm:col-span-2">
-                <span className="mb-2 block text-sm font-medium text-gray-300">University ID (UID)</span>
-                <input
-                  type="text"
-                  value={form.uid}
-                  onChange={(event) => updateField('uid', event.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                  placeholder="e.g. 12345678"
-                />
-              </label>
-            </div>
-          </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Full Name</span>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(event) => updateField('name', event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                    placeholder="Your name"
+                  />
+                </label>
 
-          <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-xl shadow-black/20">
-            <div className="mb-6">
-              <h2 className="mb-2 text-2xl font-bold text-white">Delivery Location</h2>
-              <p className="text-sm text-gray-400">These details help with quicker and more accurate deliveries.</p>
-            </div>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Phone Number</span>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(event) => updateField('phone', event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                    placeholder="10-digit mobile number"
+                  />
+                </label>
 
-            <div className="space-y-5">
-              <div>
-                <span className="mb-2 block text-sm font-medium text-gray-300">Location Type</span>
-                <div className="flex flex-wrap gap-2">
-                  {locationOptions.map((locationType) => {
-                    const isSelected = form.location_type === locationType;
+                <div className="sm:col-span-2">
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Gender</span>
+                  <div className="flex flex-wrap gap-2">
+                    {genders.map((gender) => {
+                      const isSelected = form.gender === gender;
 
-                    return (
-                      <button
-                        key={locationType}
-                        type="button"
-                        onClick={() => updateField('location_type', locationType)}
-                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                          isSelected
-                            ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
-                            : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
-                        }`}
-                      >
-                        {locationType}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {form.location_type === 'Hostel' && (
-                <>
-                  <div>
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Hostel Name</span>
-                    <div className="flex flex-wrap gap-2">
-                      {(form.gender === 'Male' ? boyHostels : girlHostels).map((hostel) => {
-                        const isSelected = form.hostel_name === hostel;
-
-                        return (
-                          <button
-                            key={hostel}
-                            type="button"
-                            onClick={() => updateField('hostel_name', hostel)}
-                            className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                              isSelected
-                                ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
-                                : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
-                            }`}
-                          >
-                            {hostel}
-                          </button>
-                        );
-                      })}
-                    </div>
+                      return (
+                        <button
+                          key={gender}
+                          type="button"
+                          onClick={() => updateField('gender', gender)}
+                          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                            isSelected
+                              ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
+                              : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          {gender}
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
 
+                <label className="block sm:col-span-2">
+                  <span className="mb-2 block text-sm font-medium text-gray-300">University ID (UID)</span>
+                  <input
+                    type="text"
+                    value={form.uid}
+                    onChange={(event) => updateField('uid', event.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                    placeholder="e.g. 12345678"
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-xl shadow-black/20">
+              <div className="mb-6">
+                <h2 className="mb-2 text-2xl font-bold text-white">Delivery Location</h2>
+                <p className="text-sm text-gray-400">These details help with quicker and more accurate deliveries.</p>
+              </div>
+
+              <div className="space-y-5">
+                <div>
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Location Type</span>
+                  <div className="flex flex-wrap gap-2">
+                    {locationOptions.map((locationType) => {
+                      const isSelected = form.location_type === locationType;
+
+                      return (
+                        <button
+                          key={locationType}
+                          type="button"
+                          onClick={() => updateField('location_type', locationType)}
+                          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                            isSelected
+                              ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
+                              : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          {locationType}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {form.location_type === 'Hostel' && (
+                  <>
+                    <div>
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Hostel Name</span>
+                      <div className="flex flex-wrap gap-2">
+                        {(form.gender === 'Male' ? boyHostels : girlHostels).map((hostel) => {
+                          const isSelected = form.hostel_name === hostel;
+
+                          return (
+                            <button
+                              key={hostel}
+                              type="button"
+                              onClick={() => updateField('hostel_name', hostel)}
+                              className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                                isSelected
+                                  ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
+                                  : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                              }`}
+                            >
+                              {hostel}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
+                        <input
+                          type="text"
+                          value={form.block}
+                          onChange={(event) => updateField('block', event.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                          placeholder="e.g. A, B, C"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-gray-300">Room Number</span>
+                        <input
+                          type="text"
+                          value={form.room_number}
+                          onChange={(event) => updateField('room_number', event.target.value)}
+                          className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                          placeholder="e.g. 101"
+                        />
+                      </label>
+                    </div>
+                  </>
+                )}
+
+                {form.location_type === 'Class' && (
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Building Number</span>
+                      <input
+                        type="text"
+                        value={form.building_number}
+                        onChange={(event) => updateField('building_number', event.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                        placeholder="e.g. Block 32"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Room/Class Number</span>
+                      <input
+                        type="text"
+                        value={form.room_number}
+                        onChange={(event) => updateField('room_number', event.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                        placeholder="e.g. 101"
+                      />
+                    </label>
+                  </div>
+                )}
+
+                {(form.location_type === 'Studio Apartment' || form.location_type === 'Apartment') && (
                   <div className="grid gap-5 sm:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
@@ -405,7 +460,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                         value={form.block}
                         onChange={(event) => updateField('block', event.target.value)}
                         className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="e.g. A, B, C"
+                        placeholder="Block name/number"
                       />
                     </label>
 
@@ -416,118 +471,68 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                         value={form.room_number}
                         onChange={(event) => updateField('room_number', event.target.value)}
                         className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="e.g. 101"
+                        placeholder="e.g. 201"
                       />
                     </label>
                   </div>
-                </>
-              )}
+                )}
 
-              {form.location_type === 'Class' && (
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Building Number</span>
-                    <input
-                      type="text"
-                      value={form.building_number}
-                      onChange={(event) => updateField('building_number', event.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                      placeholder="e.g. Block 32"
-                    />
-                  </label>
+                {form.location_type === 'Other' && (
+                  <div className="space-y-5">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Nearest Building</span>
+                      <input
+                        type="text"
+                        value={form.building_number}
+                        onChange={(event) => updateField('building_number', event.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                        placeholder="e.g. Block 34"
+                      />
+                    </label>
 
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Room/Class Number</span>
-                    <input
-                      type="text"
-                      value={form.room_number}
-                      onChange={(event) => updateField('room_number', event.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                      placeholder="e.g. 101"
-                    />
-                  </label>
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Exact Location</span>
+                      <input
+                        type="text"
+                        value={form.exact_location}
+                        onChange={(event) => updateField('exact_location', event.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                        placeholder="Describe your location"
+                      />
+                    </label>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditing(false);
+                      setErrorMessage('');
+                      setSuccessMessage('');
+                      setForm(mapProfileToForm(profile));
+                    }}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                  >
+                    <X className="h-4 w-4" />
+                    <span>Cancel</span>
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isSaveDisabled}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-700"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>{saving ? 'Saving changes...' : 'Save changes'}</span>
+                  </button>
                 </div>
-              )}
-
-              {(form.location_type === 'Studio Apartment' || form.location_type === 'Apartment') && (
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
-                    <input
-                      type="text"
-                      value={form.block}
-                      onChange={(event) => updateField('block', event.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                      placeholder="Block name/number"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Room Number</span>
-                    <input
-                      type="text"
-                      value={form.room_number}
-                      onChange={(event) => updateField('room_number', event.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                      placeholder="e.g. 201"
-                    />
-                  </label>
-                </div>
-              )}
-
-              {form.location_type === 'Other' && (
-                <div className="space-y-5">
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Nearest Building</span>
-                    <input
-                      type="text"
-                      value={form.building_number}
-                      onChange={(event) => updateField('building_number', event.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                      placeholder="e.g. Block 34"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-300">Exact Location</span>
-                    <input
-                      type="text"
-                      value={form.exact_location}
-                      onChange={(event) => updateField('exact_location', event.target.value)}
-                      className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                      placeholder="Describe your location"
-                    />
-                  </label>
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditing(false);
-                    setErrorMessage('');
-                    setSuccessMessage('');
-                    setForm(mapProfileToForm(profile));
-                  }}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-                >
-                  <X className="h-4 w-4" />
-                  <span>Cancel</span>
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={isSaveDisabled}
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-orange-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-700"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>{saving ? 'Saving changes...' : 'Save changes'}</span>
-                </button>
               </div>
             </div>
-          </div>
-        </form>
+          </form>
+
+          <VajraWalletPanel userId={userId} />
+        </div>
       ) : (
         <div className="grid gap-6 xl:grid-cols-[1.05fr,0.95fr]">
           <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-xl shadow-black/20">
@@ -609,6 +614,8 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                 )}
               </div>
             </div>
+
+            <VajraWalletPanel userId={userId} />
 
             <div className="rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-6 shadow-xl shadow-black/20">
               <h3 className="mb-2 text-lg font-bold text-white">Need to update something?</h3>

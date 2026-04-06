@@ -1,25 +1,36 @@
 import { useState } from 'react';
 import {
+  AlertCircle,
+  Banknote,
+  Calendar,
   CreditCard,
   Smartphone,
-  Banknote,
-  Wallet,
-  Calendar,
-  Zap,
-  AlertCircle,
   Truck,
+  Wallet,
+  Zap,
 } from 'lucide-react';
 import { openCashfreeCheckout } from '../lib/cashfreeCheckout';
-import { clearPendingCheckout, savePendingCheckout } from '../lib/pendingCheckout';
+import {
+  clearPendingCheckout,
+  savePendingCheckout,
+  type PendingCheckoutPayload,
+} from '../lib/pendingCheckout';
 import { supabase } from '../lib/supabase';
-import type { PendingCheckoutPayload } from '../lib/pendingCheckout';
 
 interface PaymentMethod {
   id: string;
   name: string;
   description: string;
   icon: React.ReactNode;
-  category: 'upi' | 'card' | 'netbanking' | 'wallet' | 'bnpl' | 'emi' | 'cod';
+  category:
+    | 'upi'
+    | 'card'
+    | 'netbanking'
+    | 'vajra_wallet'
+    | 'wallet'
+    | 'bnpl'
+    | 'emi'
+    | 'cod';
 }
 
 interface PaymentOptionsProps {
@@ -29,8 +40,16 @@ interface PaymentOptionsProps {
   onPaymentSuccess?: (transactionId: string) => void;
   onPaymentFailure?: (error: string) => void;
   onCashOnDeliveryOrder?: () => Promise<void>;
-  formData?: { customerName: string; customerPhone: string; deliveryAddress: string };
+  onVajraWalletOrder?: () => Promise<void>;
+  formData?: {
+    customerName: string;
+    customerPhone: string;
+    deliveryAddress: string;
+  };
   checkoutSession: Omit<PendingCheckoutPayload, 'selectedPaymentMethod'>;
+  walletBalance?: number;
+  walletLoading?: boolean;
+  walletSchemaReady?: boolean;
 }
 
 const PAYMENT_METHODS: PaymentMethod[] = [
@@ -54,6 +73,13 @@ const PAYMENT_METHODS: PaymentMethod[] = [
     description: '50+ Banks - SBI, HDFC, ICICI, Axis',
     icon: <Banknote className="w-6 h-6" />,
     category: 'netbanking',
+  },
+  {
+    id: 'vajra_wallet',
+    name: 'Vajra Wallet',
+    description: 'Use your in-app balance for faster payments',
+    icon: <Wallet className="w-6 h-6" />,
+    category: 'vajra_wallet',
   },
   {
     id: 'wallet',
@@ -92,8 +118,12 @@ export default function PaymentOptions({
   onPaymentSuccess: _onPaymentSuccess,
   onPaymentFailure,
   onCashOnDeliveryOrder,
+  onVajraWalletOrder,
   formData,
   checkoutSession,
+  walletBalance = 0,
+  walletLoading = false,
+  walletSchemaReady = true,
 }: PaymentOptionsProps) {
   const [hoveredMethod, setHoveredMethod] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
@@ -120,6 +150,33 @@ export default function PaymentOptions({
         return;
       }
 
+      if (selectedMethod === 'vajra_wallet') {
+        if (walletLoading) {
+          throw new Error(
+            'Checking your Vajra Wallet balance. Please wait a moment and try again.'
+          );
+        }
+
+        if (!walletSchemaReady) {
+          throw new Error(
+            'Vajra Wallet setup is not ready yet. Please run the wallet SQL first.'
+          );
+        }
+
+        if (walletBalance < amount) {
+          throw new Error(
+            `Insufficient Vajra Wallet balance. Available: Rs. ${walletBalance.toFixed(2)}`
+          );
+        }
+
+        if (!onVajraWalletOrder) {
+          throw new Error('Vajra Wallet is not available right now.');
+        }
+
+        await onVajraWalletOrder();
+        return;
+      }
+
       const {
         data: { user },
         error: userError,
@@ -129,15 +186,13 @@ export default function PaymentOptions({
         throw new Error('User authentication required');
       }
 
-      // Generate order ID
       gatewayOrderId = `ORD-${Date.now()}`;
-      
+
       savePendingCheckout(gatewayOrderId, {
         ...checkoutSession,
         selectedPaymentMethod: selectedMethod,
       });
 
-      // Prepare payment request
       const paymentRequest = {
         order_id: gatewayOrderId,
         order_amount: amount,
@@ -155,7 +210,6 @@ export default function PaymentOptions({
         order_note: `Order for ${formData?.customerName}`,
       };
 
-      // Call server-side API to create the Cashfree order securely
       const createOrderResponse = await fetch('/api/payment/initiate', {
         method: 'POST',
         headers: {
@@ -177,8 +231,11 @@ export default function PaymentOptions({
       if (!createOrderResponse.ok) {
         const errorData = await createOrderResponse.json().catch(() => null);
         if (createOrderResponse.status === 404 && import.meta.env.DEV) {
-          throw new Error("Local payment API not available. Run the app with 'vercel dev' for payment testing.");
+          throw new Error(
+            "Local payment API not available. Run the app with 'vercel dev' for payment testing."
+          );
         }
+
         throw new Error(
           errorData?.message || errorData?.error || 'Failed to create payment'
         );
@@ -186,10 +243,13 @@ export default function PaymentOptions({
 
       const orderData = await createOrderResponse.json();
       const paymentSessionId =
-        typeof orderData.paymentSessionId === 'string' ? orderData.paymentSessionId : '';
+        typeof orderData.paymentSessionId === 'string'
+          ? orderData.paymentSessionId
+          : '';
       const environment =
         orderData.environment === 'production' ? 'production' : 'sandbox';
-      const paymentUrl = orderData.paymentUrl || null;
+      const paymentUrl =
+        typeof orderData.paymentUrl === 'string' ? orderData.paymentUrl : null;
 
       if (paymentSessionId) {
         await openCashfreeCheckout({
@@ -202,7 +262,8 @@ export default function PaymentOptions({
         throw new Error('No payment session received from Cashfree');
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Payment processing failed';
+      const message =
+        err instanceof Error ? err.message : 'Payment processing failed';
       console.error('Payment error:', err);
       if (gatewayOrderId) {
         clearPendingCheckout(gatewayOrderId);
@@ -216,9 +277,9 @@ export default function PaymentOptions({
   return (
     <div className="w-full">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">Select Payment Method</h2>
+        <h2 className="mb-2 text-2xl font-bold text-white">Select Payment Method</h2>
         <p className="text-gray-400">
-          Pay <span className="text-orange-300">₹{amount.toFixed(2)}</span>
+          Pay <span className="text-orange-300">Rs. {amount.toFixed(2)}</span>
         </p>
       </div>
 
@@ -253,12 +314,12 @@ export default function PaymentOptions({
                 >
                   {method.name}
                 </h3>
-                <p className="text-xs text-gray-400 mt-1">{method.description}</p>
+                <p className="mt-1 text-xs text-gray-400">{method.description}</p>
               </div>
             </div>
 
             {selectedMethod === method.id && (
-              <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-orange-300 flex items-center justify-center">
+              <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-orange-300">
                 <svg
                   className="h-4 w-4 text-white"
                   fill="none"
@@ -280,13 +341,30 @@ export default function PaymentOptions({
 
       <div className="mt-6 rounded-lg border border-white/10 bg-white/5 p-4">
         <p className="text-sm text-gray-400">
-          ✓ 100% Secure &nbsp;|&nbsp; SSL Encrypted &nbsp;|&nbsp; PCI DSS Compliant
+          100% Secure &nbsp;|&nbsp; SSL Encrypted &nbsp;|&nbsp; PCI DSS Compliant
         </p>
       </div>
 
+      {selectedMethod === 'vajra_wallet' && (
+        <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-4">
+          <p className="text-sm font-medium text-emerald-100">
+            {walletLoading
+              ? 'Checking your Vajra Wallet balance...'
+              : !walletSchemaReady
+                ? 'Vajra Wallet setup is not ready yet. Run the wallet SQL first.'
+                : `Available balance: Rs. ${walletBalance.toFixed(2)}`}
+          </p>
+          {!walletLoading && walletSchemaReady && (
+            <p className="mt-1 text-xs text-emerald-200/80">
+              This order needs Rs. {amount.toFixed(2)} from your wallet balance.
+            </p>
+          )}
+        </div>
+      )}
+
       {error && (
-        <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 p-4 flex gap-3">
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+        <div className="mt-4 flex gap-3 rounded-lg border border-red-500/30 bg-red-500/10 p-4">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-400" />
           <p className="text-sm text-red-200">{error}</p>
         </div>
       )}
@@ -295,15 +373,19 @@ export default function PaymentOptions({
         <button
           onClick={handlePaymentInitiate}
           disabled={!selectedMethod || processing}
-          className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 text-white font-semibold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-orange-500 py-3 font-semibold text-white transition-colors hover:bg-orange-600 disabled:bg-gray-600"
         >
           {processing ? (
             <>
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               Processing...
             </>
+          ) : selectedMethod === 'cod' ? (
+            'Place Order'
+          ) : selectedMethod === 'vajra_wallet' ? (
+            'Pay with Vajra Wallet'
           ) : (
-            selectedMethod === 'cod' ? 'Place Order' : 'Proceed to Payment'
+            'Proceed to Payment'
           )}
         </button>
       </div>

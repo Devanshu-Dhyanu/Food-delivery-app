@@ -25,6 +25,8 @@ const formatPaymentMethod = (paymentMethod: string) => {
       return 'Buy Now Pay Later';
     case 'upi':
       return 'UPI';
+    case 'vajra_wallet':
+      return 'Vajra Wallet';
     default:
       return paymentMethod;
   }

@@ -135,6 +135,34 @@ export type CartItem = MenuItem & {
   restaurant_name: string;
 };
 
+export type WalletAccount = {
+  id: string;
+  user_id: string;
+  balance: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WalletTransaction = {
+  id: string;
+  wallet_account_id: string;
+  user_id: string;
+  payment_transaction_id: string | null;
+  order_id: string | null;
+  transaction_type: 'topup' | 'debit' | 'credit' | 'refund' | 'adjustment';
+  direction: 'credit' | 'debit';
+  amount: number;
+  balance_after: number;
+  status: 'pending' | 'success' | 'failed';
+  topup_order_id: string | null;
+  gateway_payment_id: string | null;
+  note: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+};
+
 export type UserProfile = {
   id: string;
   user_id: string;
