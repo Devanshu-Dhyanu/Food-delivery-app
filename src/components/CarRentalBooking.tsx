@@ -10,9 +10,11 @@ import {
   ShieldCheck,
   User,
 } from 'lucide-react';
+import { sanitizeName, sanitizePhone, sanitizeText } from '../lib/inputSanitization';
 import {
   addHoursToDateTimeLocal,
   buildRentalNotes,
+  rentalContactPreferenceLabels,
   formatDateTimeDisplay,
   formatInr,
   getRentalBestTimeHint,
@@ -23,6 +25,7 @@ import {
   isCarRentalSchemaMissing,
   rentalPickupMoodLabels,
   type RentalCampusSpot,
+  type RentalContactPreference,
   type RentalPickupMood,
   type RentalTripIntent,
 } from '../lib/carRental';
@@ -49,6 +52,7 @@ type BookingForm = {
   endDateTime: string;
   tripIntent: RentalTripIntent | '';
   pickupSpot: RentalCampusSpot | '';
+  contactPreference: RentalContactPreference;
   pickupMood: RentalPickupMood;
   handoffType: RentalHandoffType;
   notes: string;
@@ -63,6 +67,7 @@ const initialBookingForm: BookingForm = {
   endDateTime: '',
   tripIntent: '',
   pickupSpot: '',
+  contactPreference: 'call',
   pickupMood: 'self_pickup',
   handoffType: 'self_pickup',
   notes: '',
@@ -136,6 +141,28 @@ const campusSpotOptions: RentalCampusSpot[] = [
   'bh_block',
   'academic_block',
   'mall_road_side',
+];
+
+const contactPreferenceOptions: Array<{
+  value: RentalContactPreference;
+  title: string;
+  description: string;
+}> = [
+  {
+    value: 'call',
+    title: 'Call',
+    description: 'Best when you want a direct handoff confirmation.',
+  },
+  {
+    value: 'whatsapp',
+    title: 'WhatsApp',
+    description: 'Useful for quick location sharing and smooth coordination.',
+  },
+  {
+    value: 'text',
+    title: 'Text',
+    description: 'Low-noise option for simple updates and arrival pings.',
+  },
 ];
 
 export default function CarRentalBooking({
@@ -349,6 +376,16 @@ export default function CarRentalBooking({
       return;
     }
 
+    // Sanitize input
+    try {
+      var sanitizedName = sanitizeName(form.customerName);
+      var sanitizedPhone = sanitizePhone(form.customerPhone);
+      var sanitizedNotes = sanitizeText(form.notes, 'Notes', 0, 500);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Invalid input format');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -356,15 +393,21 @@ export default function CarRentalBooking({
         {
           user_id: userId,
           vehicle_id: vehicle.id,
-          customer_name: form.customerName.trim(),
-          customer_phone: form.customerPhone.trim(),
+          customer_name: sanitizedName,
+          customer_phone: sanitizedPhone,
           start_datetime: new Date(form.startDateTime).toISOString(),
           end_datetime: new Date(form.endDateTime).toISOString(),
           rental_hours: roundedHours,
           handoff_type: form.handoffType,
           terms_accepted: form.termsAccepted,
           terms_accepted_at: form.termsAccepted ? new Date().toISOString() : null,
-          notes: buildRentalNotes(form.notes, form.pickupMood, form.tripIntent, form.pickupSpot),
+          notes: buildRentalNotes(
+            sanitizedNotes,
+            form.pickupMood,
+            form.tripIntent,
+            form.pickupSpot,
+            form.contactPreference
+          ),
           total_amount: vehicle.price_per_hour * roundedHours,
           status: 'pending',
         },
@@ -419,8 +462,10 @@ export default function CarRentalBooking({
               <p className="text-sm font-semibold text-white">{rentalPickupMoodLabels[form.pickupMood]}</p>
             </div>
             <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
-              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Estimated total</p>
-              <p className="text-sm font-semibold text-white">{formatInr(totalAmount)}</p>
+              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Contact preference</p>
+              <p className="text-sm font-semibold text-white">
+                {rentalContactPreferenceLabels[form.contactPreference]}
+              </p>
             </div>
           </div>
 
@@ -719,6 +764,42 @@ export default function CarRentalBooking({
         </div>
 
         <div className="mt-6 rounded-[24px] border border-white/5 bg-white/5 p-5">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
+              <p className="mb-1 text-sm font-semibold text-white">Pickup Contact Preference</p>
+              <p className="text-sm leading-6 text-gray-400">
+                Tell the rental team how you would prefer to be contacted at handoff time.
+              </p>
+            </div>
+            <span className="rounded-full border border-sky-400/20 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-200">
+              {rentalContactPreferenceLabels[form.contactPreference]}
+            </span>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {contactPreferenceOptions.map((option) => {
+              const isSelected = form.contactPreference === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateForm('contactPreference', option.value)}
+                  className={`rounded-[24px] border px-4 py-4 text-left transition-all ${
+                    isSelected
+                      ? 'border-sky-500/35 bg-sky-500/12'
+                      : 'border-white/10 bg-gray-900/50 hover:border-white/20 hover:bg-white/5'
+                  }`}
+                >
+                  <p className="mb-1 font-semibold text-white">{option.title}</p>
+                  <p className="text-sm leading-6 text-gray-400">{option.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-[24px] border border-white/5 bg-white/5 p-5">
           <p className="mb-3 text-sm font-semibold text-white">Terms and conditions</p>
           <div className="space-y-3 text-sm leading-6 text-gray-400">
             {terms.map((term) => (
@@ -849,6 +930,15 @@ export default function CarRentalBooking({
                 <p className="text-gray-500">Pickup mood</p>
                 <p className="font-semibold text-white">{rentalPickupMoodLabels[form.pickupMood]}</p>
                 <p className="text-sm text-gray-400">{selectedPickupMood.description}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Phone className="mt-0.5 h-4 w-4 text-sky-200" />
+              <div>
+                <p className="text-gray-500">Contact preference</p>
+                <p className="font-semibold text-white">
+                  {rentalContactPreferenceLabels[form.contactPreference]}
+                </p>
               </div>
             </div>
             <div className="flex items-start gap-3">

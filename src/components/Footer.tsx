@@ -1,4 +1,14 @@
-export default function Footer() {
+interface FooterProps {
+  onNavigate?: (page: string) => void;
+}
+
+export default function Footer({ onNavigate }: FooterProps) {
+  const handleLinkClick = (page: string) => {
+    if (onNavigate) {
+      onNavigate(page);
+    }
+  };
+
   return (
     <footer className="border-t border-white/5 bg-black/20">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -31,9 +41,38 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col gap-3 border-t border-white/5 pt-5 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} The VajraCognixia. All rights reserved.</p>
-          <p>Built for fast campus ordering and future campus services.</p>
+        <div className="mt-8 border-t border-white/5 pt-6">
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 mb-6">
+            <button 
+              onClick={() => handleLinkClick('contact-us')}
+              className="text-sm text-gray-400 hover:text-orange-300 transition-colors text-left"
+            >
+              Contact Us
+            </button>
+            <button 
+              onClick={() => handleLinkClick('terms-conditions')}
+              className="text-sm text-gray-400 hover:text-orange-300 transition-colors text-left"
+            >
+              Terms & Conditions
+            </button>
+            <button 
+              onClick={() => handleLinkClick('refund-cancellation')}
+              className="text-sm text-gray-400 hover:text-orange-300 transition-colors text-left"
+            >
+              Refund & Cancellation
+            </button>
+            <button 
+              onClick={() => handleLinkClick('shipping-policy')}
+              className="text-sm text-gray-400 hover:text-orange-300 transition-colors text-left"
+            >
+              Shipping Policy
+            </button>
+          </div>
+          
+          <div className="flex flex-col gap-3 pt-5 border-t border-white/5 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+            <p>&copy; {new Date().getFullYear()} The VajraCognixia. All rights reserved.</p>
+            <p>Built for fast campus ordering and future campus services.</p>
+          </div>
         </div>
       </div>
     </footer>

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 
 type SmartTabTitleProps = {
-  currentPage: 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile';
+  currentPage: 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy';
   loading: boolean;
   isAuthenticated: boolean;
   hasProfile: boolean | null;

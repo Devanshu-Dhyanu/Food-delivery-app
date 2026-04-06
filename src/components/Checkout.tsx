@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ArrowLeft, User, Phone, MapPin } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
+import { sanitizeName, sanitizePhone, sanitizeAddress } from '../lib/inputSanitization';
 import {
   appendDeliveryPreference,
   DELIVERY_PREFERENCES,
@@ -33,10 +34,6 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const subtotalAmount = getTotalAmount();
   const deliveryFee = 20;
   const totalAmount = subtotalAmount + deliveryFee;
-  const deliveryAddressForOrder = appendDeliveryPreference(
-    formData.deliveryAddress,
-    deliveryPreference
-  );
 
   const orderItemsPayload: OrderItemPayload[] = cart.map((item) => ({
     menu_item_id: item.id,
@@ -56,7 +53,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     );
   };
 
-  const createOrderWithLegacyInsert = async (userId: string) => {
+  const createOrderWithLegacyInsert = async (userId: string, sanitizedData: { name: string; phone: string; address: string }) => {
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants')
       .select('is_open')
@@ -72,9 +69,9 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       .insert([
         {
           user_id: userId,
-          customer_name: formData.customerName,
-          customer_phone: formData.customerPhone,
-          delivery_address: deliveryAddressForOrder,
+          customer_name: sanitizedData.name,
+          customer_phone: sanitizedData.phone,
+          delivery_address: sanitizedData.address,
           total_amount: totalAmount,
           status: 'pending',
         },
@@ -120,6 +117,17 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
       if (userError) throw userError;
       if (!user) throw new Error('You must be signed in to place an order.');
 
+      // Sanitize input
+      const sanitizedName = sanitizeName(formData.customerName);
+      const sanitizedPhone = sanitizePhone(formData.customerPhone);
+      const sanitizedAddress = sanitizeAddress(formData.deliveryAddress);
+      
+      // Append delivery preference to sanitized address
+      const finalDeliveryAddress = appendDeliveryPreference(
+        sanitizedAddress,
+        deliveryPreference
+      );
+
       const { data: restaurant, error: restaurantError } = await supabase
         .from('restaurants')
         .select('is_open')
@@ -134,9 +142,9 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
 
       try {
         const { data, error } = await supabase.rpc('create_order_with_items', {
-          p_customer_name: formData.customerName,
-          p_customer_phone: formData.customerPhone,
-          p_delivery_address: deliveryAddressForOrder,
+          p_customer_name: sanitizedName,
+          p_customer_phone: sanitizedPhone,
+          p_delivery_address: finalDeliveryAddress,
           p_restaurant_id: cartRestaurantId,
           p_restaurant_name: cartRestaurantName,
           p_subtotal_amount: subtotalAmount,
@@ -155,7 +163,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
         }
 
         console.warn('Transactional RPC unavailable, falling back to legacy checkout path.', error);
-        orderId = await createOrderWithLegacyInsert(user.id);
+        orderId = await createOrderWithLegacyInsert(user.id, { name: sanitizedName, phone: sanitizedPhone, address: finalDeliveryAddress });
       }
 
       clearCart();

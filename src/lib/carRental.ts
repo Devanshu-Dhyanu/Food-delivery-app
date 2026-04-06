@@ -39,15 +39,25 @@ export const rentalCampusSpotLabels: Record<RentalCampusSpot, string> = {
   mall_road_side: 'Mall Road Side',
 };
 
+export type RentalContactPreference = 'call' | 'whatsapp' | 'text';
+
+export const rentalContactPreferenceLabels: Record<RentalContactPreference, string> = {
+  call: 'Call',
+  whatsapp: 'WhatsApp',
+  text: 'Text',
+};
+
 export const rentalConfidencePoints = ['ID check', 'Clean handoff', 'Flexible pickup'] as const;
 
 const FLEXIBLE_PICKUP_NOTE_PREFIX = 'Pickup mood: Flexible handoff';
 const TRIP_INTENT_NOTE_PREFIX = 'Trip intent: ';
 const PICKUP_SPOT_NOTE_PREFIX = 'Preferred campus spot: ';
+const CONTACT_PREFERENCE_NOTE_PREFIX = 'Contact preference: ';
 const noteMetadataPrefixes = [
   FLEXIBLE_PICKUP_NOTE_PREFIX,
   TRIP_INTENT_NOTE_PREFIX,
   PICKUP_SPOT_NOTE_PREFIX,
+  CONTACT_PREFERENCE_NOTE_PREFIX,
 ];
 
 export const rentalStatusLabels: Record<RentalBookingStatus, string> = {
@@ -149,11 +159,18 @@ export const getRentalTripIntent = (notes?: string | null) =>
 export const getRentalCampusSpot = (notes?: string | null) =>
   findLabelKey(rentalCampusSpotLabels, getMetadataLineValue(notes, PICKUP_SPOT_NOTE_PREFIX));
 
+export const getRentalContactPreference = (notes?: string | null) =>
+  findLabelKey(
+    rentalContactPreferenceLabels,
+    getMetadataLineValue(notes, CONTACT_PREFERENCE_NOTE_PREFIX)
+  );
+
 export const buildRentalNotes = (
   notes: string,
   pickupMood: RentalPickupMood,
   tripIntent?: RentalTripIntent | '',
-  pickupSpot?: RentalCampusSpot | ''
+  pickupSpot?: RentalCampusSpot | '',
+  contactPreference?: RentalContactPreference | ''
 ) => {
   const trimmedNotes = notes.trim();
   const metadataLines: string[] = [];
@@ -168,6 +185,12 @@ export const buildRentalNotes = (
 
   if (pickupSpot) {
     metadataLines.push(`${PICKUP_SPOT_NOTE_PREFIX}${rentalCampusSpotLabels[pickupSpot]}`);
+  }
+
+  if (contactPreference) {
+    metadataLines.push(
+      `${CONTACT_PREFERENCE_NOTE_PREFIX}${rentalContactPreferenceLabels[contactPreference]}`
+    );
   }
 
   const finalLines = [...metadataLines, trimmedNotes].filter(Boolean);

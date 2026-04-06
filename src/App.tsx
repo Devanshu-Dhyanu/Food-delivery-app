@@ -14,9 +14,13 @@ import Footer from './components/Footer';
 import SmartTabTitle from './components/SmartTabTitle';
 import ContinueOrderPill from './components/ContinueOrderPill';
 import Profile from './components/Profile';
+import ContactUs from './components/ContactUs';
+import TermsAndConditions from './components/TermsAndConditions';
+import RefundCancellationPolicy from './components/RefundCancellationPolicy';
+import ShippingPolicy from './components/ShippingPolicy';
 import { supabase, Announcement } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy';
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 
@@ -226,7 +230,11 @@ function App() {
       page === 'orders' ||
       page === 'order-placed' ||
       page === 'announcements' ||
-      page === 'profile'
+      page === 'profile' ||
+      page === 'contact-us' ||
+      page === 'terms-conditions' ||
+      page === 'refund-cancellation' ||
+      page === 'shipping-policy'
     ) {
       setCurrentPage(page);
     }
@@ -480,6 +488,14 @@ function App() {
             </div>
           </div>
         );
+      case 'contact-us':
+        return <ContactUs />;
+      case 'terms-conditions':
+        return <TermsAndConditions />;
+      case 'refund-cancellation':
+        return <RefundCancellationPolicy />;
+      case 'shipping-policy':
+        return <ShippingPolicy />;
       default:
         return <RestaurantList userId={user.id} onSelectRestaurant={handleSelectRestaurant} />;
     }
@@ -502,7 +518,7 @@ function App() {
         />
         <main className="flex-1">{renderPage()}</main>
         <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
-        <Footer />
+        <Footer onNavigate={handleNavigate} />
       </div>
     </CartProvider>
   );

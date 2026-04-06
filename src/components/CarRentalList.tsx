@@ -66,7 +66,7 @@ export default function CarRentalList({ onSelectVehicle, onOpenBookings }: CarRe
         if (isCarRentalSchemaMissing(error)) {
           setSchemaReady(false);
           setErrorMessage(
-            'Car rental schema is not live yet. Run the SQL file in Supabase, then refresh this screen.'
+            'Check your internet connection, or refresh this screen.'
           );
         } else {
           setSchemaReady(true);
@@ -140,8 +140,8 @@ export default function CarRentalList({ onSelectVehicle, onOpenBookings }: CarRe
               Pick a car, choose your hours, and book it from the same app.
             </h2>
             <p className="text-sm leading-7 text-gray-300 sm:text-base">
-              Users can select a car, add their rental hours, choose start and end time, decide
-              whether the car should be delivered or picked up, and accept the terms before booking.
+                You can select a car, add rental hours, choose start and end time, decide
+              whether the car should be delivered or picked up, and accept the terms and conditions before booking.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {rentalConfidencePoints.map((point) => (
@@ -205,8 +205,7 @@ export default function CarRentalList({ onSelectVehicle, onOpenBookings }: CarRe
           <CarFront className="mx-auto mb-4 h-12 w-12 text-gray-500" />
           <h3 className="mb-2 text-2xl font-bold text-white">No rental cars added yet</h3>
           <p className="mx-auto max-w-2xl text-sm leading-7 text-gray-400">
-            The rental module is ready, but there are no vehicles in the database right now. Add a
-            few rows to `rental_vehicles` and they will start showing here.
+            The rental module is ready, but there are no vehicles Available right now.
           </p>
         </div>
       )}

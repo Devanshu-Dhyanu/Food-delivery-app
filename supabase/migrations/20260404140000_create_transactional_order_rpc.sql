@@ -43,12 +43,24 @@ BEGIN
     RAISE EXCEPTION 'Customer name is required.';
   END IF;
 
+  IF LENGTH(BTRIM(p_customer_name)) > 100 THEN
+    RAISE EXCEPTION 'Customer name is too long.';
+  END IF;
+
   IF COALESCE(BTRIM(p_customer_phone), '') = '' THEN
     RAISE EXCEPTION 'Customer phone is required.';
   END IF;
 
+  IF LENGTH(BTRIM(p_customer_phone)) > 20 THEN
+    RAISE EXCEPTION 'Customer phone is too long.';
+  END IF;
+
   IF COALESCE(BTRIM(p_delivery_address), '') = '' THEN
     RAISE EXCEPTION 'Delivery address is required.';
+  END IF;
+
+  IF LENGTH(BTRIM(p_delivery_address)) > 500 THEN
+    RAISE EXCEPTION 'Delivery address is too long.';
   END IF;
 
   IF p_restaurant_id IS NULL THEN
@@ -103,10 +115,10 @@ BEGIN
   VALUES (
     v_user_id,
     p_restaurant_id,
-    p_restaurant_name,
-    p_customer_name,
-    p_customer_phone,
-    p_delivery_address,
+    BTRIM(p_restaurant_name),
+    BTRIM(p_customer_name),
+    BTRIM(p_customer_phone),
+    BTRIM(p_delivery_address),
     p_subtotal_amount,
     p_delivery_fee,
     p_total_amount,

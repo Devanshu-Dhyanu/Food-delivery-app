@@ -4,8 +4,10 @@ import {
   cleanRentalNotes,
   formatDateTimeDisplay,
   formatInr,
+  getRentalContactPreference,
   getRentalPickupMood,
   isCarRentalSchemaMissing,
+  rentalContactPreferenceLabels,
   rentalPickupMoodLabels,
   rentalStatusClasses,
   rentalStatusLabels,
@@ -188,6 +190,7 @@ export default function CarRentalBookings({ userId, onBack }: CarRentalBookingsP
         <div className="space-y-5">
           {bookings.map((booking, index) => {
             const pickupMood = getRentalPickupMood(booking.handoff_type, booking.notes);
+            const contactPreference = getRentalContactPreference(booking.notes);
             const cleanedNotes = cleanRentalNotes(booking.notes);
 
             return (
@@ -266,9 +269,16 @@ export default function CarRentalBookings({ userId, onBack }: CarRentalBookingsP
                   <div className="rounded-[24px] border border-white/5 bg-white/5 px-4 py-4">
                     <div className="mb-2 flex items-center gap-2 text-gray-400">
                       <ReceiptText className="h-4 w-4 text-sky-200" />
-                      <span className="text-sm">Notes</span>
+                      <span className="text-sm">Contact & notes</span>
                     </div>
-                    <p className="font-semibold text-white">{cleanedNotes || 'No extra notes added'}</p>
+                    <p className="font-semibold text-white">
+                      {contactPreference
+                        ? rentalContactPreferenceLabels[contactPreference]
+                        : 'No preference added'}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      {cleanedNotes || 'No extra notes added'}
+                    </p>
                   </div>
                 </div>
               </article>

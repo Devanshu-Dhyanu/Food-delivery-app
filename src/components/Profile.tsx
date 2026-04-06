@@ -11,6 +11,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import { sanitizeName, sanitizePhone, sanitizeText } from '../lib/inputSanitization';
 import { supabase, type UserProfile } from '../lib/supabase';
 
 interface ProfileProps {
@@ -158,22 +159,32 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
     setSuccessMessage('');
 
     try {
+      // Sanitize input
+      const sanitizedName = sanitizeName(form.name);
+      const sanitizedPhone = sanitizePhone(form.phone);
+      const sanitizedUid = sanitizeText(form.uid, 'UID', 1, 50);
+      const sanitizedHostelName = sanitizeText(form.hostel_name, 'Hostel Name', 0, 100);
+      const sanitizedBlock = sanitizeText(form.block, 'Block', 0, 50);
+      const sanitizedRoomNumber = sanitizeText(form.room_number, 'Room Number', 0, 50);
+      const sanitizedBuildingNumber = sanitizeText(form.building_number, 'Building Number', 0, 50);
+      const sanitizedExactLocation = sanitizeText(form.exact_location, 'Exact Location', 0, 200);
+
       const { data, error } = await supabase
         .from('user_profiles')
         .upsert(
           [
             {
               user_id: userId,
-              name: form.name.trim(),
-              phone: form.phone.trim(),
+              name: sanitizedName,
+              phone: sanitizedPhone,
               gender: form.gender,
               location_type: form.location_type,
-              hostel_name: form.hostel_name.trim() || null,
-              block: form.block.trim() || null,
-              room_number: form.room_number.trim() || null,
-              building_number: form.building_number.trim() || null,
-              exact_location: form.exact_location.trim() || null,
-              uid: form.uid.trim(),
+              hostel_name: sanitizedHostelName || null,
+              block: sanitizedBlock || null,
+              room_number: sanitizedRoomNumber || null,
+              building_number: sanitizedBuildingNumber || null,
+              exact_location: sanitizedExactLocation || null,
+              uid: sanitizedUid,
             },
           ],
           { onConflict: 'user_id' }
@@ -188,10 +199,11 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       setForm(mapProfileToForm(nextProfile));
       setEditing(false);
       setSuccessMessage('Profile updated successfully.');
-      onProfileUpdated(nextProfile.name.trim());
+      onProfileUpdated(nextProfile.name);
     } catch (error) {
       console.error('Error updating user profile:', error);
-      setErrorMessage('We could not save your changes. Please try again.');
+      const message = error instanceof Error ? error.message : 'We could not save your changes. Please try again.';
+      setErrorMessage(message);
     } finally {
       setSaving(false);
     }
