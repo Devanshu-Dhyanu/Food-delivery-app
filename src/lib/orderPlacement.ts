@@ -1,6 +1,6 @@
 import { appendDeliveryPreference } from './deliveryPreferences';
 import { sanitizeAddress, sanitizeName, sanitizePhone } from './inputSanitization';
-import type { PendingCheckoutSession } from './pendingCheckout';
+import type { PendingCheckoutPayload } from './pendingCheckout';
 import { supabase } from './supabase';
 
 interface PaymentMetadata {
@@ -8,6 +8,8 @@ interface PaymentMetadata {
   gatewayResponse?: unknown;
   paymentMethod?: string | null;
   transactionId?: string;
+  orderPaymentStatus?: 'pending' | 'success' | 'failed';
+  skipPaymentRecord?: boolean;
 }
 
 const shouldUseLegacyOrderFallback = (error: unknown) => {
@@ -43,7 +45,7 @@ const ensureRestaurantIsOpen = async (restaurantId: string) => {
 
 const createOrderWithLegacyInsert = async (
   userId: string,
-  session: PendingCheckoutSession,
+  session: PendingCheckoutPayload,
   finalDeliveryAddress: string
 ) => {
   const { data: order, error: orderError } = await supabase
@@ -86,42 +88,47 @@ const createOrderWithLegacyInsert = async (
 const attachPaymentMetadata = async (
   userId: string,
   orderId: string,
-  session: PendingCheckoutSession,
+  session: PendingCheckoutPayload,
   paymentMetadata: PaymentMetadata
 ) => {
   const paymentMethod =
     paymentMetadata.paymentMethod || session.selectedPaymentMethod || 'unknown';
+  const paymentStatus =
+    paymentMetadata.orderPaymentStatus ||
+    (paymentMetadata.transactionId ? 'success' : 'pending');
 
   try {
-    const { data: paymentTransaction, error: paymentTransactionError } = await supabase
-      .from('payment_transactions')
-      .insert([
-        {
-          user_id: userId,
-          order_id: orderId,
-          amount: session.totalAmount,
-          payment_method: paymentMethod,
-          status: paymentMetadata.transactionId ? 'success' : 'pending',
-          payment_gateway_id:
-            paymentMetadata.transactionId || paymentMetadata.gatewayOrderId || null,
-          gateway_response: paymentMetadata.gatewayResponse ?? {},
-          currency: 'INR',
-        },
-      ])
-      .select()
-      .maybeSingle();
-
-    if (paymentTransactionError) {
-      throw paymentTransactionError;
-    }
-
     const orderUpdate: Record<string, unknown> = {
-      payment_status: paymentMetadata.transactionId ? 'success' : 'pending',
+      payment_status: paymentStatus,
       payment_method: paymentMethod,
     };
 
-    if (paymentTransaction?.id) {
-      orderUpdate.payment_id = paymentTransaction.id;
+    if (!paymentMetadata.skipPaymentRecord) {
+      const { data: paymentTransaction, error: paymentTransactionError } = await supabase
+        .from('payment_transactions')
+        .insert([
+          {
+            user_id: userId,
+            order_id: orderId,
+            amount: session.totalAmount,
+            payment_method: paymentMethod,
+            status: paymentStatus,
+            payment_gateway_id:
+              paymentMetadata.transactionId || paymentMetadata.gatewayOrderId || null,
+            gateway_response: paymentMetadata.gatewayResponse ?? {},
+            currency: 'INR',
+          },
+        ])
+        .select()
+        .maybeSingle();
+
+      if (paymentTransactionError) {
+        throw paymentTransactionError;
+      }
+
+      if (paymentTransaction?.id) {
+        orderUpdate.payment_id = paymentTransaction.id;
+      }
     }
 
     const { error: orderUpdateError } = await supabase
@@ -138,7 +145,7 @@ const attachPaymentMetadata = async (
 };
 
 export const placeOrderFromPendingCheckout = async (
-  session: PendingCheckoutSession,
+  session: PendingCheckoutPayload,
   paymentMetadata: PaymentMetadata = {}
 ) => {
   const {

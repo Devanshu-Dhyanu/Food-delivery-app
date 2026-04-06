@@ -8,6 +8,7 @@ import {
   DELIVERY_PREFERENCES,
   type DeliveryPreference,
 } from '../lib/deliveryPreferences';
+import { placeOrderFromPendingCheckout } from '../lib/orderPlacement';
 import PaymentOptions from './PaymentOptions';
 import PaymentConfirmation from './PaymentConfirmation';
 
@@ -211,6 +212,42 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     console.error('Payment failed:', error);
   };
 
+  const handleCashOnDeliveryOrder = async () => {
+    const hasMixedRestaurantItems = cart.some((item) => item.restaurant_id !== cartRestaurantId);
+    if (hasMixedRestaurantItems) {
+      throw new Error('Cart contains items from multiple restaurants.');
+    }
+
+    if (!cartRestaurantId || !cartRestaurantName) {
+      throw new Error('Please add items from one restaurant before checkout.');
+    }
+
+    const { orderId: newOrderId } = await placeOrderFromPendingCheckout(
+      {
+        cartRestaurantId,
+        cartRestaurantName,
+        subtotalAmount,
+        deliveryFee,
+        totalAmount,
+        orderItems: orderItemsPayload,
+        formData,
+        deliveryPreference,
+        selectedPaymentMethod: 'cod',
+      },
+      {
+        paymentMethod: 'cod',
+        orderPaymentStatus: 'pending',
+        skipPaymentRecord: true,
+      }
+    );
+
+    setTransactionId('');
+    setPaymentStatus('success');
+    setOrderId(newOrderId);
+    setCheckoutStep('confirmation');
+    clearCart();
+  };
+
   // Show payment confirmation
   if (checkoutStep === 'confirmation') {
     return (
@@ -246,6 +283,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
             amount={totalAmount}
             onPaymentSuccess={handlePaymentSuccess}
             onPaymentFailure={handlePaymentFailure}
+            onCashOnDeliveryOrder={handleCashOnDeliveryOrder}
             formData={formData}
             checkoutSession={{
               cartRestaurantId: cartRestaurantId || '',

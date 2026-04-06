@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { CreditCard, Smartphone, Banknote, Wallet, Calendar, Zap, AlertCircle } from 'lucide-react';
+import {
+  CreditCard,
+  Smartphone,
+  Banknote,
+  Wallet,
+  Calendar,
+  Zap,
+  AlertCircle,
+  Truck,
+} from 'lucide-react';
 import { openCashfreeCheckout } from '../lib/cashfreeCheckout';
 import { clearPendingCheckout, savePendingCheckout } from '../lib/pendingCheckout';
 import { supabase } from '../lib/supabase';
@@ -10,7 +19,7 @@ interface PaymentMethod {
   name: string;
   description: string;
   icon: React.ReactNode;
-  category: 'upi' | 'card' | 'netbanking' | 'wallet' | 'bnpl' | 'emi';
+  category: 'upi' | 'card' | 'netbanking' | 'wallet' | 'bnpl' | 'emi' | 'cod';
 }
 
 interface PaymentOptionsProps {
@@ -19,6 +28,7 @@ interface PaymentOptionsProps {
   amount: number;
   onPaymentSuccess?: (transactionId: string) => void;
   onPaymentFailure?: (error: string) => void;
+  onCashOnDeliveryOrder?: () => Promise<void>;
   formData?: { customerName: string; customerPhone: string; deliveryAddress: string };
   checkoutSession: Omit<PendingCheckoutPayload, 'selectedPaymentMethod'>;
 }
@@ -66,6 +76,13 @@ const PAYMENT_METHODS: PaymentMethod[] = [
     icon: <Zap className="w-6 h-6" />,
     category: 'emi',
   },
+  {
+    id: 'cod',
+    name: 'Cash on Delivery',
+    description: 'Pay in cash when your order arrives',
+    icon: <Truck className="w-6 h-6" />,
+    category: 'cod',
+  },
 ];
 
 export default function PaymentOptions({
@@ -74,6 +91,7 @@ export default function PaymentOptions({
   amount,
   onPaymentSuccess: _onPaymentSuccess,
   onPaymentFailure,
+  onCashOnDeliveryOrder,
   formData,
   checkoutSession,
 }: PaymentOptionsProps) {
@@ -93,6 +111,15 @@ export default function PaymentOptions({
     let gatewayOrderId = '';
 
     try {
+      if (selectedMethod === 'cod') {
+        if (!onCashOnDeliveryOrder) {
+          throw new Error('Cash on delivery is not available right now.');
+        }
+
+        await onCashOnDeliveryOrder();
+        return;
+      }
+
       const {
         data: { user },
         error: userError,
@@ -276,7 +303,7 @@ export default function PaymentOptions({
               Processing...
             </>
           ) : (
-            'Proceed to Payment'
+            selectedMethod === 'cod' ? 'Place Order' : 'Proceed to Payment'
           )}
         </button>
       </div>
