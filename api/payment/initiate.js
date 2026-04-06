@@ -98,6 +98,7 @@ export default async function handler(req, res) {
       orderId: data?.order_id || orderId,
       paymentSessionId,
       paymentUrl,
+      environment: cashfreeConfig.environment,
     });
   } catch (error) {
     return res.status(500).json({

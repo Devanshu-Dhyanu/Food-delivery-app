@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { CreditCard, Smartphone, Banknote, Wallet, Calendar, Zap, AlertCircle } from 'lucide-react';
+import { openCashfreeCheckout } from '../lib/cashfreeCheckout';
 import { clearPendingCheckout, savePendingCheckout } from '../lib/pendingCheckout';
 import { supabase } from '../lib/supabase';
 import type { PendingCheckoutPayload } from '../lib/pendingCheckout';
@@ -157,13 +158,21 @@ export default function PaymentOptions({
       }
 
       const orderData = await createOrderResponse.json();
+      const paymentSessionId =
+        typeof orderData.paymentSessionId === 'string' ? orderData.paymentSessionId : '';
+      const environment =
+        orderData.environment === 'production' ? 'production' : 'sandbox';
       const paymentUrl = orderData.paymentUrl || null;
 
-      // Redirect to Cashfree payment page
-      if (paymentUrl) {
+      if (paymentSessionId) {
+        await openCashfreeCheckout({
+          paymentSessionId,
+          environment,
+        });
+      } else if (paymentUrl) {
         window.location.href = paymentUrl;
       } else {
-        throw new Error('No payment URL received from Cashfree');
+        throw new Error('No payment session received from Cashfree');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Payment processing failed';
