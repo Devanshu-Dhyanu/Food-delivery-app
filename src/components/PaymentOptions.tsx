@@ -98,32 +98,88 @@ export default function PaymentOptions({
       // Generate order ID
       const orderId = `ORD-${Date.now()}`;
       
-      // For demo: Simulate successful payment after 2 seconds
-      // In production, this will call Cashfree initiate payment
-      setTimeout(() => {
-        const transactionId = `TXN-${Date.now()}`;
-        onPaymentSuccess(transactionId);
-        setProcessing(false);
-      }, 2000);
+      // Initiate Cashfree payment
+      const clientId = import.meta.env.VITE_CASHFREE_CLIENT_ID;
+      const clientSecret = import.meta.env.VITE_CASHFREE_CLIENT_SECRET;
+      
+      if (!clientId || !clientSecret) {
+        throw new Error('Cashfree credentials not configured');
+      }
 
-      // TODO: Integrate with actual Cashfree payment gateway
-      // const response = await fetch('/api/payment/initiate', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     userId: user.id,
-      //     amount,
-      //     orderId,
-      //     method: selectedMethod,
-      //     customerEmail: formData?.customerName || 'customer@example.com',
-      //     customerPhone: formData?.customerPhone,
-      //   }),
-      // });
-      // const data = await response.json();
-      // if (!response.ok) throw new Error(data.error || 'Payment initiation failed');
-      // window.location.href = data.paymentLink;
+      // Prepare payment request
+      const paymentRequest = {
+        order_id: orderId,
+        order_amount: amount,
+        order_currency: 'INR',
+        customer_details: {
+          customer_id: user.id,
+          customer_email: user.email || 'customer@example.com',
+          customer_phone: formData?.customerPhone || '9000090000',
+          customer_name: formData?.customerName || 'Customer',
+        },
+        order_meta: {
+          return_url: `${window.location.origin}/payment/callback`,
+          notify_url: `${window.location.origin}/api/payment/webhook`,
+        },
+        order_note: `Order for ${formData?.customerName}`,
+      };
+
+      // Call Cashfree API to create order
+      const createOrderResponse = await fetch('https://sandbox.cashfree.com/pg/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-version': '2023-08-01',
+          'x-client-id': clientId,
+          'x-client-secret': clientSecret,
+        },
+        body: JSON.stringify(paymentRequest),
+      });
+
+      if (!createOrderResponse.ok) {
+        const errorData = await createOrderResponse.json();
+        throw new Error(errorData.message || 'Failed to create payment');
+      }
+
+      const orderData = await createOrderResponse.json();
+
+      // Get payment session to open payment UI
+      const sessionResponse = await fetch(
+        `https://sandbox.cashfree.com/pg/orders/${orderId}/pay`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-version': '2023-08-01',
+            'x-client-id': clientId,
+            'x-client-secret': clientSecret,
+          },
+          body: JSON.stringify({
+            payment_method: selectedMethod,
+          }),
+        }
+      );
+
+      if (!sessionResponse.ok) {
+        const errorData = await sessionResponse.json();
+        throw new Error(errorData.message || 'Payment session failed');
+      }
+
+      const sessionData = await sessionResponse.json();
+
+      // Redirect to Cashfree payment page
+      if (sessionData.data?.url) {
+        window.location.href = sessionData.data.url;
+      } else if (sessionData.data?.payment_session_id) {
+        // Alternative: Use Cashfree SDK
+        const paymentLink = `https://sandbox.cashfree.com/pg/pay/${sessionData.data.payment_session_id}`;
+        window.location.href = paymentLink;
+      } else {
+        throw new Error('No payment URL received from Cashfree');
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Payment processing failed';
+      console.error('Payment error:', err);
       setError(message);
       onPaymentFailure?.(message);
       setProcessing(false);

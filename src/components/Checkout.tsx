@@ -260,39 +260,6 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     );
   }
 
-        <div className="max-w-2xl mx-auto">
-          <PaymentOptions
-            onSelectMethod={handlePaymentMethodSelect}
-            selectedMethod={selectedPaymentMethod}
-            amount={totalAmount}
-          />
-
-          <div className="mt-8 flex gap-4">
-            <button
-              onClick={() => setCheckoutStep('form')}
-              className="flex-1 border border-gray-600 text-gray-300 font-semibold py-3 rounded-lg hover:bg-white/5 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={() => {
-                if (!selectedPaymentMethod) {
-                  alert('Please select a payment method');
-                  return;
-                }
-                // Simulate payment success for now
-                handlePaymentSuccess(`TXN-${Date.now()}`);
-              }}
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition-colors"
-            >
-              Proceed to Payment
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <button

@@ -18,9 +18,10 @@ import ContactUs from './components/ContactUs';
 import TermsAndConditions from './components/TermsAndConditions';
 import RefundCancellationPolicy from './components/RefundCancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
+import PaymentCallback from './components/PaymentCallback';
 import { supabase, Announcement } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 
@@ -326,6 +327,11 @@ function App() {
       return;
     }
 
+    if (window.location.pathname === '/payment/callback') {
+      document.title = 'Processing payment | The Vajra';
+      return;
+    }
+
     if (loading) {
       document.title = 'Loading The Vajra...';
       return;
@@ -342,6 +348,7 @@ function App() {
   }, [hasProfile, loading, user]);
 
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
+  if (window.location.pathname === '/payment/callback') return <PaymentCallback />;
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -496,6 +503,8 @@ function App() {
         return <RefundCancellationPolicy />;
       case 'shipping-policy':
         return <ShippingPolicy />;
+      case 'payment-callback':
+        return <PaymentCallback />;
       default:
         return <RestaurantList userId={user.id} onSelectRestaurant={handleSelectRestaurant} />;
     }
