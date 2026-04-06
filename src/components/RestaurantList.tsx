@@ -114,6 +114,7 @@ const campusServiceFeatureCopy: Record<
     highlights: ['Good for future buyer-seller listings', 'Shown now without touching current flows'],
   },
 };
+void campusServiceFeatureCopy;
 
 export default function RestaurantList({
   userId,
@@ -197,8 +198,6 @@ export default function RestaurantList({
   const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
   const selectedServiceDetails =
     campusServices.find((service) => service.id === selectedService) ?? campusServices[0];
-  const selectedServiceFeature = campusServiceFeatureCopy[selectedServiceDetails.id];
-  const SelectedServiceIcon = selectedServiceDetails.icon;
   const visibleRestaurants = [...restaurants]
     .filter((restaurant) => {
       if (!normalizedQuery) return true;
@@ -487,69 +486,6 @@ export default function RestaurantList({
                   </button>
                 );
               })}
-            </div>
-          </div>
-
-          <div className="grid gap-4 rounded-[28px] border border-white/5 bg-[radial-gradient(circle_at_top_left,rgba(249,115,22,0.12),transparent_35%),linear-gradient(135deg,rgba(17,24,39,0.95),rgba(17,24,39,0.88))] p-5 shadow-xl shadow-black/20 lg:grid-cols-[minmax(0,1.25fr),340px]">
-            <div className="flex flex-col justify-between gap-5">
-              <div>
-                <div className="mb-4 flex flex-wrap items-center gap-3">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl border border-orange-400/25 bg-orange-500/12 text-orange-200">
-                    <SelectedServiceIcon className="h-5 w-5" />
-                  </span>
-                  <span
-                    className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                      selectedServiceDetails.availability === 'Live now' ||
-                      selectedServiceDetails.availability === 'Now booking'
-                        ? 'border-emerald-400/25 bg-emerald-500/15 text-emerald-200'
-                        : 'border-blue-400/20 bg-blue-500/10 text-blue-200'
-                    }`}
-                  >
-                    {selectedServiceDetails.availability}
-                  </span>
-                </div>
-
-                <h3 className="mb-3 text-2xl font-bold text-white sm:text-3xl">
-                  {selectedServiceFeature.headline}
-                </h3>
-                <p className="max-w-3xl text-sm leading-7 text-gray-300 sm:text-base">
-                  {selectedServiceFeature.summary}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {selectedServiceFeature.highlights.map((highlight) => (
-                  <span
-                    key={highlight}
-                    className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-200"
-                  >
-                    {highlight}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
-              <div className="rounded-[24px] border border-white/8 bg-white/5 px-4 py-4">
-                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Selected service</p>
-                <p className="text-base font-semibold text-white">{selectedServiceDetails.label}</p>
-              </div>
-
-              <div className="rounded-[24px] border border-white/8 bg-white/5 px-4 py-4">
-                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Current state</p>
-                <p className="text-base font-semibold text-white">{selectedServiceDetails.availability}</p>
-              </div>
-
-              <div className="rounded-[24px] border border-white/8 bg-white/5 px-4 py-4">
-                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Live signal</p>
-                <p className="text-base font-semibold text-white">
-                  {selectedService === 'restaurants'
-                    ? `${openRestaurantsCount} open now`
-                    : selectedService === 'car-rent'
-                    ? 'Bookings ready'
-                    : 'Preview visible'}
-                </p>
-              </div>
             </div>
           </div>
 
