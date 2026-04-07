@@ -61,6 +61,24 @@ const genders = ['Male', 'Female'];
 const boyHostels = ['BH1', 'BH2', 'BH3', 'BH4', 'BH5', 'BH6', 'BH7', 'BH8', 'BH9', 'BH10'];
 const girlHostels = ['GH1', 'GH2', 'GH3', 'GH4', 'GH5', 'GH6', 'GH7', 'GH8', 'GH9'];
 
+const hasValue = (value: string) => value.trim().length > 0;
+
+const isStudentLocationComplete = (profile: EditableProfile) => {
+  switch (profile.location_type) {
+    case 'Hostel':
+      return hasValue(profile.hostel_name) && hasValue(profile.block) && hasValue(profile.room_number);
+    case 'Class':
+      return hasValue(profile.building_number) && hasValue(profile.room_number);
+    case 'Studio Apartment':
+    case 'Apartment':
+      return hasValue(profile.block) && hasValue(profile.room_number);
+    case 'Other':
+      return hasValue(profile.building_number) && hasValue(profile.exact_location);
+    default:
+      return false;
+  }
+};
+
 const mapProfileToForm = (profile?: Partial<UserProfile> | null): EditableProfile => ({
   name: profile?.name ?? '',
   phone: profile?.phone ?? '',
@@ -173,6 +191,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
 
   const updateField = (field: keyof EditableProfile, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
+    setErrorMessage('');
     setSuccessMessage('');
   };
 
@@ -188,6 +207,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       cabin_number: '',
       exact_location: '',
     }));
+    setErrorMessage('');
     setSuccessMessage('');
   };
 
@@ -199,11 +219,17 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
     !form.gender ||
     (isTeacher
       ? !form.building_number.trim() || !form.cabin_number.trim()
-      : !form.location_type) ||
+      : !isStudentLocationComplete(form)) ||
     !form.uid.trim();
 
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (isSaveDisabled) {
+      setErrorMessage('Please fill all required fields before saving.');
+      return;
+    }
+
     setSaving(true);
     setErrorMessage('');
     setSuccessMessage('');

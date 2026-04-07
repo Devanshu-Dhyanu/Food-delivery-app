@@ -42,6 +42,24 @@ const boyHostels = ['BH1', 'BH2', 'BH3', 'BH4', 'BH5', 'BH6', 'BH7', 'BH8', 'BH9
 const girlHostels = ['GH1', 'GH2', 'GH3', 'GH4', 'GH5', 'GH6', 'GH7', 'GH8', 'GH9'];
 const locationOptions = ['Hostel', 'Class', 'Studio Apartment', 'Apartment', 'Other'];
 
+const hasValue = (value: string) => value.trim().length > 0;
+
+const isStudentLocationComplete = (form: OnboardingForm) => {
+  switch (form.location_type) {
+    case 'Hostel':
+      return hasValue(form.hostel_name) && hasValue(form.block) && hasValue(form.room_number);
+    case 'Class':
+      return hasValue(form.building_number) && hasValue(form.room_number);
+    case 'Studio Apartment':
+    case 'Apartment':
+      return hasValue(form.block) && hasValue(form.room_number);
+    case 'Other':
+      return hasValue(form.building_number) && hasValue(form.exact_location);
+    default:
+      return false;
+  }
+};
+
 export default function Onboarding({ userId, onComplete }: OnboardingProps) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -71,13 +89,18 @@ export default function Onboarding({ userId, onComplete }: OnboardingProps) {
   const isStepOneValid =
     !!form.name.trim() && !!form.phone.trim() && !!form.gender && !!form.user_role;
 
-  const isStudentStepTwoValid = !!form.location_type;
+  const isStudentStepTwoValid = isStudentLocationComplete(form);
   const isTeacherStepTwoValid =
     !!form.building_number.trim() && !!form.cabin_number.trim();
   const isStepTwoValid =
     form.user_role === 'teacher' ? isTeacherStepTwoValid : isStudentStepTwoValid;
 
   const handleSave = async () => {
+    if (!isStepOneValid || !isStepTwoValid || !hasValue(form.uid)) {
+      setErrorMessage('Please fill all required fields before continuing.');
+      return;
+    }
+
     setLoading(true);
     setErrorMessage('');
 
