@@ -433,7 +433,7 @@ function App() {
           />
         );
       case 'orders':
-        return <OrderTracking />;
+        return <OrderTracking onNavigate={() => setCurrentPage('cart')} />;
       case 'profile':
         return (
           <Profile

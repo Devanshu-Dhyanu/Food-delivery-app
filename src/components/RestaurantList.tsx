@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowRight,
   ArrowUpDown,
@@ -45,6 +45,40 @@ const parseDeliveryTimeValue = (value: string) => {
 
   const numbers = matches.map(Number);
   return numbers.reduce((sum, current) => sum + current, 0) / numbers.length;
+};
+
+const normalizeCuisineTag = (value: string) =>
+  value
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const extractCuisineTags = (value: string) =>
+  value
+    .split(/,|\/|&|\band\b/gi)
+    .map(normalizeCuisineTag)
+    .filter(Boolean);
+
+const getCuisineFallbackLabel = (label: string) => {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes('tea') || normalized.includes('coffee')) return 'TC';
+  if (normalized.includes('pizza')) return 'PZ';
+  if (normalized.includes('chinese') || normalized.includes('noodle')) return 'CN';
+  if (normalized.includes('burger')) return 'BG';
+  if (normalized.includes('sandwich')) return 'SW';
+  if (normalized.includes('sweet') || normalized.includes('dessert')) return 'SW';
+  if (normalized.includes('south')) return 'SI';
+  if (normalized.includes('north')) return 'NI';
+  if (normalized.includes('thali')) return 'TH';
+  if (normalized.includes('paneer')) return 'PN';
+  return label.slice(0, 2).toUpperCase();
+};
+
+type CuisineExplorerItem = {
+  key: string;
+  label: string;
+  count: number;
+  imageUrl: string | null;
 };
 
 const campusServices = [
@@ -129,11 +163,13 @@ export default function RestaurantList({
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCuisineFilter, setSelectedCuisineFilter] = useState('');
   const [sortBy, setSortBy] = useState<'rating' | 'delivery' | 'newest' | 'open'>('rating');
   const [selectedService, setSelectedService] = useState<CampusService>('restaurants');
   const [carRentalScreen, setCarRentalScreen] = useState<CarRentalScreen>('list');
   const [selectedRentalVehicle, setSelectedRentalVehicle] = useState<RentalVehicle | null>(null);
   const { cartRestaurantId, cartRestaurantName } = useCart();
+  const restaurantResultsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetchRestaurants();
@@ -198,7 +234,7 @@ export default function RestaurantList({
   const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
   const selectedServiceDetails =
     campusServices.find((service) => service.id === selectedService) ?? campusServices[0];
-  const visibleRestaurants = [...restaurants]
+  const searchMatchedRestaurants = [...restaurants]
     .filter((restaurant) => {
       if (!normalizedQuery) return true;
 
@@ -211,6 +247,51 @@ export default function RestaurantList({
         .toLowerCase();
 
       return searchableText.includes(normalizedQuery);
+    });
+
+  const cuisineExplorerItems = Array.from(
+    searchMatchedRestaurants.reduce<Map<string, CuisineExplorerItem>>((acc, restaurant) => {
+      extractCuisineTags(restaurant.cuisine_type || '').forEach((tag) => {
+        const key = tag.toLowerCase();
+        const existingItem = acc.get(key);
+
+        if (existingItem) {
+          existingItem.count += 1;
+          if (!existingItem.imageUrl && restaurant.image_url) {
+            existingItem.imageUrl = restaurant.image_url;
+          }
+          return;
+        }
+
+        acc.set(key, {
+          key,
+          label: tag,
+          count: 1,
+          imageUrl: restaurant.image_url || null,
+        });
+      });
+
+      return acc;
+    }, new Map())
+  )
+    .map(([, item]) => item)
+    .sort((a, b) => {
+      if (b.count !== a.count) {
+        return b.count - a.count;
+      }
+
+      return a.label.localeCompare(b.label);
+    });
+
+  const visibleRestaurants = searchMatchedRestaurants
+    .filter((restaurant) => {
+      if (!selectedCuisineFilter) {
+        return true;
+      }
+
+      return extractCuisineTags(restaurant.cuisine_type || '').some(
+        (tag) => tag.toLowerCase() === selectedCuisineFilter
+      );
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -230,6 +311,15 @@ export default function RestaurantList({
     });
   const openRestaurants = visibleRestaurants.filter((restaurant) => restaurant.is_open);
   const closedRestaurants = visibleRestaurants.filter((restaurant) => !restaurant.is_open);
+
+  useEffect(() => {
+    if (
+      selectedCuisineFilter &&
+      !cuisineExplorerItems.some((item) => item.key === selectedCuisineFilter)
+    ) {
+      setSelectedCuisineFilter('');
+    }
+  }, [cuisineExplorerItems, selectedCuisineFilter]);
 
   const renderRestaurantCard = (restaurant: Restaurant, index: number) => {
     const isLocked = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
@@ -316,6 +406,17 @@ export default function RestaurantList({
         </div>
       </button>
     );
+  };
+
+  const handleCuisineExplore = (cuisineKey: string) => {
+    setSelectedCuisineFilter(cuisineKey);
+
+    window.requestAnimationFrame(() => {
+      restaurantResultsRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
   };
 
   const renderUpcomingServicePanel = () => (
@@ -528,7 +629,14 @@ export default function RestaurantList({
           <h1 className="mb-2 text-3xl font-bold text-white">Restaurants Near You</h1>
           <p className="text-sm text-gray-400">
             {visibleRestaurants.length} result{visibleRestaurants.length === 1 ? '' : 's'} showing
-            {normalizedQuery ? ` for "${searchQuery.trim()}"` : ''}.
+            {normalizedQuery ? ` for "${searchQuery.trim()}"` : ''}
+            {selectedCuisineFilter
+              ? `${normalizedQuery ? ' and' : ' for'} ${
+                  cuisineExplorerItems.find((item) => item.key === selectedCuisineFilter)?.label ||
+                  'selected cuisine'
+                }`
+              : ''}
+            .
           </p>
         </div>
 
@@ -640,6 +748,100 @@ export default function RestaurantList({
         </div>
       )}
 
+      {searchMatchedRestaurants.length > 0 && (
+        <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-white/[0.07] via-gray-900 to-gray-900 shadow-xl shadow-black/20">
+          <div className="flex flex-col gap-3 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
+                Explore by Cuisine
+              </p>
+              <h2 className="text-xl font-bold text-white">Swipe and tap to jump into the food you want</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
+                Pick a cuisine card to narrow the restaurant list instantly and explore matching spots faster.
+              </p>
+            </div>
+
+            {selectedCuisineFilter && (
+              <button
+                type="button"
+                onClick={() => handleCuisineExplore('')}
+                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+              >
+                Show all restaurants
+              </button>
+            )}
+          </div>
+
+          <div className="px-5 pb-5 sm:px-6">
+            <div className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {[
+                {
+                  key: '',
+                  label: 'All',
+                  count: searchMatchedRestaurants.length,
+                  imageUrl: searchMatchedRestaurants[0]?.image_url || null,
+                },
+                ...cuisineExplorerItems,
+              ].map((item) => {
+                const isSelected = selectedCuisineFilter === item.key;
+
+                return (
+                  <button
+                    key={item.key || 'all'}
+                    type="button"
+                    onClick={() => handleCuisineExplore(item.key)}
+                    className={`group relative flex min-w-[116px] flex-shrink-0 flex-col items-center rounded-[28px] border px-3 py-4 text-center transition-all ${
+                      isSelected
+                        ? 'border-orange-500/35 bg-orange-500/12 shadow-lg shadow-orange-500/10'
+                        : 'border-white/8 bg-white/5 hover:border-white/15 hover:bg-white/10'
+                    }`}
+                  >
+                    <div
+                      className={`mb-3 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border ${
+                        isSelected
+                          ? 'border-orange-400/35 bg-orange-500/10'
+                          : 'border-white/10 bg-white/5'
+                      }`}
+                    >
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.label}
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : item.key === '' ? (
+                        <Sparkles className="h-7 w-7 text-orange-300" />
+                      ) : (
+                        <span className="text-lg font-bold uppercase tracking-[0.18em] text-orange-200">
+                          {getCuisineFallbackLabel(item.label)}
+                        </span>
+                      )}
+                    </div>
+
+                    <span
+                      className={`max-w-[92px] truncate text-base font-semibold ${
+                        isSelected ? 'text-white' : 'text-gray-200'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                    <span className={`mt-1 text-xs ${isSelected ? 'text-orange-200' : 'text-gray-500'}`}>
+                      {item.count} place{item.count === 1 ? '' : 's'}
+                    </span>
+                    <span
+                      className={`mt-3 h-1 w-12 rounded-full transition-colors ${
+                        isSelected ? 'bg-orange-500' : 'bg-transparent'
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div ref={restaurantResultsRef} className="scroll-mt-32">
       {visibleRestaurants.length === 0 ? (
         <div className="text-center py-12">
           <p className="mb-2 text-lg font-semibold text-white">No matching restaurants found</p>
@@ -686,6 +888,7 @@ export default function RestaurantList({
           )}
         </div>
       )}
+      </div>
         </>
       )}
     </div>

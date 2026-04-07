@@ -6,6 +6,7 @@ interface CartContextType {
   cartRestaurantId: string | null;
   cartRestaurantName: string | null;
   addToCart: (item: MenuItem, restaurantName: string) => void;
+  replaceCart: (items: CartItem[]) => void;
   canAddFromRestaurant: (restaurantId: string) => boolean;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
@@ -97,6 +98,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const replaceCart = (items: CartItem[]) => {
+    if (items.length === 0) {
+      setCart([]);
+      return;
+    }
+
+    const restaurantId = items[0].restaurant_id;
+    const hasMixedRestaurants = items.some((item) => item.restaurant_id !== restaurantId);
+
+    if (hasMixedRestaurants) {
+      return;
+    }
+
+    setCart(items);
+  };
+
   const removeFromCart = (itemId: string) => {
     setCart((prev) => prev.filter((item) => item.id !== itemId));
   };
@@ -132,6 +149,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartRestaurantId,
         cartRestaurantName,
         addToCart,
+        replaceCart,
         canAddFromRestaurant,
         removeFromCart,
         updateQuantity,

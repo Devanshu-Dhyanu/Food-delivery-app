@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   Package,
+  RotateCcw,
   Truck,
   XCircle,
 } from 'lucide-react';
@@ -13,11 +14,14 @@ import BrandedLoader from './BrandedLoader';
 import OrderCancellationRequestModal from './OrderCancellationRequestModal';
 import DeliveryFeedbackModal from './DeliveryFeedbackModal';
 import OrderIssueReportModal from './OrderIssueReportModal';
+import { useCart } from '../context/CartContext';
 import { sanitizeText } from '../lib/inputSanitization';
 import {
   supabase,
+  CartItem,
   OrderCancellationRequest,
   DeliveryFeedback,
+  MenuItem,
   Order,
   OrderItem,
   OrderIssueReport,
@@ -33,6 +37,10 @@ interface OrderWithItems extends Order {
   feedback: DeliveryFeedback | null;
   issueReport: OrderIssueReport | null;
   cancellationRequest: OrderCancellationRequest | null;
+}
+
+interface OrderTrackingProps {
+  onNavigate?: (page: 'cart') => void;
 }
 
 const getIssueTypeLabel = (issueType: OrderIssueType) => {
@@ -128,7 +136,7 @@ const isCancellationSchemaMissing = (error: unknown) => {
   );
 };
 
-export default function OrderTracking() {
+export default function OrderTracking({ onNavigate }: OrderTrackingProps) {
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFeedbackOrder, setActiveFeedbackOrder] = useState<OrderWithItems | null>(null);
@@ -141,6 +149,12 @@ export default function OrderTracking() {
   const [feedbackEnabled, setFeedbackEnabled] = useState(true);
   const [cancellationEnabled, setCancellationEnabled] = useState(true);
   const [issueReportingEnabled, setIssueReportingEnabled] = useState(true);
+  const [reorderingOrderId, setReorderingOrderId] = useState<string | null>(null);
+  const [reorderMessage, setReorderMessage] = useState<{
+    tone: 'success' | 'error' | 'info';
+    text: string;
+  } | null>(null);
+  const { cart, cartRestaurantName, replaceCart } = useCart();
 
   useEffect(() => {
     fetchOrders();
@@ -555,6 +569,122 @@ export default function OrderTracking() {
     }
   };
 
+  const handleReorder = async (order: OrderWithItems) => {
+    if (!order.restaurant_id) {
+      setReorderMessage({
+        tone: 'error',
+        text: 'This order cannot be reordered because the restaurant details are unavailable.',
+      });
+      return;
+    }
+
+    if (order.items.length === 0) {
+      setReorderMessage({
+        tone: 'error',
+        text: 'This order has no items to reorder yet.',
+      });
+      return;
+    }
+
+    if (cart.length > 0) {
+      const shouldReplaceCart = window.confirm(
+        cartRestaurantName
+          ? `Your cart already has items from ${cartRestaurantName}. Replace them with this reorder?`
+          : 'Your cart already has items. Replace them with this reorder?'
+      );
+
+      if (!shouldReplaceCart) {
+        return;
+      }
+    }
+
+    setReorderingOrderId(order.id);
+    setReorderMessage(null);
+
+    try {
+      const uniqueMenuItemIds = Array.from(
+        new Set(order.items.map((item) => item.menu_item_id).filter(Boolean))
+      );
+
+      const [{ data: restaurantData, error: restaurantError }, { data: menuItemsData, error: menuItemsError }] =
+        await Promise.all([
+          supabase
+            .from('restaurants')
+            .select('id, name, is_open')
+            .eq('id', order.restaurant_id)
+            .maybeSingle(),
+          supabase.from('menu_items').select('*').in('id', uniqueMenuItemIds),
+        ]);
+
+      if (restaurantError) throw restaurantError;
+      if (menuItemsError) throw menuItemsError;
+      if (!restaurantData) {
+        throw new Error('This restaurant is no longer available for reorder.');
+      }
+
+      if (!restaurantData.is_open) {
+        throw new Error(`${restaurantData.name} is currently closed. Please try again when it opens.`);
+      }
+
+      const menuItemsById = (menuItemsData || []).reduce<Record<string, MenuItem>>((acc, item) => {
+        acc[item.id] = item;
+        return acc;
+      }, {});
+
+      const reorderedItems = order.items.reduce<CartItem[]>((acc, orderItem) => {
+        const menuItem = menuItemsById[orderItem.menu_item_id];
+
+        if (!menuItem || !menuItem.is_available) {
+          return acc;
+        }
+
+        const existingItem = acc.find((item) => item.id === menuItem.id);
+
+        if (existingItem) {
+          existingItem.quantity += orderItem.quantity;
+          return acc;
+        }
+
+        acc.push({
+          ...menuItem,
+          quantity: orderItem.quantity,
+          restaurant_name: restaurantData.name,
+        });
+
+        return acc;
+      }, []);
+
+      if (reorderedItems.length === 0) {
+        throw new Error('None of the items from this order are currently available to reorder.');
+      }
+
+      replaceCart(reorderedItems);
+
+      const skippedItemCount = order.items.length - reorderedItems.length;
+      const message =
+        skippedItemCount > 0
+          ? `${reorderedItems.length} item${reorderedItems.length === 1 ? '' : 's'} added to cart. ${skippedItemCount} unavailable item${skippedItemCount === 1 ? ' was' : 's were'} skipped.`
+          : 'This order has been added back to your cart.';
+
+      setReorderMessage({
+        tone: skippedItemCount > 0 ? 'info' : 'success',
+        text: message,
+      });
+      onNavigate?.('cart');
+    } catch (error) {
+      console.error('Error reordering items:', error);
+      setReorderMessage({
+        tone: 'error',
+        text:
+          error instanceof Error
+            ? error.message
+            : 'We could not reorder this order right now. Please try again.',
+      });
+    } finally {
+      setReorderingOrderId(null);
+    }
+  };
+
   if (loading) {
     return <BrandedLoader message="Loading your orders..." />;
   }
@@ -563,6 +693,20 @@ export default function OrderTracking() {
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold text-white mb-8">Your Orders</h1>
+
+        {reorderMessage && (
+          <div
+            className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${
+              reorderMessage.tone === 'success'
+                ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100'
+                : reorderMessage.tone === 'info'
+                  ? 'border-blue-500/25 bg-blue-500/10 text-blue-100'
+                  : 'border-red-500/25 bg-red-500/10 text-red-100'
+            }`}
+          >
+            {reorderMessage.text}
+          </div>
+        )}
 
         {orders.length === 0 ? (
           <div className="text-center py-12">
@@ -576,6 +720,10 @@ export default function OrderTracking() {
               const isRejected = order.status === 'rejected';
               const isCancelled = order.status === 'cancelled';
               const isDelivered = order.status === 'delivered';
+              const canReorder =
+                !!order.restaurant_id &&
+                order.items.length > 0 &&
+                (isDelivered || isCancelled || isRejected);
               const canRequestCancellation =
                 cancellationEnabled &&
                 !order.cancellationRequest &&
@@ -602,9 +750,25 @@ export default function OrderTracking() {
                         {new Date(order.created_at).toLocaleString()}
                       </p>
                     </div>
-                    <div className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-semibold ${getStatusBadgeClasses(order.status)}`}>
-                      {getStatusIcon(order.status)}
-                      <span>{statusText}</span>
+                    <div className="flex flex-wrap items-center justify-end gap-3">
+                      {canReorder && (
+                        <button
+                          type="button"
+                          onClick={() => void handleReorder(order)}
+                          disabled={reorderingOrderId === order.id}
+                          className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                          <span>
+                            {reorderingOrderId === order.id ? 'Reordering...' : 'Reorder'}
+                          </span>
+                        </button>
+                      )}
+
+                      <div className={`inline-flex items-center gap-2 self-start rounded-full border px-4 py-2 text-sm font-semibold ${getStatusBadgeClasses(order.status)}`}>
+                        {getStatusIcon(order.status)}
+                        <span>{statusText}</span>
+                      </div>
                     </div>
                   </div>
 
