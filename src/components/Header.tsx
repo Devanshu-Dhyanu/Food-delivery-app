@@ -46,7 +46,14 @@ type CurrentLocationBanner = {
   status: 'idle' | 'loading' | 'ready' | 'denied' | 'error' | 'unsupported';
 };
 
-const loadStoredLocationBanner = (): CurrentLocationBanner | null => {
+type StoredLocationBanner = Pick<CurrentLocationBanner, 'title' | 'subtitle'> & {
+  updatedAt: number;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+};
+
+const loadStoredLocationBanner = (): StoredLocationBanner | null => {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -58,28 +65,47 @@ const loadStoredLocationBanner = (): CurrentLocationBanner | null => {
       return null;
     }
 
-    const parsedValue = JSON.parse(storedValue) as Partial<CurrentLocationBanner>;
+    const parsedValue = JSON.parse(storedValue) as Partial<StoredLocationBanner>;
 
-    if (typeof parsedValue.title !== 'string' || typeof parsedValue.subtitle !== 'string') {
+    if (
+      typeof parsedValue.title !== 'string' ||
+      typeof parsedValue.subtitle !== 'string' ||
+      typeof parsedValue.updatedAt !== 'number'
+    ) {
       return null;
     }
 
     return {
       title: parsedValue.title,
       subtitle: parsedValue.subtitle,
-      status: 'ready',
+      updatedAt: parsedValue.updatedAt,
+      latitude: parsedValue.latitude,
+      longitude: parsedValue.longitude,
+      accuracy: parsedValue.accuracy,
     };
   } catch {
     return null;
   }
 };
 
-const saveLocationBanner = (value: Pick<CurrentLocationBanner, 'title' | 'subtitle'>) => {
+const saveLocationBanner = (
+  value: Pick<CurrentLocationBanner, 'title' | 'subtitle'> & {
+    latitude?: number;
+    longitude?: number;
+    accuracy?: number;
+  }
+) => {
   if (typeof window === 'undefined') {
     return;
   }
 
-  window.localStorage.setItem(CURRENT_LOCATION_STORAGE_KEY, JSON.stringify(value));
+  window.localStorage.setItem(
+    CURRENT_LOCATION_STORAGE_KEY,
+    JSON.stringify({
+      ...value,
+      updatedAt: Date.now(),
+    } satisfies StoredLocationBanner)
+  );
 };
 
 const formatCoordinateFallback = (latitude: number, longitude: number) =>
@@ -123,17 +149,17 @@ export default function Header({
   const [logoBurstKey, setLogoBurstKey] = useState(0);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
-  const [currentLocation, setCurrentLocation] = useState<CurrentLocationBanner>(() => {
-    return (
-      loadStoredLocationBanner() || {
-        title: 'Use current location',
-        subtitle: 'Allow location access to detect where you are right now.',
-        status: 'idle',
-      }
-    );
+  const [currentLocation, setCurrentLocation] = useState<CurrentLocationBanner>({
+    title: 'Use current location',
+    subtitle: 'Allow location access to detect where you are right now.',
+    status: 'idle',
   });
   const { clearCart, getTotalItems } = useCart();
   const hasRequestedLocationRef = useRef(false);
+  const locationWatchIdRef = useRef<number | null>(null);
+  const locationWatchTimeoutRef = useRef<number | null>(null);
+  const locationRequestIdRef = useRef(0);
+  const bestAccuracyRef = useRef<number | null>(null);
   const totalItems = getTotalItems();
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
   const profileInitial = firstName.charAt(0).toUpperCase();
@@ -268,6 +294,22 @@ export default function Header({
     };
   }, [showNavigation, userId, currentPage]);
 
+  const clearLocationWatch = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (locationWatchIdRef.current !== null && 'geolocation' in navigator) {
+      navigator.geolocation.clearWatch(locationWatchIdRef.current);
+      locationWatchIdRef.current = null;
+    }
+
+    if (locationWatchTimeoutRef.current !== null) {
+      window.clearTimeout(locationWatchTimeoutRef.current);
+      locationWatchTimeoutRef.current = null;
+    }
+  };
+
   const requestCurrentLocation = () => {
     if (typeof window === 'undefined') {
       return;
@@ -282,92 +324,176 @@ export default function Header({
       return;
     }
 
-    setCurrentLocation((current) => ({
-      title:
-        current.status === 'ready' && current.title.trim()
-          ? current.title
-          : 'Detecting your location...',
+    locationRequestIdRef.current += 1;
+    bestAccuracyRef.current = null;
+    clearLocationWatch();
+    const requestId = locationRequestIdRef.current;
+    const storedLocation = loadStoredLocationBanner();
+
+    setCurrentLocation({
+      title: 'Detecting your location...',
       subtitle:
-        current.status === 'ready' && current.subtitle.trim()
-          ? current.subtitle
+        storedLocation?.title && storedLocation?.subtitle
+          ? `Refreshing from ${storedLocation.title}`
           : 'Please allow location access to show your current area.',
       status: 'loading',
-    }));
+    });
+
+    const handleResolvedPosition = async (position: GeolocationPosition) => {
+      if (requestId !== locationRequestIdRef.current) {
+        return;
+      }
+
+      const accuracy = position.coords.accuracy;
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
+      if (bestAccuracyRef.current !== null && accuracy >= bestAccuracyRef.current - 15) {
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(
+            latitude
+          )}&longitude=${encodeURIComponent(longitude)}&localityLanguage=en`
+        );
+
+        if (!response.ok) {
+          throw new Error('Reverse geocoding failed');
+        }
+
+        const data = (await response.json()) as Record<string, unknown>;
+        const nextLocation = buildLocationBanner(data, latitude, longitude);
+        bestAccuracyRef.current = accuracy;
+        saveLocationBanner({
+          ...nextLocation,
+          latitude,
+          longitude,
+          accuracy,
+        });
+        setCurrentLocation({
+          ...nextLocation,
+          status: 'ready',
+        });
+
+        if (accuracy <= 120) {
+          clearLocationWatch();
+        }
+      } catch (error) {
+        console.error('Error resolving current location label:', error);
+        const fallbackLocation = {
+          title: 'Current location detected',
+          subtitle: formatCoordinateFallback(latitude, longitude),
+        };
+        bestAccuracyRef.current = accuracy;
+        saveLocationBanner({
+          ...fallbackLocation,
+          latitude,
+          longitude,
+          accuracy,
+        });
+        setCurrentLocation({
+          ...fallbackLocation,
+          status: 'ready',
+        });
+
+        if (accuracy <= 120) {
+          clearLocationWatch();
+        }
+      }
+    };
+
+    const handleLocationError = (error: GeolocationPositionError) => {
+      if (requestId !== locationRequestIdRef.current) {
+        return;
+      }
+
+      console.error('Error fetching current location:', error);
+      setCurrentLocation((current) => {
+        if (current.status === 'ready') {
+          return current;
+        }
+
+        if (storedLocation?.title && storedLocation?.subtitle) {
+          return {
+            title: storedLocation.title,
+            subtitle: storedLocation.subtitle,
+            status: 'ready',
+          };
+        }
+
+        if (error.code === error.PERMISSION_DENIED) {
+          return {
+            title: 'Location permission needed',
+            subtitle: 'Allow location access in your browser to auto-detect your current area.',
+            status: 'denied',
+          };
+        }
+
+        return {
+          title: 'Could not detect location',
+          subtitle: 'Tap here to try again and fetch your current area.',
+          status: 'error',
+        };
+      });
+    };
 
     navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const latitude = position.coords.latitude;
-        const longitude = position.coords.longitude;
+      (position) => {
+        void handleResolvedPosition(position);
+      },
+      handleLocationError,
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
+      }
+    );
 
-        try {
-          const response = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(
-              latitude
-            )}&longitude=${encodeURIComponent(longitude)}&localityLanguage=en`
-          );
-
-          if (!response.ok) {
-            throw new Error('Reverse geocoding failed');
-          }
-
-          const data = (await response.json()) as Record<string, unknown>;
-          const nextLocation = buildLocationBanner(data, latitude, longitude);
-          saveLocationBanner(nextLocation);
-          setCurrentLocation({
-            ...nextLocation,
-            status: 'ready',
-          });
-        } catch (error) {
-          console.error('Error resolving current location label:', error);
-          const fallbackLocation = {
-            title: 'Current location detected',
-            subtitle: formatCoordinateFallback(latitude, longitude),
-          };
-          saveLocationBanner(fallbackLocation);
-          setCurrentLocation({
-            ...fallbackLocation,
-            status: 'ready',
-          });
-        }
+    locationWatchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        void handleResolvedPosition(position);
       },
       (error) => {
-        console.error('Error fetching current location:', error);
-        setCurrentLocation((current) => {
-          if (current.status === 'ready') {
-            return current;
-          }
-
-          if (error.code === error.PERMISSION_DENIED) {
-            return {
-              title: 'Location permission needed',
-              subtitle: 'Allow location access in your browser to auto-detect your current area.',
-              status: 'denied',
-            };
-          }
-
-          return {
-            title: 'Could not detect location',
-            subtitle: 'Tap here to try again and fetch your current area.',
-            status: 'error',
-          };
-        });
+        if (bestAccuracyRef.current === null) {
+          handleLocationError(error);
+        }
       },
       {
         enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 300000,
+        timeout: 20000,
+        maximumAge: 0,
       }
     );
+
+    locationWatchTimeoutRef.current = window.setTimeout(() => {
+      if (requestId === locationRequestIdRef.current) {
+        clearLocationWatch();
+      }
+    }, 20000);
   };
 
   useEffect(() => {
-    if (!showNavigation || currentPage !== 'home' || hasRequestedLocationRef.current) {
+    if (!showNavigation || currentPage !== 'home') {
+      hasRequestedLocationRef.current = false;
+      clearLocationWatch();
+      return;
+    }
+
+    if (hasRequestedLocationRef.current) {
       return;
     }
 
     hasRequestedLocationRef.current = true;
     requestCurrentLocation();
   }, [currentPage, showNavigation]);
+
+  useEffect(() => {
+    return () => {
+      clearLocationWatch();
+    };
+  }, []);
 
   const handleLogoClick = () => {
     setShowLogoBurst(true);
@@ -638,18 +764,34 @@ export default function Header({
             <button
               type="button"
               onClick={requestCurrentLocation}
-              className="group w-full overflow-hidden rounded-[24px] bg-gradient-to-br from-red-500 via-rose-500 to-red-700 p-[1px] text-left shadow-xl shadow-red-950/20 transition-transform hover:-translate-y-0.5"
+              className={`group w-full overflow-hidden rounded-[24px] border text-left shadow-xl transition-all hover:-translate-y-0.5 ${
+                currentLocation.status === 'loading'
+                  ? 'border-orange-400/30 bg-gradient-to-br from-orange-500/16 via-gray-900 to-gray-900 shadow-orange-950/10'
+                  : currentLocation.status === 'denied' || currentLocation.status === 'error'
+                    ? 'border-white/10 bg-gradient-to-br from-white/[0.06] via-gray-900 to-gray-900 shadow-black/20 hover:border-orange-500/20'
+                    : 'border-orange-500/20 bg-gradient-to-br from-orange-500/12 via-gray-900 to-gray-900 shadow-black/20 hover:border-orange-500/35'
+              }`}
             >
-              <div className="rounded-[23px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),rgba(255,255,255,0.04)_38%,rgba(127,29,29,0.15)_100%)] px-4 py-3 text-white sm:px-5 sm:py-4">
+              <div className="rounded-[23px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.07),rgba(255,255,255,0.02)_32%,rgba(15,23,42,0.18)_100%)] px-4 py-3 text-white sm:px-5 sm:py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-white" />
+                      <span className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-orange-400/20 bg-orange-500/15 text-orange-200">
+                        <MapPin className="h-4.5 w-4.5" />
+                      </span>
                       <p className="truncate text-xl font-bold tracking-tight sm:text-2xl">
                         {currentLocation.title}
                       </p>
                     </div>
-                    <p className="truncate pl-7 text-sm text-white/90 sm:text-base">
+                    <p
+                      className={`truncate pl-10 text-sm sm:text-base ${
+                        currentLocation.status === 'loading'
+                          ? 'text-orange-100/90'
+                          : currentLocation.status === 'denied' || currentLocation.status === 'error'
+                            ? 'text-gray-300'
+                            : 'text-gray-300'
+                      }`}
+                    >
                       {currentLocation.status === 'loading'
                         ? 'Detecting your current location...'
                         : currentLocation.subtitle}
@@ -657,7 +799,7 @@ export default function Header({
                   </div>
 
                   <ChevronDown
-                    className={`mt-1 h-5 w-5 flex-shrink-0 text-white/90 transition-transform ${
+                    className={`mt-1 h-5 w-5 flex-shrink-0 text-orange-200/90 transition-transform ${
                       currentLocation.status === 'loading' ? 'animate-pulse' : 'group-hover:translate-y-0.5'
                     }`}
                   />
