@@ -169,11 +169,13 @@ export type UserProfile = {
   name: string;
   phone: string;
   gender: string;
+  user_role: string | null;
   location_type: string;
   hostel_name: string | null;
   block: string | null;
   room_number: string | null;
   building_number: string | null;
+  cabin_number: string | null;
   exact_location: string | null;
   uid: string;
   created_at: string;

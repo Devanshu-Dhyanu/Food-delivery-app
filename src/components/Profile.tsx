@@ -26,11 +26,13 @@ type EditableProfile = {
   name: string;
   phone: string;
   gender: string;
+  user_role: 'student' | 'teacher';
   location_type: string;
   hostel_name: string;
   block: string;
   room_number: string;
   building_number: string;
+  cabin_number: string;
   exact_location: string;
   uid: string;
 };
@@ -39,15 +41,21 @@ const emptyProfileForm: EditableProfile = {
   name: '',
   phone: '',
   gender: '',
+  user_role: 'student',
   location_type: '',
   hostel_name: '',
   block: '',
   room_number: '',
   building_number: '',
+  cabin_number: '',
   exact_location: '',
   uid: '',
 };
 
+const profileRoles = [
+  { label: 'Student', value: 'student' as const },
+  { label: 'Teacher', value: 'teacher' as const },
+];
 const locationOptions = ['Hostel', 'Class', 'Studio Apartment', 'Apartment', 'Other'];
 const genders = ['Male', 'Female'];
 const boyHostels = ['BH1', 'BH2', 'BH3', 'BH4', 'BH5', 'BH6', 'BH7', 'BH8', 'BH9', 'BH10'];
@@ -57,16 +65,27 @@ const mapProfileToForm = (profile?: Partial<UserProfile> | null): EditableProfil
   name: profile?.name ?? '',
   phone: profile?.phone ?? '',
   gender: profile?.gender ?? '',
+  user_role: profile?.user_role === 'teacher' ? 'teacher' : 'student',
   location_type: profile?.location_type ?? '',
   hostel_name: profile?.hostel_name ?? '',
   block: profile?.block ?? '',
   room_number: profile?.room_number ?? '',
   building_number: profile?.building_number ?? '',
+  cabin_number: profile?.cabin_number ?? '',
   exact_location: profile?.exact_location ?? '',
   uid: profile?.uid ?? '',
 });
 
 const getLocationSummary = (profile: EditableProfile) => {
+  if (profile.user_role === 'teacher') {
+    return [
+      profile.building_number && `Building ${profile.building_number}`,
+      profile.cabin_number && `Cabin ${profile.cabin_number}`,
+    ]
+      .filter(Boolean)
+      .join(', ');
+  }
+
   switch (profile.location_type) {
     case 'Hostel':
       return [profile.hostel_name, profile.block && `Block ${profile.block}`, profile.room_number && `Room ${profile.room_number}`]
@@ -86,6 +105,17 @@ const getLocationSummary = (profile: EditableProfile) => {
     default:
       return '';
   }
+};
+
+const getLocationTypeLabel = (profile: EditableProfile) =>
+  profile.user_role === 'teacher' ? 'Faculty Cabin' : profile.location_type;
+
+const getExtraReference = (profile: EditableProfile) => {
+  if (profile.user_role === 'teacher') {
+    return '';
+  }
+
+  return [profile.building_number, profile.exact_location].filter(Boolean).join(', ');
 };
 
 export default function Profile({ userId, onBack, onProfileUpdated }: ProfileProps) {
@@ -146,12 +176,30 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
     setSuccessMessage('');
   };
 
+  const updateRole = (role: EditableProfile['user_role']) => {
+    setForm((current) => ({
+      ...current,
+      user_role: role,
+      location_type: role === 'teacher' ? 'Faculty Cabin' : '',
+      hostel_name: '',
+      block: '',
+      room_number: '',
+      building_number: '',
+      cabin_number: '',
+      exact_location: '',
+    }));
+    setSuccessMessage('');
+  };
+
+  const isTeacher = form.user_role === 'teacher';
   const isSaveDisabled =
     saving ||
     !form.name.trim() ||
     !form.phone.trim() ||
     !form.gender ||
-    !form.location_type ||
+    (isTeacher
+      ? !form.building_number.trim() || !form.cabin_number.trim()
+      : !form.location_type) ||
     !form.uid.trim();
 
   const handleSave = async (event: React.FormEvent) => {
@@ -169,7 +217,11 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       const sanitizedBlock = sanitizeText(form.block, 'Block', 0, 50);
       const sanitizedRoomNumber = sanitizeText(form.room_number, 'Room Number', 0, 50);
       const sanitizedBuildingNumber = sanitizeText(form.building_number, 'Building Number', 0, 50);
+      const sanitizedCabinNumber = sanitizeText(form.cabin_number, 'Cabin Number', 0, 50);
       const sanitizedExactLocation = sanitizeText(form.exact_location, 'Exact Location', 0, 200);
+      const sanitizedUserRole = form.user_role === 'teacher' ? 'teacher' : 'student';
+      const locationType =
+        sanitizedUserRole === 'teacher' ? 'Faculty Cabin' : form.location_type;
 
       const { data, error } = await supabase
         .from('user_profiles')
@@ -180,12 +232,19 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
               name: sanitizedName,
               phone: sanitizedPhone,
               gender: form.gender,
-              location_type: form.location_type,
-              hostel_name: sanitizedHostelName || null,
-              block: sanitizedBlock || null,
-              room_number: sanitizedRoomNumber || null,
-              building_number: sanitizedBuildingNumber || null,
-              exact_location: sanitizedExactLocation || null,
+              user_role: sanitizedUserRole,
+              location_type: locationType,
+              hostel_name: sanitizedUserRole === 'student' ? sanitizedHostelName || null : null,
+              block: sanitizedUserRole === 'student' ? sanitizedBlock || null : null,
+              room_number: sanitizedUserRole === 'student' ? sanitizedRoomNumber || null : null,
+              building_number:
+                sanitizedUserRole === 'teacher'
+                  ? sanitizedBuildingNumber || null
+                  : sanitizedBuildingNumber || null,
+              cabin_number:
+                sanitizedUserRole === 'teacher' ? sanitizedCabinNumber || null : null,
+              exact_location:
+                sanitizedUserRole === 'student' ? sanitizedExactLocation || null : null,
               uid: sanitizedUid,
             },
           ],
@@ -212,6 +271,9 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
   };
 
   const locationSummary = getLocationSummary(form) || 'Location details not added yet';
+  const locationTypeLabel = getLocationTypeLabel(form) || 'Not added yet';
+  const extraReference = getExtraReference(form);
+  const userRoleLabel = form.user_role === 'teacher' ? 'Teacher' : 'Student';
   const profileInitial = (form.name.trim().charAt(0) || 'P').toUpperCase();
 
   if (loading) {
@@ -329,6 +391,30 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                   </div>
                 </div>
 
+                <div className="sm:col-span-2">
+                  <span className="mb-2 block text-sm font-medium text-gray-300">Profile Type</span>
+                  <div className="flex flex-wrap gap-2">
+                    {profileRoles.map((role) => {
+                      const isSelected = form.user_role === role.value;
+
+                      return (
+                        <button
+                          key={role.value}
+                          type="button"
+                          onClick={() => updateRole(role.value)}
+                          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                            isSelected
+                              ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
+                              : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          {role.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <label className="block sm:col-span-2">
                   <span className="mb-2 block text-sm font-medium text-gray-300">University ID (UID)</span>
                   <input
@@ -344,88 +430,18 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
 
             <div className="rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 p-6 shadow-xl shadow-black/20">
               <div className="mb-6">
-                <h2 className="mb-2 text-2xl font-bold text-white">Delivery Location</h2>
-                <p className="text-sm text-gray-400">These details help with quicker and more accurate deliveries.</p>
+                <h2 className="mb-2 text-2xl font-bold text-white">
+                  {isTeacher ? 'Teacher Location' : 'Delivery Location'}
+                </h2>
+                <p className="text-sm text-gray-400">
+                  {isTeacher
+                    ? 'Save the building and cabin number so teacher orders reach the right place.'
+                    : 'These details help with quicker and more accurate deliveries.'}
+                </p>
               </div>
 
               <div className="space-y-5">
-                <div>
-                  <span className="mb-2 block text-sm font-medium text-gray-300">Location Type</span>
-                  <div className="flex flex-wrap gap-2">
-                    {locationOptions.map((locationType) => {
-                      const isSelected = form.location_type === locationType;
-
-                      return (
-                        <button
-                          key={locationType}
-                          type="button"
-                          onClick={() => updateField('location_type', locationType)}
-                          className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                            isSelected
-                              ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
-                              : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
-                          }`}
-                        >
-                          {locationType}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {form.location_type === 'Hostel' && (
-                  <>
-                    <div>
-                      <span className="mb-2 block text-sm font-medium text-gray-300">Hostel Name</span>
-                      <div className="flex flex-wrap gap-2">
-                        {(form.gender === 'Male' ? boyHostels : girlHostels).map((hostel) => {
-                          const isSelected = form.hostel_name === hostel;
-
-                          return (
-                            <button
-                              key={hostel}
-                              type="button"
-                              onClick={() => updateField('hostel_name', hostel)}
-                              className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
-                                isSelected
-                                  ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
-                                  : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
-                              }`}
-                            >
-                              {hostel}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    <div className="grid gap-5 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
-                        <input
-                          type="text"
-                          value={form.block}
-                          onChange={(event) => updateField('block', event.target.value)}
-                          className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                          placeholder="e.g. A, B, C"
-                        />
-                      </label>
-
-                      <label className="block">
-                        <span className="mb-2 block text-sm font-medium text-gray-300">Room Number</span>
-                        <input
-                          type="text"
-                          value={form.room_number}
-                          onChange={(event) => updateField('room_number', event.target.value)}
-                          className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                          placeholder="e.g. 101"
-                        />
-                      </label>
-                    </div>
-                  </>
-                )}
-
-                {form.location_type === 'Class' && (
+                {isTeacher ? (
                   <div className="grid gap-5 sm:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block text-sm font-medium text-gray-300">Building Number</span>
@@ -439,68 +455,172 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                     </label>
 
                     <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-gray-300">Room/Class Number</span>
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Cabin Number</span>
                       <input
                         type="text"
-                        value={form.room_number}
-                        onChange={(event) => updateField('room_number', event.target.value)}
+                        value={form.cabin_number}
+                        onChange={(event) => updateField('cabin_number', event.target.value)}
                         className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="e.g. 101"
+                        placeholder="e.g. Cabin 204"
                       />
                     </label>
                   </div>
-                )}
+                ) : (
+                  <>
+                    <div>
+                      <span className="mb-2 block text-sm font-medium text-gray-300">Location Type</span>
+                      <div className="flex flex-wrap gap-2">
+                        {locationOptions.map((locationType) => {
+                          const isSelected = form.location_type === locationType;
 
-                {(form.location_type === 'Studio Apartment' || form.location_type === 'Apartment') && (
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
-                      <input
-                        type="text"
-                        value={form.block}
-                        onChange={(event) => updateField('block', event.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="Block name/number"
-                      />
-                    </label>
+                          return (
+                            <button
+                              key={locationType}
+                              type="button"
+                              onClick={() => updateField('location_type', locationType)}
+                              className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                                isSelected
+                                  ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
+                                  : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                              }`}
+                            >
+                              {locationType}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
 
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-gray-300">Room Number</span>
-                      <input
-                        type="text"
-                        value={form.room_number}
-                        onChange={(event) => updateField('room_number', event.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="e.g. 201"
-                      />
-                    </label>
-                  </div>
-                )}
+                    {form.location_type === 'Hostel' && (
+                      <>
+                        <div>
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Hostel Name</span>
+                          <div className="flex flex-wrap gap-2">
+                            {(form.gender === 'Male' ? boyHostels : girlHostels).map((hostel) => {
+                              const isSelected = form.hostel_name === hostel;
 
-                {form.location_type === 'Other' && (
-                  <div className="space-y-5">
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-gray-300">Nearest Building</span>
-                      <input
-                        type="text"
-                        value={form.building_number}
-                        onChange={(event) => updateField('building_number', event.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="e.g. Block 34"
-                      />
-                    </label>
+                              return (
+                                <button
+                                  key={hostel}
+                                  type="button"
+                                  onClick={() => updateField('hostel_name', hostel)}
+                                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                                    isSelected
+                                      ? 'border-orange-500/35 bg-orange-500/15 text-orange-200'
+                                      : 'border-white/10 bg-white/5 text-gray-300 hover:border-white/20 hover:bg-white/10 hover:text-white'
+                                  }`}
+                                >
+                                  {hostel}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                    <label className="block">
-                      <span className="mb-2 block text-sm font-medium text-gray-300">Exact Location</span>
-                      <input
-                        type="text"
-                        value={form.exact_location}
-                        onChange={(event) => updateField('exact_location', event.target.value)}
-                        className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
-                        placeholder="Describe your location"
-                      />
-                    </label>
-                  </div>
+                        <div className="grid gap-5 sm:grid-cols-2">
+                          <label className="block">
+                            <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
+                            <input
+                              type="text"
+                              value={form.block}
+                              onChange={(event) => updateField('block', event.target.value)}
+                              className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                              placeholder="e.g. A, B, C"
+                            />
+                          </label>
+
+                          <label className="block">
+                            <span className="mb-2 block text-sm font-medium text-gray-300">Room Number</span>
+                            <input
+                              type="text"
+                              value={form.room_number}
+                              onChange={(event) => updateField('room_number', event.target.value)}
+                              className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                              placeholder="e.g. 101"
+                            />
+                          </label>
+                        </div>
+                      </>
+                    )}
+
+                    {form.location_type === 'Class' && (
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Building Number</span>
+                          <input
+                            type="text"
+                            value={form.building_number}
+                            onChange={(event) => updateField('building_number', event.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                            placeholder="e.g. Block 32"
+                          />
+                        </label>
+
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Room/Class Number</span>
+                          <input
+                            type="text"
+                            value={form.room_number}
+                            onChange={(event) => updateField('room_number', event.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                            placeholder="e.g. 101"
+                          />
+                        </label>
+                      </div>
+                    )}
+
+                    {(form.location_type === 'Studio Apartment' || form.location_type === 'Apartment') && (
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Block</span>
+                          <input
+                            type="text"
+                            value={form.block}
+                            onChange={(event) => updateField('block', event.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                            placeholder="Block name/number"
+                          />
+                        </label>
+
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Room Number</span>
+                          <input
+                            type="text"
+                            value={form.room_number}
+                            onChange={(event) => updateField('room_number', event.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                            placeholder="e.g. 201"
+                          />
+                        </label>
+                      </div>
+                    )}
+
+                    {form.location_type === 'Other' && (
+                      <div className="space-y-5">
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Nearest Building</span>
+                          <input
+                            type="text"
+                            value={form.building_number}
+                            onChange={(event) => updateField('building_number', event.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                            placeholder="e.g. Block 34"
+                          />
+                        </label>
+
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-300">Exact Location</span>
+                          <input
+                            type="text"
+                            value={form.exact_location}
+                            onChange={(event) => updateField('exact_location', event.target.value)}
+                            className="w-full rounded-2xl border border-white/10 bg-gray-800 px-4 py-3 text-white outline-none transition-colors focus:border-orange-500/40"
+                            placeholder="Describe your location"
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <div className="flex flex-wrap gap-3 pt-2">
@@ -566,6 +686,11 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
               </div>
 
               <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
+                <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Profile Type</p>
+                <p className="font-semibold text-white">{userRoleLabel}</p>
+              </div>
+
+              <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
                 <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">UID</p>
                 <div className="flex items-center gap-2">
                   <CreditCard className="h-4 w-4 text-gray-500" />
@@ -582,8 +707,14 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Delivery Location</h2>
-                  <p className="text-sm text-gray-400">Where your orders should reach you.</p>
+                  <h2 className="text-xl font-bold text-white">
+                    {form.user_role === 'teacher' ? 'Teacher Location' : 'Delivery Location'}
+                  </h2>
+                  <p className="text-sm text-gray-400">
+                    {form.user_role === 'teacher'
+                      ? 'Where teacher orders should reach you on campus.'
+                      : 'Where your orders should reach you.'}
+                  </p>
                 </div>
               </div>
 
@@ -592,7 +723,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                   <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Location Type</p>
                   <div className="flex items-center gap-2">
                     <Home className="h-4 w-4 text-gray-500" />
-                    <p className="font-semibold text-white">{form.location_type || 'Not added yet'}</p>
+                    <p className="font-semibold text-white">{locationTypeLabel}</p>
                   </div>
                 </div>
 
@@ -601,14 +732,12 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
                   <p className="leading-6 text-white">{locationSummary}</p>
                 </div>
 
-                {(form.building_number || form.exact_location) && (
+                {!!extraReference && (
                   <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
                     <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Extra Reference</p>
                     <div className="flex items-start gap-2">
                       <Building2 className="mt-0.5 h-4 w-4 text-gray-500" />
-                      <p className="leading-6 text-white">
-                        {[form.building_number, form.exact_location].filter(Boolean).join(', ')}
-                      </p>
+                      <p className="leading-6 text-white">{extraReference}</p>
                     </div>
                   </div>
                 )}
@@ -620,7 +749,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
             <div className="rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-6 shadow-xl shadow-black/20">
               <h3 className="mb-2 text-lg font-bold text-white">Need to update something?</h3>
               <p className="mb-4 text-sm leading-6 text-orange-100/85">
-                Edit your profile whenever your hostel, room, phone number, or saved delivery location changes.
+                Edit your profile whenever your hostel, cabin, phone number, or saved campus location changes.
               </p>
               <button
                 onClick={() => setEditing(true)}
