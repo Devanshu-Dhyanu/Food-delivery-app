@@ -1,5 +1,16 @@
-import { useEffect, useState, type CSSProperties } from 'react';
-import { Bell, CircleUserRound, Menu, Package, ShoppingCart, Utensils, Wallet, X } from 'lucide-react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+  Bell,
+  ChevronDown,
+  CircleUserRound,
+  MapPin,
+  Menu,
+  Package,
+  ShoppingCart,
+  Utensils,
+  Wallet,
+  X,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
 import { getWalletOverview } from '../lib/wallet';
@@ -14,6 +25,7 @@ interface HeaderProps {
 }
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery'];
+const CURRENT_LOCATION_STORAGE_KEY = 'vajra-current-location-banner-v1';
 
 const logoParticles = [
   { x: 38, y: -24, size: 6, delay: 0, duration: 760, color: '#fb923c', glow: '0 0 18px rgba(251, 146, 60, 0.55)' },
@@ -28,6 +40,76 @@ const logoParticles = [
   { x: 42, y: 20, size: 3, delay: 50, duration: 650, color: '#ffffff', glow: '0 0 12px rgba(255, 255, 255, 0.4)' },
 ];
 
+type CurrentLocationBanner = {
+  title: string;
+  subtitle: string;
+  status: 'idle' | 'loading' | 'ready' | 'denied' | 'error' | 'unsupported';
+};
+
+const loadStoredLocationBanner = (): CurrentLocationBanner | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const storedValue = window.localStorage.getItem(CURRENT_LOCATION_STORAGE_KEY);
+
+    if (!storedValue) {
+      return null;
+    }
+
+    const parsedValue = JSON.parse(storedValue) as Partial<CurrentLocationBanner>;
+
+    if (typeof parsedValue.title !== 'string' || typeof parsedValue.subtitle !== 'string') {
+      return null;
+    }
+
+    return {
+      title: parsedValue.title,
+      subtitle: parsedValue.subtitle,
+      status: 'ready',
+    };
+  } catch {
+    return null;
+  }
+};
+
+const saveLocationBanner = (value: Pick<CurrentLocationBanner, 'title' | 'subtitle'>) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(CURRENT_LOCATION_STORAGE_KEY, JSON.stringify(value));
+};
+
+const formatCoordinateFallback = (latitude: number, longitude: number) =>
+  `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+
+const buildLocationBanner = (
+  payload: Record<string, unknown> | null,
+  latitude: number,
+  longitude: number
+): Pick<CurrentLocationBanner, 'title' | 'subtitle'> => {
+  const locality =
+    (typeof payload?.locality === 'string' && payload.locality) ||
+    (typeof payload?.city === 'string' && payload.city) ||
+    (typeof payload?.principalSubdivision === 'string' && payload.principalSubdivision) ||
+    'Current location';
+  const city =
+    (typeof payload?.city === 'string' && payload.city) ||
+    (typeof payload?.locality === 'string' && payload.locality) ||
+    '';
+  const subdivision = typeof payload?.principalSubdivision === 'string' ? payload.principalSubdivision : '';
+  const country = typeof payload?.countryName === 'string' ? payload.countryName : '';
+
+  const subtitle = [city, subdivision, country].filter(Boolean).join(', ') || formatCoordinateFallback(latitude, longitude);
+
+  return {
+    title: locality,
+    subtitle,
+  };
+};
+
 export default function Header({
   currentPage,
   onNavigate,
@@ -41,7 +123,17 @@ export default function Header({
   const [logoBurstKey, setLogoBurstKey] = useState(0);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<CurrentLocationBanner>(() => {
+    return (
+      loadStoredLocationBanner() || {
+        title: 'Use current location',
+        subtitle: 'Allow location access to detect where you are right now.',
+        status: 'idle',
+      }
+    );
+  });
   const { clearCart, getTotalItems } = useCart();
+  const hasRequestedLocationRef = useRef(false);
   const totalItems = getTotalItems();
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
   const profileInitial = firstName.charAt(0).toUpperCase();
@@ -175,6 +267,107 @@ export default function Header({
       window.clearInterval(interval);
     };
   }, [showNavigation, userId, currentPage]);
+
+  const requestCurrentLocation = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (!('geolocation' in navigator)) {
+      setCurrentLocation({
+        title: 'Location unavailable',
+        subtitle: 'Your device does not support browser location access.',
+        status: 'unsupported',
+      });
+      return;
+    }
+
+    setCurrentLocation((current) => ({
+      title:
+        current.status === 'ready' && current.title.trim()
+          ? current.title
+          : 'Detecting your location...',
+      subtitle:
+        current.status === 'ready' && current.subtitle.trim()
+          ? current.subtitle
+          : 'Please allow location access to show your current area.',
+      status: 'loading',
+    }));
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        try {
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(
+              latitude
+            )}&longitude=${encodeURIComponent(longitude)}&localityLanguage=en`
+          );
+
+          if (!response.ok) {
+            throw new Error('Reverse geocoding failed');
+          }
+
+          const data = (await response.json()) as Record<string, unknown>;
+          const nextLocation = buildLocationBanner(data, latitude, longitude);
+          saveLocationBanner(nextLocation);
+          setCurrentLocation({
+            ...nextLocation,
+            status: 'ready',
+          });
+        } catch (error) {
+          console.error('Error resolving current location label:', error);
+          const fallbackLocation = {
+            title: 'Current location detected',
+            subtitle: formatCoordinateFallback(latitude, longitude),
+          };
+          saveLocationBanner(fallbackLocation);
+          setCurrentLocation({
+            ...fallbackLocation,
+            status: 'ready',
+          });
+        }
+      },
+      (error) => {
+        console.error('Error fetching current location:', error);
+        setCurrentLocation((current) => {
+          if (current.status === 'ready') {
+            return current;
+          }
+
+          if (error.code === error.PERMISSION_DENIED) {
+            return {
+              title: 'Location permission needed',
+              subtitle: 'Allow location access in your browser to auto-detect your current area.',
+              status: 'denied',
+            };
+          }
+
+          return {
+            title: 'Could not detect location',
+            subtitle: 'Tap here to try again and fetch your current area.',
+            status: 'error',
+          };
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 300000,
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (!showNavigation || currentPage !== 'home' || hasRequestedLocationRef.current) {
+      return;
+    }
+
+    hasRequestedLocationRef.current = true;
+    requestCurrentLocation();
+  }, [currentPage, showNavigation]);
 
   const handleLogoClick = () => {
     setShowLogoBurst(true);
@@ -439,6 +632,40 @@ export default function Header({
             </button>
           </div>
         </div>
+
+        {showNavigation && currentPage === 'home' && (
+          <div className="pb-3">
+            <button
+              type="button"
+              onClick={requestCurrentLocation}
+              className="group w-full overflow-hidden rounded-[24px] bg-gradient-to-br from-red-500 via-rose-500 to-red-700 p-[1px] text-left shadow-xl shadow-red-950/20 transition-transform hover:-translate-y-0.5"
+            >
+              <div className="rounded-[23px] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),rgba(255,255,255,0.04)_38%,rgba(127,29,29,0.15)_100%)] px-4 py-3 text-white sm:px-5 sm:py-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-white" />
+                      <p className="truncate text-xl font-bold tracking-tight sm:text-2xl">
+                        {currentLocation.title}
+                      </p>
+                    </div>
+                    <p className="truncate pl-7 text-sm text-white/90 sm:text-base">
+                      {currentLocation.status === 'loading'
+                        ? 'Detecting your current location...'
+                        : currentLocation.subtitle}
+                    </p>
+                  </div>
+
+                  <ChevronDown
+                    className={`mt-1 h-5 w-5 flex-shrink-0 text-white/90 transition-transform ${
+                      currentLocation.status === 'loading' ? 'animate-pulse' : 'group-hover:translate-y-0.5'
+                    }`}
+                  />
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
 
         {mobileMenuOpen && (
           <div className="border-t border-white/5 pb-4 pt-3 md:hidden">
