@@ -16,6 +16,7 @@ import {
 import CarRentalBooking from './CarRentalBooking';
 import CarRentalBookings from './CarRentalBookings';
 import CarRentalList from './CarRentalList';
+import MarketplaceHub from './MarketplaceHub';
 import BrandedLoader from './BrandedLoader';
 import { supabase, Restaurant, Announcement, type RentalVehicle } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
@@ -127,7 +128,7 @@ const saveStoredFavoriteRestaurantIds = (userId: string, restaurantIds: string[]
 const campusServices = [
   {
     id: 'restaurants',
-    label: 'Restaurants',
+    label: 'Home',
     availability: 'Live now',
     description: 'Order campus meals and track deliveries.',
     icon: UtensilsCrossed,
@@ -149,7 +150,7 @@ const campusServices = [
   {
     id: 'second-hand-market',
     label: 'Second-hand Market',
-    availability: 'Coming soon',
+    availability: 'Live now',
     description: 'Buy and sell useful campus items with ease.',
     icon: Store,
   },
@@ -643,7 +644,7 @@ export default function RestaurantList({
               <h2 className="text-2xl font-bold text-white">Choose what you want to use on The Vajra</h2>
             </div>
             <p className="max-w-2xl text-sm leading-6 text-gray-400">
-              Restaurants stay live as usual, and car rentals now have their own booking flow. The other services can still stay visible here without affecting food ordering.
+              Restaurants stay live as usual, car rentals keep their own booking flow, and the marketplace is now ready for campus buying and selling.
             </p>
           </div>
 
@@ -696,7 +697,14 @@ export default function RestaurantList({
 
       {selectedService === 'car-rent' && renderCarRentalContent()}
 
-      {selectedService !== 'restaurants' && selectedService !== 'car-rent' && renderUpcomingServicePanel()}
+      {selectedService === 'second-hand-market' && (
+        <MarketplaceHub userId={userId} fallbackName={greetingName} />
+      )}
+
+      {selectedService !== 'restaurants' &&
+        selectedService !== 'car-rent' &&
+        selectedService !== 'second-hand-market' &&
+        renderUpcomingServicePanel()}
 
       {selectedService === 'restaurants' && (
         <>
