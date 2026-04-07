@@ -8,6 +8,7 @@ import {
   Package,
   ShoppingCart,
   Sparkles,
+  Truck,
   Utensils,
   Wallet,
   X,
@@ -24,6 +25,8 @@ interface HeaderProps {
   userDisplayName?: string;
   userAvatarUrl?: string | null;
   userId?: string;
+  appMode?: 'customer' | 'delivery';
+  onToggleAppMode?: () => void;
 }
 
 const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'out_for_delivery'];
@@ -146,6 +149,8 @@ export default function Header({
   userDisplayName = '',
   userAvatarUrl = null,
   userId,
+  appMode = 'customer',
+  onToggleAppMode,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopQuickMenuOpen, setDesktopQuickMenuOpen] = useState(false);
@@ -167,6 +172,7 @@ export default function Header({
   const locationRequestIdRef = useRef(0);
   const bestAccuracyRef = useRef<number | null>(null);
   const totalItems = getTotalItems();
+  const isDeliveryMode = appMode === 'delivery';
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
   const profileInitial = firstName.charAt(0).toUpperCase();
   const cleanUserAvatarUrl = userAvatarUrl?.trim() || '';
@@ -175,6 +181,9 @@ export default function Header({
     currentPage === 'profile' || currentPage === 'orders' || currentPage === 'founder';
   const logoSignal = hasActiveOrder ? 'active-order' : totalItems > 0 ? 'cart' : 'idle';
   const logoButtonTitle =
+    isDeliveryMode
+      ? 'Delivery partner mode'
+      :
     logoSignal === 'active-order'
       ? 'You have an active order'
       : logoSignal === 'cart'
@@ -547,6 +556,10 @@ export default function Header({
     setShowLogoBurst(true);
     setLogoBurstKey((current) => current + 1);
 
+    if (isDeliveryMode) {
+      return;
+    }
+
     if (currentPage !== 'home') {
       handleNavigate('home');
     }
@@ -735,7 +748,9 @@ export default function Header({
             </div>
             <div className="flex flex-col items-start">
               <span className="text-lg font-bold tracking-tight text-white sm:text-xl">The Vajra</span>
-              <span className="hidden text-xs text-gray-400 sm:block">Campus Food Delivery</span>
+              <span className="hidden text-xs text-gray-400 sm:block">
+                {isDeliveryMode ? 'Delivery partner console' : 'Campus Food Delivery'}
+              </span>
             </div>
           </button>
 
@@ -849,6 +864,20 @@ export default function Header({
                 )}
               </div>
             )}
+            {onToggleAppMode && (
+              <button
+                type="button"
+                onClick={onToggleAppMode}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                  isDeliveryMode
+                    ? 'border-emerald-400/35 bg-emerald-500/15 text-emerald-100 hover:bg-emerald-500/20'
+                    : 'border-sky-400/25 bg-sky-500/10 text-sky-100 hover:bg-sky-500/15'
+                }`}
+              >
+                <Truck className="h-4 w-4" />
+                <span>{isDeliveryMode ? 'Delivery Off' : 'Delivery On'}</span>
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="rounded-full border border-orange-500 px-4 py-2 text-sm font-semibold text-orange-400 transition-colors hover:bg-orange-500 hover:text-white"
@@ -903,6 +932,21 @@ export default function Header({
               >
                 <Wallet className="h-4 w-4" />
                 <span>Rs. {walletBalance.toFixed(0)}</span>
+              </button>
+            )}
+            {onToggleAppMode && (
+              <button
+                type="button"
+                onClick={onToggleAppMode}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-semibold transition-colors ${
+                  isDeliveryMode
+                    ? 'border-emerald-400/35 bg-emerald-500/15 text-emerald-100'
+                    : 'border-sky-400/25 bg-sky-500/10 text-sky-100'
+                }`}
+                aria-label={isDeliveryMode ? 'Turn delivery mode off' : 'Turn delivery mode on'}
+              >
+                <Truck className="h-4 w-4" />
+                <span>{isDeliveryMode ? 'Off' : 'On'}</span>
               </button>
             )}
 

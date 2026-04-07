@@ -6,6 +6,7 @@ import {
   Clock,
   MapPin,
   Package,
+  PhoneCall,
   RotateCcw,
   Truck,
   XCircle,
@@ -134,6 +135,34 @@ const isCancellationSchemaMissing = (error: unknown) => {
     details.includes('42p01') ||
     details.includes('pgrst')
   );
+};
+
+const getDeliveryPartnerStatusLabel = (status: Order['delivery_assignment_status']) => {
+  switch (status) {
+    case 'assigned':
+      return 'Delivery partner assigned';
+    case 'picked_up':
+      return 'Your order is with the delivery partner';
+    case 'delivered':
+      return 'Handled by delivery partner';
+    case 'unassigned':
+    default:
+      return 'Waiting for delivery partner';
+  }
+};
+
+const getDeliveryPartnerStatusClasses = (status: Order['delivery_assignment_status']) => {
+  switch (status) {
+    case 'assigned':
+      return 'border-sky-500/25 bg-sky-500/10 text-sky-100';
+    case 'picked_up':
+      return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-100';
+    case 'delivered':
+      return 'border-green-500/25 bg-green-500/10 text-green-100';
+    case 'unassigned':
+    default:
+      return 'border-white/10 bg-white/5 text-gray-200';
+  }
 };
 
 export default function OrderTracking({ onNavigate }: OrderTrackingProps) {
@@ -936,6 +965,27 @@ export default function OrderTracking({ onNavigate }: OrderTrackingProps) {
                           </div>
                         )}
                       </div>
+
+                      {order.delivery_partner_name && order.delivery_partner_phone && (
+                        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                          <div className="mb-3 flex flex-wrap items-center gap-2">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${getDeliveryPartnerStatusClasses(order.delivery_assignment_status)}`}
+                            >
+                              {getDeliveryPartnerStatusLabel(order.delivery_assignment_status)}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-white">{order.delivery_partner_name}</p>
+                          <p className="mt-1 text-sm text-gray-300">{order.delivery_partner_phone}</p>
+                          <a
+                            href={`tel:${order.delivery_partner_phone}`}
+                            className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
+                          >
+                            <PhoneCall className="h-4 w-4" />
+                            Call delivery partner
+                          </a>
+                        </div>
+                      )}
                     </div>
 
                     <div className="rounded-2xl border border-gray-800 bg-gray-950/30 p-4">

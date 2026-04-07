@@ -42,6 +42,15 @@ export type Order = {
   delivery_fee: number | null;
   total_amount: number;
   status: string;
+  delivery_partner_user_id: string | null;
+  delivery_partner_name: string | null;
+  delivery_partner_phone: string | null;
+  delivery_assignment_status: DeliveryAssignmentStatus;
+  delivery_partner_accepted_at: string | null;
+  delivery_picked_up_at: string | null;
+  delivered_at: string | null;
+  payment_status?: string | null;
+  payment_method?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -205,6 +214,36 @@ export type MarketplaceListing = {
   image_urls: string[];
   status: MarketplaceListingStatus;
   is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DeliveryPartnerType = 'hosteller' | 'non_hosteller' | 'teacher';
+
+export type DeliveryPartnerGender = 'male' | 'female' | 'other';
+
+export type DeliveryAssignmentStatus =
+  | 'unassigned'
+  | 'assigned'
+  | 'picked_up'
+  | 'delivered';
+
+export type DeliveryPartnerProfile = {
+  id: string;
+  user_id: string;
+  name: string;
+  phone: string;
+  gender: DeliveryPartnerGender;
+  partner_type: DeliveryPartnerType;
+  hostel_name: string | null;
+  block: string | null;
+  room_number: string | null;
+  building_number: string | null;
+  cabin_number: string | null;
+  area_label: string | null;
+  is_online: boolean;
+  alert_sound_enabled: boolean;
+  last_seen_at: string;
   created_at: string;
   updated_at: string;
 };

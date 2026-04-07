@@ -21,9 +21,12 @@ import TermsAndConditions from './components/TermsAndConditions';
 import RefundCancellationPolicy from './components/RefundCancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
 import PaymentCallback from './components/PaymentCallback';
+import DeliveryPartnerHub from './components/DeliveryPartnerHub';
+import { DELIVERY_APP_MODE_STORAGE_KEY } from './lib/deliveryPartner';
 import { supabase, Announcement } from './lib/supabase';
 
 type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
+type AppMode = 'customer' | 'delivery';
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 
@@ -46,6 +49,15 @@ const sortAnnouncements = (items: Announcement[]) =>
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [appMode, setAppMode] = useState<AppMode>(() => {
+    try {
+      return window.localStorage.getItem(DELIVERY_APP_MODE_STORAGE_KEY) === 'delivery'
+        ? 'delivery'
+        : 'customer';
+    } catch {
+      return 'customer';
+    }
+  });
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
   const [user, setUser] = useState<any>(null);
@@ -179,6 +191,14 @@ function App() {
   }, [dismissedAnnouncementIds]);
 
   useEffect(() => {
+    try {
+      window.localStorage.setItem(DELIVERY_APP_MODE_STORAGE_KEY, appMode);
+    } catch (error) {
+      console.error('Error saving app mode preference:', error);
+    }
+  }, [appMode]);
+
+  useEffect(() => {
     let isMounted = true;
 
     if (!user) {
@@ -258,6 +278,11 @@ function App() {
     setDismissedAnnouncementIds((prev) =>
       prev.includes(announcementId) ? prev : [...prev, announcementId]
     );
+  };
+
+  const handleToggleAppMode = () => {
+    setAppMode((currentMode) => (currentMode === 'customer' ? 'delivery' : 'customer'));
+    setCurrentPage('home');
   };
 
   const handleAnnouncementAction = (link?: string | null) => {
@@ -423,6 +448,16 @@ function App() {
   };
 
   const renderPage = () => {
+    if (appMode === 'delivery') {
+      return (
+        <DeliveryPartnerHub
+          userId={user.id}
+          userDisplayName={userDisplayName}
+          userAvatarUrl={userAvatarUrl}
+        />
+      );
+    }
+
     switch (currentPage) {
       case 'home':
         return (
@@ -534,23 +569,32 @@ function App() {
   return (
     <CartProvider>
       <div className="flex min-h-screen flex-col bg-gray-900">
-        <SmartTabTitle
-          currentPage={currentPage}
-          loading={loading}
-          isAuthenticated={!!user}
-          hasProfile={hasProfile}
-        />
+        {appMode === 'customer' && (
+          <SmartTabTitle
+            currentPage={currentPage}
+            loading={loading}
+            isAuthenticated={!!user}
+            hasProfile={hasProfile}
+          />
+        )}
         <Header
           currentPage={currentPage}
           onNavigate={handleNavigate}
+          showNavigation={appMode === 'customer'}
           hasUnreadAnnouncements={hasUnreadAnnouncements}
           userDisplayName={userDisplayName}
           userAvatarUrl={userAvatarUrl}
           userId={user?.id}
+          appMode={appMode}
+          onToggleAppMode={handleToggleAppMode}
         />
         <main className="flex-1">{renderPage()}</main>
-        <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
-        <Footer onNavigate={handleNavigate} />
+        {appMode === 'customer' && (
+          <>
+            <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
+            <Footer onNavigate={handleNavigate} />
+          </>
+        )}
       </div>
     </CartProvider>
   );

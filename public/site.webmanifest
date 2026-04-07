@@ -1,11 +1,14 @@
 {
   "name": "The Vajra",
   "short_name": "The Vajra",
-  "description": "Campus food delivery from The Vajra.",
+  "id": "/",
+  "description": "Campus food ordering, second-hand marketplace, and delivery partner mode from The Vajra.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f131a",
   "theme_color": "#0f131a",
+  "categories": ["food", "shopping", "business", "productivity"],
   "icons": [
     {
       "src": "/the-vajra-mark.svg",
