@@ -172,6 +172,43 @@ export type RentalBooking = {
   updated_at: string;
 };
 
+export type MarketplaceListingCategory =
+  | 'electronics'
+  | 'furniture'
+  | 'books'
+  | 'fashion'
+  | 'appliances'
+  | 'cycles'
+  | 'gaming'
+  | 'study'
+  | 'hostel-essentials'
+  | 'other';
+
+export type MarketplaceListingCondition = 'new' | 'like_new' | 'good' | 'fair';
+
+export type MarketplaceListingStatus = 'active' | 'reserved' | 'sold' | 'archived';
+
+export type MarketplaceListing = {
+  id: string;
+  user_id: string;
+  seller_name: string;
+  seller_phone: string;
+  seller_avatar_url: string | null;
+  title: string;
+  description: string;
+  category: MarketplaceListingCategory;
+  condition: MarketplaceListingCondition;
+  price: number;
+  negotiable: boolean;
+  location_label: string;
+  pickup_details: string | null;
+  image_urls: string[];
+  status: MarketplaceListingStatus;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CartItem = MenuItem & {
   quantity: number;
   restaurant_name: string;

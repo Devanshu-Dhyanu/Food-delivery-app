@@ -746,7 +746,7 @@ export default function Header({
                 className={getNavButtonClasses(currentPage === 'home')}
               >
                 <Utensils className="h-4 w-4" />
-                <span>Restaurants</span>
+                <span>Home</span>
               </button>
             )}
             {showNavigation && (
@@ -976,7 +976,7 @@ export default function Header({
                   className={`w-full justify-start ${getNavButtonClasses(currentPage === 'home')}`}
                 >
                   <Utensils className="h-4 w-4" />
-                  <span>Restaurants</span>
+                  <span>Home</span>
                 </button>
               )}
               {showNavigation && (
