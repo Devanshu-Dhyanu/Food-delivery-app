@@ -50,6 +50,7 @@ function App() {
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
   const [user, setUser] = useState<any>(null);
   const [userDisplayName, setUserDisplayName] = useState('');
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -77,7 +78,7 @@ function App() {
       try {
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('id, name')
+          .select('id, name, avatar_url')
           .eq('user_id', userId)
           .maybeSingle();
 
@@ -90,11 +91,13 @@ function App() {
         }
 
         setUserDisplayName(data?.name?.trim() ?? '');
+        setUserAvatarUrl(data?.avatar_url ?? null);
         setHasProfile(!!data);
       } catch (error) {
         console.error('Unexpected error checking user profile:', error);
         if (isMounted) {
           setUserDisplayName('');
+          setUserAvatarUrl(null);
           setHasProfile(false);
         }
       }
@@ -110,15 +113,21 @@ function App() {
         nextUser?.user_metadata?.name ||
         nextUser?.email?.split('@')?.[0] ||
         '';
+      const fallbackAvatarUrl =
+        typeof nextUser?.user_metadata?.avatar_url === 'string'
+          ? nextUser.user_metadata.avatar_url
+          : null;
 
       if (!nextUser) {
         setUserDisplayName('');
+        setUserAvatarUrl(null);
         setHasProfile(false);
         setLoading(false);
         return;
       }
 
       setUserDisplayName(fallbackName);
+      setUserAvatarUrl(fallbackAvatarUrl);
       setHasProfile(null);
       setLoading(false);
       void loadUserProfile(nextUser.id);
@@ -136,6 +145,7 @@ function App() {
         if (isMounted) {
           setUser(null);
           setUserDisplayName('');
+          setUserAvatarUrl(null);
           setHasProfile(false);
         }
       } finally {
@@ -372,6 +382,7 @@ function App() {
             onNavigate={handleNavigate}
             showNavigation={false}
             userDisplayName={userDisplayName}
+            userAvatarUrl={userAvatarUrl}
             userId={user?.id}
           />
           <BrandedLoader message="Checking your profile..." />
@@ -389,6 +400,7 @@ function App() {
             onNavigate={handleNavigate}
             showNavigation={false}
             userDisplayName={userDisplayName}
+            userAvatarUrl={userAvatarUrl}
             userId={user?.id}
           />
           <Onboarding userId={user.id} onComplete={() => setHasProfile(true)} />
@@ -446,7 +458,10 @@ function App() {
           <Profile
             userId={user.id}
             onBack={() => setCurrentPage('home')}
-            onProfileUpdated={(name) => setUserDisplayName(name)}
+            onProfileUpdated={(name, avatarUrl) => {
+              setUserDisplayName(name);
+              setUserAvatarUrl(avatarUrl);
+            }}
           />
         );
       case 'founder':
@@ -530,6 +545,7 @@ function App() {
           onNavigate={handleNavigate}
           hasUnreadAnnouncements={hasUnreadAnnouncements}
           userDisplayName={userDisplayName}
+          userAvatarUrl={userAvatarUrl}
           userId={user?.id}
         />
         <main className="flex-1">{renderPage()}</main>

@@ -22,6 +22,7 @@ interface HeaderProps {
   showNavigation?: boolean;
   hasUnreadAnnouncements?: boolean;
   userDisplayName?: string;
+  userAvatarUrl?: string | null;
   userId?: string;
 }
 
@@ -143,6 +144,7 @@ export default function Header({
   showNavigation = true,
   hasUnreadAnnouncements = false,
   userDisplayName = '',
+  userAvatarUrl = null,
   userId,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -151,6 +153,7 @@ export default function Header({
   const [logoBurstKey, setLogoBurstKey] = useState(0);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<CurrentLocationBanner>({
     title: 'Use current location',
     subtitle: 'Allow location access to detect where you are right now.',
@@ -166,6 +169,8 @@ export default function Header({
   const totalItems = getTotalItems();
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
   const profileInitial = firstName.charAt(0).toUpperCase();
+  const cleanUserAvatarUrl = userAvatarUrl?.trim() || '';
+  const showUserAvatar = Boolean(cleanUserAvatarUrl && !avatarLoadFailed);
   const isQuickMenuPage =
     currentPage === 'profile' || currentPage === 'orders' || currentPage === 'founder';
   const logoSignal = hasActiveOrder ? 'active-order' : totalItems > 0 ? 'cart' : 'idle';
@@ -190,6 +195,10 @@ export default function Header({
   useEffect(() => {
     setDesktopQuickMenuOpen(false);
   }, [currentPage, showNavigation]);
+
+  useEffect(() => {
+    setAvatarLoadFailed(false);
+  }, [cleanUserAvatarUrl]);
 
   useEffect(() => {
     if (!desktopQuickMenuOpen) {
@@ -551,6 +560,31 @@ export default function Header({
     window.location.reload();
   };
 
+  const renderProfileAvatar = (
+    sizeClasses: string,
+    fallbackTextClasses: string,
+    activeClasses: string,
+    inactiveClasses: string,
+    imageClasses = 'h-full w-full object-cover'
+  ) => (
+    <span
+      className={`flex items-center justify-center overflow-hidden rounded-full border ${sizeClasses} ${
+        isQuickMenuPage || desktopQuickMenuOpen ? activeClasses : inactiveClasses
+      }`}
+    >
+      {showUserAvatar ? (
+        <img
+          src={cleanUserAvatarUrl}
+          alt={userDisplayName ? `${userDisplayName} profile` : 'Profile'}
+          className={imageClasses}
+          onError={() => setAvatarLoadFailed(true)}
+        />
+      ) : (
+        <span className={fallbackTextClasses}>{profileInitial}</span>
+      )}
+    </span>
+  );
+
   const quickMenuItems = [
     {
       page: 'profile',
@@ -736,15 +770,12 @@ export default function Header({
                   aria-expanded={desktopQuickMenuOpen}
                   aria-haspopup="menu"
                 >
-                  <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${
-                      isQuickMenuPage || desktopQuickMenuOpen
-                        ? 'border-orange-400/35 bg-orange-500/20 text-orange-100'
-                        : 'border-white/10 bg-white/5 text-gray-200'
-                    }`}
-                  >
-                    {profileInitial}
-                  </span>
+                  {renderProfileAvatar(
+                    'h-5 w-5',
+                    'text-[10px] font-bold',
+                    'border-orange-400/35 bg-orange-500/20 text-orange-100',
+                    'border-white/10 bg-white/5 text-gray-200'
+                  )}
                   <span>Menu</span>
                   <ChevronDown
                     className={`h-4 w-4 transition-transform ${
@@ -787,10 +818,21 @@ export default function Header({
                                   : 'border-white/10 bg-white/5 text-gray-300'
                               }`}
                             >
-                              {'badge' in item && item.badge ? (
-                                <span className="text-xs font-bold">{item.badge}</span>
+                              {item.page === 'profile' && showUserAvatar ? (
+                                <img
+                                  src={cleanUserAvatarUrl}
+                                  alt={userDisplayName ? `${userDisplayName} profile` : 'Profile'}
+                                  className="h-full w-full rounded-2xl object-cover"
+                                  onError={() => setAvatarLoadFailed(true)}
+                                />
                               ) : (
-                                <Icon className="h-4 w-4" />
+                                <>
+                                  {'badge' in item && item.badge ? (
+                                    <span className="text-xs font-bold">{item.badge}</span>
+                                  ) : (
+                                    <Icon className="h-4 w-4" />
+                                  )}
+                                </>
                               )}
                             </span>
                             <span className="min-w-0 flex-1">
@@ -954,11 +996,23 @@ export default function Header({
                   onClick={() => handleNavigate('profile')}
                   className={`w-full justify-start ${getNavButtonClasses(currentPage === 'profile')}`}
                 >
-                  <CircleUserRound className="h-4 w-4" />
+                  {showUserAvatar ? (
+                    <img
+                      src={cleanUserAvatarUrl}
+                      alt={userDisplayName ? `${userDisplayName} profile` : 'Profile'}
+                      className="h-4 w-4 rounded-full object-cover"
+                      onError={() => setAvatarLoadFailed(true)}
+                    />
+                  ) : (
+                    <CircleUserRound className="h-4 w-4" />
+                  )}
                   <span>{firstName}</span>
-                  <span className="ml-auto rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-bold text-gray-200">
-                    {profileInitial}
-                  </span>
+                  {renderProfileAvatar(
+                    'ml-auto h-6 w-6',
+                    'text-[10px] font-bold',
+                    'border-orange-400/35 bg-orange-500/20 text-orange-100',
+                    'border-white/10 bg-white/5 text-gray-200'
+                  )}
                 </button>
               )}
               {showNavigation && (

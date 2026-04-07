@@ -23,7 +23,7 @@ import { supabase, type UserProfile } from '../lib/supabase';
 interface ProfileProps {
   userId: string;
   onBack: () => void;
-  onProfileUpdated: (name: string) => void;
+  onProfileUpdated: (name: string, avatarUrl: string | null) => void;
 }
 
 type EditableProfile = {
@@ -385,7 +385,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       setForm(mapProfileToForm(nextProfile));
       setEditing(false);
       setSuccessMessage('Profile updated successfully.');
-      onProfileUpdated(nextProfile.name);
+      onProfileUpdated(nextProfile.name, nextProfile.avatar_url);
     } catch (error) {
       console.error('Error updating user profile:', error);
       const message =
