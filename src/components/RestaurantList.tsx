@@ -749,31 +749,8 @@ export default function RestaurantList({
       )}
 
       {searchMatchedRestaurants.length > 0 && (
-        <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-white/[0.07] via-gray-900 to-gray-900 shadow-xl shadow-black/20">
-          <div className="flex flex-col gap-3 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-                Explore by Cuisine
-              </p>
-              <h2 className="text-xl font-bold text-white">Swipe and tap to jump into the food you want</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-                Pick a cuisine card to narrow the restaurant list instantly and explore matching spots faster.
-              </p>
-            </div>
-
-            {selectedCuisineFilter && (
-              <button
-                type="button"
-                onClick={() => handleCuisineExplore('')}
-                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
-              >
-                Show all restaurants
-              </button>
-            )}
-          </div>
-
-          <div className="px-5 pb-5 sm:px-6">
-            <div className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="mb-6 overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-xl shadow-black/10">
+          <div className="flex gap-1 overflow-x-auto px-2 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {[
                 {
                   key: '',
@@ -790,53 +767,45 @@ export default function RestaurantList({
                     key={item.key || 'all'}
                     type="button"
                     onClick={() => handleCuisineExplore(item.key)}
-                    className={`group relative flex min-w-[116px] flex-shrink-0 flex-col items-center rounded-[28px] border px-3 py-4 text-center transition-all ${
-                      isSelected
-                        ? 'border-orange-500/35 bg-orange-500/12 shadow-lg shadow-orange-500/10'
-                        : 'border-white/8 bg-white/5 hover:border-white/15 hover:bg-white/10'
+                    className={`group relative flex min-w-[132px] flex-shrink-0 flex-col items-center justify-start px-3 pb-5 pt-3 text-center transition-all ${
+                      isSelected ? 'bg-white' : 'hover:bg-slate-50'
                     }`}
                   >
-                    <div
-                      className={`mb-3 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border ${
-                        isSelected
-                          ? 'border-orange-400/35 bg-orange-500/10'
-                          : 'border-white/10 bg-white/5'
-                      }`}
-                    >
+                    <div className="mb-3 flex h-[78px] w-[104px] items-center justify-center overflow-hidden">
                       {item.imageUrl ? (
                         <img
                           src={item.imageUrl}
                           alt={item.label}
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          className="h-full w-full rounded-full object-cover shadow-[0_10px_22px_rgba(15,23,42,0.15)] transition-transform duration-300 group-hover:scale-105"
                         />
                       ) : item.key === '' ? (
-                        <Sparkles className="h-7 w-7 text-orange-300" />
+                        <div className="flex h-[70px] w-[92px] items-center justify-center rounded-full bg-slate-100 shadow-[0_10px_22px_rgba(15,23,42,0.08)]">
+                          <Sparkles className="h-7 w-7 text-slate-500" />
+                        </div>
                       ) : (
-                        <span className="text-lg font-bold uppercase tracking-[0.18em] text-orange-200">
-                          {getCuisineFallbackLabel(item.label)}
-                        </span>
+                        <div className="flex h-[70px] w-[92px] items-center justify-center rounded-full bg-slate-100 shadow-[0_10px_22px_rgba(15,23,42,0.08)]">
+                          <span className="text-lg font-bold uppercase tracking-[0.18em] text-slate-500">
+                            {getCuisineFallbackLabel(item.label)}
+                          </span>
+                        </div>
                       )}
                     </div>
 
                     <span
-                      className={`max-w-[92px] truncate text-base font-semibold ${
-                        isSelected ? 'text-white' : 'text-gray-200'
+                      className={`max-w-[110px] truncate text-[15px] font-medium ${
+                        isSelected ? 'text-slate-950' : 'text-slate-500'
                       }`}
                     >
                       {item.label}
                     </span>
-                    <span className={`mt-1 text-xs ${isSelected ? 'text-orange-200' : 'text-gray-500'}`}>
-                      {item.count} place{item.count === 1 ? '' : 's'}
-                    </span>
                     <span
-                      className={`mt-3 h-1 w-12 rounded-full transition-colors ${
-                        isSelected ? 'bg-orange-500' : 'bg-transparent'
+                      className={`absolute bottom-0 left-3 right-3 h-1 rounded-t-full transition-colors ${
+                        isSelected ? 'bg-emerald-500' : 'bg-transparent'
                       }`}
                     />
                   </button>
                 );
               })}
-            </div>
           </div>
         </div>
       )}
