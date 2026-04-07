@@ -11,6 +11,7 @@ type SmartTabTitleProps = {
     | 'order-placed'
     | 'announcements'
     | 'profile'
+    | 'founder'
     | 'contact-us'
     | 'terms-conditions'
     | 'refund-cancellation'
@@ -110,6 +111,9 @@ export default function SmartTabTitle({
         break;
       case 'profile':
         document.title = 'Your profile | The Vajra';
+        break;
+      case 'founder':
+        document.title = 'Founder & vision | The Vajra';
         break;
       case 'payment-callback':
         document.title = 'Processing payment | The Vajra';

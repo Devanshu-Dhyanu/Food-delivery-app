@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import SmartTabTitle from './components/SmartTabTitle';
 import ContinueOrderPill from './components/ContinueOrderPill';
 import Profile from './components/Profile';
+import FounderPage from './components/FounderPage';
 import BrandedLoader from './components/BrandedLoader';
 import ContactUs from './components/ContactUs';
 import TermsAndConditions from './components/TermsAndConditions';
@@ -22,7 +23,7 @@ import ShippingPolicy from './components/ShippingPolicy';
 import PaymentCallback from './components/PaymentCallback';
 import { supabase, Announcement } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 
@@ -233,6 +234,7 @@ function App() {
       page === 'order-placed' ||
       page === 'announcements' ||
       page === 'profile' ||
+      page === 'founder' ||
       page === 'contact-us' ||
       page === 'terms-conditions' ||
       page === 'refund-cancellation' ||
@@ -295,6 +297,11 @@ function App() {
 
       if (path === '/profile' || path === '/me') {
         setCurrentPage('profile');
+        return;
+      }
+
+      if (path === '/founder' || path === '/about-founder' || path === '/about-vajra') {
+        setCurrentPage('founder');
         return;
       }
 
@@ -442,6 +449,8 @@ function App() {
             onProfileUpdated={(name) => setUserDisplayName(name)}
           />
         );
+      case 'founder':
+        return <FounderPage onNavigate={handleNavigate} />;
       case 'order-placed':
         return (
           <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">

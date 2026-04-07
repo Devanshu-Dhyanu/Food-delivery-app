@@ -7,6 +7,7 @@ import {
   Menu,
   Package,
   ShoppingCart,
+  Sparkles,
   Utensils,
   Wallet,
   X,
@@ -145,6 +146,7 @@ export default function Header({
   userId,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktopQuickMenuOpen, setDesktopQuickMenuOpen] = useState(false);
   const [showLogoBurst, setShowLogoBurst] = useState(false);
   const [logoBurstKey, setLogoBurstKey] = useState(0);
   const [hasActiveOrder, setHasActiveOrder] = useState(false);
@@ -156,6 +158,7 @@ export default function Header({
   });
   const { clearCart, getTotalItems } = useCart();
   const hasRequestedLocationRef = useRef(false);
+  const desktopQuickMenuRef = useRef<HTMLDivElement | null>(null);
   const locationWatchIdRef = useRef<number | null>(null);
   const locationWatchTimeoutRef = useRef<number | null>(null);
   const locationRequestIdRef = useRef(0);
@@ -163,6 +166,8 @@ export default function Header({
   const totalItems = getTotalItems();
   const firstName = userDisplayName.trim().split(/\s+/)[0] || 'Profile';
   const profileInitial = firstName.charAt(0).toUpperCase();
+  const isQuickMenuPage =
+    currentPage === 'profile' || currentPage === 'orders' || currentPage === 'founder';
   const logoSignal = hasActiveOrder ? 'active-order' : totalItems > 0 ? 'cart' : 'idle';
   const logoButtonTitle =
     logoSignal === 'active-order'
@@ -178,8 +183,42 @@ export default function Header({
     }`;
   const handleNavigate = (page: string) => {
     setMobileMenuOpen(false);
+    setDesktopQuickMenuOpen(false);
     onNavigate(page);
   };
+
+  useEffect(() => {
+    setDesktopQuickMenuOpen(false);
+  }, [currentPage, showNavigation]);
+
+  useEffect(() => {
+    if (!desktopQuickMenuOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (
+        desktopQuickMenuRef.current &&
+        !desktopQuickMenuRef.current.contains(event.target as Node)
+      ) {
+        setDesktopQuickMenuOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDesktopQuickMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [desktopQuickMenuOpen]);
   useEffect(() => {
     if (!showLogoBurst) {
       return;
@@ -506,10 +545,33 @@ export default function Header({
 
   const handleLogout = async () => {
     setMobileMenuOpen(false);
+    setDesktopQuickMenuOpen(false);
     clearCart();
     await supabase.auth.signOut();
     window.location.reload();
   };
+
+  const quickMenuItems = [
+    {
+      page: 'profile',
+      label: 'Profile',
+      description: 'Manage your account, wallet, and personal details.',
+      icon: CircleUserRound,
+      badge: profileInitial,
+    },
+    {
+      page: 'orders',
+      label: 'Orders',
+      description: 'Track active orders, issues, cancellations, and reorders.',
+      icon: Package,
+    },
+    {
+      page: 'founder',
+      label: 'Founder',
+      description: 'Read the story and vision behind The Vajra.',
+      icon: Sparkles,
+    },
+  ] as const;
 
   return (
     <>
@@ -666,30 +728,84 @@ export default function Header({
               </button>
             )}
             {showNavigation && (
-              <button
-                onClick={() => handleNavigate('profile')}
-                className={getNavButtonClasses(currentPage === 'profile')}
-              >
-                <span
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${
-                    currentPage === 'profile'
-                      ? 'border-orange-400/35 bg-orange-500/20 text-orange-100'
-                      : 'border-white/10 bg-white/5 text-gray-200'
-                  }`}
+              <div className="relative" ref={desktopQuickMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setDesktopQuickMenuOpen((current) => !current)}
+                  className={getNavButtonClasses(isQuickMenuPage || desktopQuickMenuOpen)}
+                  aria-expanded={desktopQuickMenuOpen}
+                  aria-haspopup="menu"
                 >
-                  {profileInitial}
-                </span>
-                <span className="max-w-[92px] truncate">{firstName}</span>
-              </button>
-            )}
-            {showNavigation && (
-              <button
-                onClick={() => handleNavigate('orders')}
-                className={getNavButtonClasses(currentPage === 'orders')}
-              >
-                <Package className="h-4 w-4" />
-                <span>Orders</span>
-              </button>
+                  <span
+                    className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${
+                      isQuickMenuPage || desktopQuickMenuOpen
+                        ? 'border-orange-400/35 bg-orange-500/20 text-orange-100'
+                        : 'border-white/10 bg-white/5 text-gray-200'
+                    }`}
+                  >
+                    {profileInitial}
+                  </span>
+                  <span>Menu</span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      desktopQuickMenuOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+
+                {desktopQuickMenuOpen && (
+                  <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-[320px] overflow-hidden rounded-[24px] border border-white/8 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 shadow-2xl shadow-black/35">
+                    <div className="border-b border-white/5 px-4 py-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">
+                        Quick Menu
+                      </p>
+                      <p className="mt-2 text-sm text-gray-400">
+                        Keep orders, profile, and founder details in one cleaner dropdown.
+                      </p>
+                    </div>
+
+                    <div className="p-2">
+                      {quickMenuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = currentPage === item.page;
+
+                        return (
+                          <button
+                            key={item.page}
+                            type="button"
+                            onClick={() => handleNavigate(item.page)}
+                            className={`flex w-full items-start gap-3 rounded-[20px] px-3 py-3 text-left transition-all ${
+                              isActive
+                                ? 'bg-orange-500/12 text-white'
+                                : 'text-gray-300 hover:bg-white/5 hover:text-white'
+                            }`}
+                          >
+                            <span
+                              className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border ${
+                                isActive
+                                  ? 'border-orange-400/25 bg-orange-500/15 text-orange-200'
+                                  : 'border-white/10 bg-white/5 text-gray-300'
+                              }`}
+                            >
+                              {'badge' in item && item.badge ? (
+                                <span className="text-xs font-bold">{item.badge}</span>
+                              ) : (
+                                <Icon className="h-4 w-4" />
+                              )}
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-semibold">{item.label}</span>
+                              <span className="mt-1 block text-xs leading-5 text-gray-400">
+                                {item.description}
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
             <button
               onClick={handleLogout}
@@ -852,6 +968,15 @@ export default function Header({
                 >
                   <Package className="h-4 w-4" />
                   <span>Orders</span>
+                </button>
+              )}
+              {showNavigation && (
+                <button
+                  onClick={() => handleNavigate('founder')}
+                  className={`w-full justify-start ${getNavButtonClasses(currentPage === 'founder')}`}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Founder</span>
                 </button>
               )}
               {showNavigation && (
