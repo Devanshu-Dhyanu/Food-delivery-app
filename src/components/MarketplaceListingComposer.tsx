@@ -49,7 +49,6 @@ const createDefaultForm = (
   initialSellerName: string,
   initialSellerPhone: string,
   defaultLocationLabel: string,
-  initialSellerAvatarUrl?: string | null,
   listing?: MarketplaceListing | null
 ): ListingComposerForm => ({
   seller_name: listing?.seller_name ?? initialSellerName,
@@ -77,7 +76,7 @@ export default function MarketplaceListingComposer({
   onSaved,
 }: MarketplaceListingComposerProps) {
   const [form, setForm] = useState<ListingComposerForm>(() =>
-    createDefaultForm(initialSellerName, initialSellerPhone, defaultLocationLabel, initialSellerAvatarUrl, listing)
+    createDefaultForm(initialSellerName, initialSellerPhone, defaultLocationLabel, listing)
   );
   const [processingImages, setProcessingImages] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -94,7 +93,6 @@ export default function MarketplaceListingComposer({
         initialSellerName,
         initialSellerPhone,
         defaultLocationLabel,
-        initialSellerAvatarUrl,
         listing
       )
     );
@@ -209,13 +207,14 @@ export default function MarketplaceListingComposer({
         ...(isEditing ? {} : { status: 'active' as const, is_featured: false }),
       };
 
-      const query = isEditing
-        ? supabase
-            .from('marketplace_listings')
-            .update(payload)
-            .eq('id', listing.id)
-            .eq('user_id', userId)
-        : supabase.from('marketplace_listings').insert([payload]);
+      const query =
+        isEditing && listing
+          ? supabase
+              .from('marketplace_listings')
+              .update(payload)
+              .eq('id', listing.id)
+              .eq('user_id', userId)
+          : supabase.from('marketplace_listings').insert([payload]);
 
       const { data, error } = await query.select('*').single();
 

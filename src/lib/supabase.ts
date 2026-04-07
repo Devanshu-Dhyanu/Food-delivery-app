@@ -230,6 +230,17 @@ export type DeliveryAssignmentStatus =
   | 'picked_up'
   | 'delivered';
 
+export type DeliveryCallParticipantRole = 'customer' | 'delivery_partner';
+
+export type DeliveryCallSessionStatus =
+  | 'ringing'
+  | 'accepted'
+  | 'declined'
+  | 'ended'
+  | 'missed'
+  | 'cancelled'
+  | 'failed';
+
 export type DeliveryPartnerProfile = {
   id: string;
   user_id: string;
@@ -247,6 +258,25 @@ export type DeliveryPartnerProfile = {
   is_online: boolean;
   alert_sound_enabled: boolean;
   last_seen_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DeliveryCallSession = {
+  id: string;
+  order_id: string;
+  channel_name: string;
+  caller_user_id: string;
+  caller_role: DeliveryCallParticipantRole;
+  caller_label: string | null;
+  receiver_user_id: string;
+  receiver_role: DeliveryCallParticipantRole;
+  receiver_label: string | null;
+  status: DeliveryCallSessionStatus;
+  initiated_at: string;
+  accepted_at: string | null;
+  ended_at: string | null;
+  ended_reason: string | null;
   created_at: string;
   updated_at: string;
 };

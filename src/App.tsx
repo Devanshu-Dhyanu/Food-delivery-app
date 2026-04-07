@@ -22,6 +22,7 @@ import RefundCancellationPolicy from './components/RefundCancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
 import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
+import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import {
   DELIVERY_APP_MODE_STORAGE_KEY,
   DELIVERY_MODE_SYNC_INTERVAL,
@@ -697,35 +698,37 @@ function App() {
 
   return (
     <CartProvider>
-      <div className="flex min-h-screen flex-col bg-gray-900">
-        {appMode === 'customer' && (
-          <SmartTabTitle
+      <DeliveryVoiceCallProvider userId={user.id} userDisplayName={userDisplayName}>
+        <div className="flex min-h-screen flex-col bg-gray-900">
+          {appMode === 'customer' && (
+            <SmartTabTitle
+              currentPage={currentPage}
+              loading={loading}
+              isAuthenticated={!!user}
+              hasProfile={hasProfile}
+            />
+          )}
+          <Header
             currentPage={currentPage}
-            loading={loading}
-            isAuthenticated={!!user}
-            hasProfile={hasProfile}
+            onNavigate={handleNavigate}
+            showNavigation={appMode === 'customer'}
+            hasUnreadAnnouncements={hasUnreadAnnouncements}
+            userDisplayName={userDisplayName}
+            userAvatarUrl={userAvatarUrl}
+            userId={user?.id}
+            appMode={appMode}
+            appModeBusy={appModeBusy}
+            onToggleAppMode={handleToggleAppMode}
           />
-        )}
-        <Header
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          showNavigation={appMode === 'customer'}
-          hasUnreadAnnouncements={hasUnreadAnnouncements}
-          userDisplayName={userDisplayName}
-          userAvatarUrl={userAvatarUrl}
-          userId={user?.id}
-          appMode={appMode}
-          appModeBusy={appModeBusy}
-          onToggleAppMode={handleToggleAppMode}
-        />
-        <main className="flex-1">{renderPage()}</main>
-        {appMode === 'customer' && (
-          <>
-            <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
-            <Footer onNavigate={handleNavigate} />
-          </>
-        )}
-      </div>
+          <main className="flex-1">{renderPage()}</main>
+          {appMode === 'customer' && (
+            <>
+              <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
+              <Footer onNavigate={handleNavigate} />
+            </>
+          )}
+        </div>
+      </DeliveryVoiceCallProvider>
     </CartProvider>
   );
 }

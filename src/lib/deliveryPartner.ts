@@ -1,6 +1,7 @@
 import type {
   DeliveryAssignmentStatus,
   DeliveryPartnerAccountMode,
+  DeliveryPartnerGender,
   DeliveryPartnerProfile,
   DeliveryPartnerType,
   UserProfile,
@@ -118,7 +119,20 @@ export const buildDeliveryPartnerBaseLabel = (
   return profile.area_label || 'Off-campus';
 };
 
-export const getDefaultDeliveryPartnerForm = (profile: UserProfile | null) => {
+export const getDefaultDeliveryPartnerForm = (
+  profile: UserProfile | null
+): {
+  name: string;
+  phone: string;
+  gender: DeliveryPartnerGender | '';
+  partnerType: DeliveryPartnerType;
+  hostelName: string;
+  block: string;
+  roomNumber: string;
+  buildingNumber: string;
+  cabinNumber: string;
+  areaLabel: string;
+} => {
   const inferredPartnerType: DeliveryPartnerType =
     profile?.user_role === 'teacher'
       ? 'teacher'
@@ -129,7 +143,7 @@ export const getDefaultDeliveryPartnerForm = (profile: UserProfile | null) => {
   return {
     name: profile?.name ?? '',
     phone: profile?.phone ?? '',
-    gender: (profile?.gender?.toLowerCase() as 'male' | 'female' | 'other' | '') || '',
+    gender: (profile?.gender?.toLowerCase() as DeliveryPartnerGender | '') || '',
     partnerType: inferredPartnerType,
     hostelName: profile?.hostel_name ?? '',
     block: profile?.block ?? '',

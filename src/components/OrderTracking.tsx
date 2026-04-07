@@ -16,6 +16,7 @@ import OrderCancellationRequestModal from './OrderCancellationRequestModal';
 import DeliveryFeedbackModal from './DeliveryFeedbackModal';
 import OrderIssueReportModal from './OrderIssueReportModal';
 import { useCart } from '../context/CartContext';
+import { useDeliveryVoiceCall } from '../context/DeliveryVoiceCallContext';
 import { sanitizeText } from '../lib/inputSanitization';
 import {
   supabase,
@@ -184,6 +185,7 @@ export default function OrderTracking({ onNavigate }: OrderTrackingProps) {
     text: string;
   } | null>(null);
   const { cart, cartRestaurantName, replaceCart } = useCart();
+  const { startCustomerCall } = useDeliveryVoiceCall();
 
   useEffect(() => {
     fetchOrders();
@@ -977,13 +979,27 @@ export default function OrderTracking({ onNavigate }: OrderTrackingProps) {
                           </div>
                           <p className="text-sm font-semibold text-white">{order.delivery_partner_name}</p>
                           <p className="mt-1 text-sm text-gray-300">{order.delivery_partner_phone}</p>
-                          <a
-                            href={`tel:${order.delivery_partner_phone}`}
-                            className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
-                          >
-                            <PhoneCall className="h-4 w-4" />
-                            Call delivery partner
-                          </a>
+                          <div className="mt-3 flex flex-wrap gap-3">
+                            {order.delivery_partner_user_id &&
+                              ['assigned', 'picked_up'].includes(order.delivery_assignment_status) && (
+                                <button
+                                  type="button"
+                                  onClick={() => void startCustomerCall(order)}
+                                  className="inline-flex items-center gap-2 rounded-full border border-sky-500/25 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition-colors hover:bg-sky-500/20"
+                                >
+                                  <PhoneCall className="h-4 w-4" />
+                                  In-app voice call
+                                </button>
+                              )}
+
+                            <a
+                              href={`tel:${order.delivery_partner_phone}`}
+                              className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/20"
+                            >
+                              <PhoneCall className="h-4 w-4" />
+                              Call delivery partner
+                            </a>
+                          </div>
                         </div>
                       )}
                     </div>

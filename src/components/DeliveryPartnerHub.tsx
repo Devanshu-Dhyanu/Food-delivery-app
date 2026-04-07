@@ -22,6 +22,7 @@ import BrandedLoader from './BrandedLoader';
 import DeliveryPartnerOnboarding, {
   type DeliveryPartnerOnboardingForm,
 } from './DeliveryPartnerOnboarding';
+import { useDeliveryVoiceCall } from '../context/DeliveryVoiceCallContext';
 import {
   buildDeliveryPartnerBaseLabel,
   getDefaultDeliveryPartnerForm,
@@ -163,6 +164,7 @@ export default function DeliveryPartnerHub({
   const incomingOrderIdsRef = useRef<string[]>([]);
   const hasLoadedOrdersRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const { startDeliveryPartnerCall } = useDeliveryVoiceCall();
 
   useEffect(() => {
     document.title = 'Delivery partner mode | The Vajra';
@@ -325,7 +327,6 @@ export default function DeliveryPartnerHub({
           icon: '/the-vajra-mark.svg',
           badge: '/the-vajra-mark.svg',
           tag: totalNewOrders > 1 ? 'delivery-order-batch' : `delivery-order-${order.id}`,
-          renotify: true,
           requireInteraction: false,
           data: {
             orderId: order.id,
@@ -1247,6 +1248,18 @@ export default function DeliveryPartnerHub({
                             <p className="mt-3 text-sm leading-7 text-slate-300">{deliveryDetails.address}</p>
 
                             <div className="mt-4 flex flex-wrap gap-2">
+                              {order.delivery_partner_user_id === userId &&
+                                ['assigned', 'picked_up'].includes(order.delivery_assignment_status) && (
+                                  <button
+                                    type="button"
+                                    onClick={() => void startDeliveryPartnerCall(order, profile?.name)}
+                                    className="inline-flex items-center gap-2 rounded-full border border-sky-400/25 bg-sky-500/10 px-4 py-2 text-sm font-semibold text-sky-100 transition hover:bg-sky-500/20"
+                                  >
+                                    <PhoneCall className="h-4 w-4" />
+                                    In-app voice call
+                                  </button>
+                                )}
+
                               <a
                                 href={`tel:${order.customer_phone}`}
                                 className="inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-50 transition hover:bg-emerald-500/20"
