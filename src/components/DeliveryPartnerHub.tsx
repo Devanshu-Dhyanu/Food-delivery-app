@@ -62,6 +62,10 @@ type BeforeInstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 };
 
+type BrowserNotificationPermissionState =
+  | NotificationPermission
+  | 'unsupported';
+
 const EMPTY_DELIVERY_FORM: DeliveryPartnerOnboardingForm = {
   name: '',
   phone: '',
@@ -148,6 +152,14 @@ export default function DeliveryPartnerHub({
     useState<DeliveryPartnerOnboardingForm>(EMPTY_DELIVERY_FORM);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installReady, setInstallReady] = useState(false);
+  const [notificationPermission, setNotificationPermission] =
+    useState<BrowserNotificationPermissionState>(() => {
+      if (typeof window === 'undefined' || !('Notification' in window)) {
+        return 'unsupported';
+      }
+
+      return window.Notification.permission;
+    });
   const incomingOrderIdsRef = useRef<string[]>([]);
   const hasLoadedOrdersRef = useRef(false);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -238,12 +250,107 @@ export default function DeliveryPartnerHub({
       oscillator.stop(endAt + 0.02);
     };
 
-    emitBeep(0, 0.14, 780);
-    emitBeep(0.18, 0.14, 980);
-    emitBeep(0.36, 0.18, 860);
+    const tonePattern = [
+      720, 980, 760, 1020, 740, 980, 760, 1040,
+    ];
+
+    tonePattern.forEach((frequency, index) => {
+      emitBeep(index * 0.4, 0.24, frequency);
+    });
 
     if ('vibrate' in navigator) {
-      navigator.vibrate?.([140, 70, 140]);
+      navigator.vibrate?.([220, 120, 220, 120, 220, 120, 220, 120, 220]);
+    }
+  };
+
+  const syncNotificationPermission = () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      setNotificationPermission('unsupported');
+      return;
+    }
+
+    setNotificationPermission(window.Notification.permission);
+  };
+
+  const requestNotificationPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      setNotificationPermission('unsupported');
+      setStatusMessage({
+        tone: 'info',
+        text: 'This browser does not support delivery notifications.',
+      });
+      return 'unsupported' as const;
+    }
+
+    const permission = await window.Notification.requestPermission();
+    setNotificationPermission(permission);
+
+    if (permission === 'granted') {
+      setStatusMessage({
+        tone: 'success',
+        text: 'Notification permission granted. New orders will also trigger device notifications.',
+      });
+    } else if (permission === 'denied') {
+      setStatusMessage({
+        tone: 'info',
+        text: 'Notification permission was denied. Sound alerts will still work while the app is open.',
+      });
+    }
+
+    return permission;
+  };
+
+  const showIncomingOrderNotification = async (
+    order: DeliveryOrderWithItems,
+    totalNewOrders: number
+  ) => {
+    if (notificationPermission !== 'granted') {
+      return;
+    }
+
+    const body =
+      totalNewOrders > 1
+        ? `${totalNewOrders} new orders are waiting. First: ${order.restaurant_name || 'Restaurant'} • ${formatCurrency(order.total_amount)}`
+        : `${order.restaurant_name || 'Restaurant'} • ${formatCurrency(order.total_amount)} • Tap to open delivery dashboard`;
+
+    try {
+      const serviceWorkerRegistration =
+        'serviceWorker' in navigator
+          ? await navigator.serviceWorker.getRegistration()
+          : null;
+
+      if (serviceWorkerRegistration) {
+        await serviceWorkerRegistration.showNotification('New delivery order', {
+          body,
+          icon: '/the-vajra-mark.svg',
+          badge: '/the-vajra-mark.svg',
+          tag: totalNewOrders > 1 ? 'delivery-order-batch' : `delivery-order-${order.id}`,
+          renotify: true,
+          requireInteraction: false,
+          data: {
+            orderId: order.id,
+            scope: 'delivery-partner',
+          },
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Error showing service worker notification:', error);
+    }
+
+    try {
+      const notification = new window.Notification('New delivery order', {
+        body,
+        icon: '/the-vajra-mark.svg',
+        tag: totalNewOrders > 1 ? 'delivery-order-batch' : `delivery-order-${order.id}`,
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    } catch (error) {
+      console.error('Error showing browser notification:', error);
     }
   };
 
@@ -366,15 +473,22 @@ export default function DeliveryPartnerHub({
       );
 
       const nextIncomingOrderIds = nextAvailableOrders.map((order) => order.id);
+      const newIncomingOrders = nextAvailableOrders.filter(
+        (order) => !incomingOrderIdsRef.current.includes(order.id)
+      );
       const hasNewIncomingOrder =
         hasLoadedOrdersRef.current &&
-        nextIncomingOrderIds.some((orderId) => !incomingOrderIdsRef.current.includes(orderId));
+        newIncomingOrders.length > 0;
 
       if (profile.is_online && profile.alert_sound_enabled && hasNewIncomingOrder) {
         void playIncomingOrderTone();
+        void showIncomingOrderNotification(newIncomingOrders[0], newIncomingOrders.length);
         setStatusMessage({
           tone: 'info',
-          text: 'New incoming order landed in your delivery queue.',
+          text:
+            newIncomingOrders.length > 1
+              ? `${newIncomingOrders.length} new orders landed in your delivery queue.`
+              : 'New incoming order landed in your delivery queue.',
         });
       }
 
@@ -491,6 +605,22 @@ export default function DeliveryPartnerHub({
     };
   }, []);
 
+  useEffect(() => {
+    syncNotificationPermission();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncNotificationPermission();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const handleRegisterPartner = async (values: DeliveryPartnerOnboardingForm) => {
     setSavingProfile(true);
     setStatusMessage(null);
@@ -508,6 +638,7 @@ export default function DeliveryPartnerHub({
         building_number: values.partnerType === 'teacher' ? values.buildingNumber || null : null,
         cabin_number: values.partnerType === 'teacher' ? values.cabinNumber || null : null,
         area_label: values.partnerType === 'non_hosteller' ? values.areaLabel || null : null,
+        account_mode: 'delivery',
         is_online: false,
         alert_sound_enabled: true,
         last_seen_at: new Date().toISOString(),
@@ -547,6 +678,9 @@ export default function DeliveryPartnerHub({
     try {
       if (!profile.is_online) {
         await primeAlertAudio();
+        if (notificationPermission === 'default') {
+          await requestNotificationPermission();
+        }
       }
 
       await updatePartnerProfile(
@@ -749,6 +883,14 @@ export default function DeliveryPartnerHub({
       : activeTab === 'assigned'
         ? assignedOrders
         : completedOrders;
+  const notificationStatusLabel =
+    notificationPermission === 'granted'
+      ? 'Allowed'
+      : notificationPermission === 'denied'
+        ? 'Blocked'
+        : notificationPermission === 'default'
+          ? 'Ask me'
+          : 'Unsupported';
 
   if (profileLoading) {
     return <BrandedLoader message="Preparing delivery partner mode..." />;
@@ -891,6 +1033,40 @@ export default function DeliveryPartnerHub({
                 <p className="mt-4 text-lg font-bold text-white">Incoming order alert</p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
                   A short rider tone plays when a new order hits your queue while you are online.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void requestNotificationPermission()}
+                disabled={notificationPermission === 'granted' || notificationPermission === 'unsupported'}
+                className={`rounded-[28px] border p-5 text-left transition ${
+                  notificationPermission === 'granted'
+                    ? 'border-emerald-400/25 bg-emerald-500/10 text-emerald-50'
+                    : 'border-white/10 bg-white/[0.03] text-slate-200 hover:border-white/20'
+                } ${
+                  notificationPermission === 'granted' || notificationPermission === 'unsupported'
+                    ? 'cursor-default'
+                    : ''
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40">
+                    <BellRing className="h-5 w-5 text-emerald-200" />
+                  </div>
+                  <span className="rounded-full bg-slate-800 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+                    {notificationStatusLabel}
+                  </span>
+                </div>
+                <p className="mt-4 text-lg font-bold text-white">Order notifications</p>
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  {notificationPermission === 'granted'
+                    ? 'Device notifications are enabled. New orders can alert even when the app is in the background.'
+                    : notificationPermission === 'denied'
+                      ? 'Notifications are blocked. Allow them from browser settings if you want popup alerts.'
+                      : notificationPermission === 'unsupported'
+                        ? 'This browser does not support system notifications.'
+                        : 'Tap here once to allow notification permission for new incoming delivery orders.'}
                 </p>
               </button>
 

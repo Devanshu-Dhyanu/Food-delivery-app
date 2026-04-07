@@ -22,11 +22,15 @@ import RefundCancellationPolicy from './components/RefundCancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
 import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
-import { DELIVERY_APP_MODE_STORAGE_KEY } from './lib/deliveryPartner';
-import { supabase, Announcement } from './lib/supabase';
+import {
+  DELIVERY_APP_MODE_STORAGE_KEY,
+  DELIVERY_MODE_SYNC_INTERVAL,
+  normalizeDeliveryAccountMode,
+} from './lib/deliveryPartner';
+import { supabase, Announcement, type DeliveryPartnerAccountMode } from './lib/supabase';
 
 type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
-type AppMode = 'customer' | 'delivery';
+type AppMode = DeliveryPartnerAccountMode;
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 
@@ -60,6 +64,7 @@ function App() {
   });
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<string>('');
   const [placedOrderId, setPlacedOrderId] = useState<string>('');
+  const [appModeBusy, setAppModeBusy] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userDisplayName, setUserDisplayName] = useState('');
   const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
@@ -88,11 +93,19 @@ function App() {
       if (!isMounted) return;
 
       try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('id, name, avatar_url')
-          .eq('user_id', userId)
-          .maybeSingle();
+        const [{ data, error }, { data: deliveryPartnerData, error: deliveryPartnerError }] =
+          await Promise.all([
+            supabase
+              .from('user_profiles')
+              .select('id, name, avatar_url')
+              .eq('user_id', userId)
+              .maybeSingle(),
+            supabase
+              .from('delivery_partner_profiles')
+              .select('account_mode')
+              .eq('user_id', userId)
+              .maybeSingle(),
+          ]);
 
         if (!isMounted) return;
 
@@ -100,6 +113,18 @@ function App() {
           console.error('Error checking user profile:', error);
           setHasProfile(false);
           return;
+        }
+
+        if (deliveryPartnerError) {
+          console.error('Error checking delivery account mode:', deliveryPartnerError);
+        } else {
+          setAppMode(
+            deliveryPartnerData
+              ? normalizeDeliveryAccountMode(
+                  (deliveryPartnerData as { account_mode?: string | null }).account_mode
+                )
+              : 'customer'
+          );
         }
 
         setUserDisplayName(data?.name?.trim() ?? '');
@@ -131,6 +156,7 @@ function App() {
           : null;
 
       if (!nextUser) {
+        setAppMode('customer');
         setUserDisplayName('');
         setUserAvatarUrl(null);
         setHasProfile(false);
@@ -199,6 +225,10 @@ function App() {
   }, [appMode]);
 
   useEffect(() => {
+    setCurrentPage('home');
+  }, [appMode]);
+
+  useEffect(() => {
     let isMounted = true;
 
     if (!user) {
@@ -254,6 +284,55 @@ function App() {
     };
   }, [user]);
 
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const syncAccountMode = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('delivery_partner_profiles')
+          .select('account_mode')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!isMounted || error || !data) {
+          return;
+        }
+
+        const nextMode = normalizeDeliveryAccountMode(
+          (data as { account_mode?: string | null }).account_mode
+        );
+
+        setAppMode((currentMode) => (currentMode === nextMode ? currentMode : nextMode));
+      } catch (error) {
+        console.error('Error syncing account delivery mode:', error);
+      }
+    };
+
+    void syncAccountMode();
+    const interval = window.setInterval(() => {
+      void syncAccountMode();
+    }, DELIVERY_MODE_SYNC_INTERVAL);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void syncAccountMode();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user]);
+
   const handleNavigate = (page: string) => {
     if (
       page === 'home' ||
@@ -280,9 +359,59 @@ function App() {
     );
   };
 
-  const handleToggleAppMode = () => {
-    setAppMode((currentMode) => (currentMode === 'customer' ? 'delivery' : 'customer'));
-    setCurrentPage('home');
+  const handleToggleAppMode = async () => {
+    if (appModeBusy) {
+      return;
+    }
+
+    const nextMode: AppMode = appMode === 'customer' ? 'delivery' : 'customer';
+
+    setAppModeBusy(true);
+
+    try {
+      const { data: deliveryPartnerData, error } = await supabase
+        .from('delivery_partner_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (!deliveryPartnerData) {
+        setAppMode(nextMode);
+        return;
+      }
+
+      const nextProfileState =
+        nextMode === 'customer'
+          ? { account_mode: 'customer', is_online: false }
+          : { account_mode: 'delivery' };
+
+      const { error: updateError } = await supabase
+        .from('delivery_partner_profiles')
+        .update({
+          ...nextProfileState,
+          last_seen_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setAppMode(nextMode);
+    } catch (error) {
+      console.error('Error changing account mode:', error);
+      window.alert(
+        nextMode === 'delivery'
+          ? 'Delivery mode ko account par lock nahi kiya ja saka. Please try again.'
+          : 'Delivery mode ko off nahi kiya ja saka. Please try again.'
+      );
+    } finally {
+      setAppModeBusy(false);
+    }
   };
 
   const handleAnnouncementAction = (link?: string | null) => {
@@ -586,6 +715,7 @@ function App() {
           userAvatarUrl={userAvatarUrl}
           userId={user?.id}
           appMode={appMode}
+          appModeBusy={appModeBusy}
           onToggleAppMode={handleToggleAppMode}
         />
         <main className="flex-1">{renderPage()}</main>

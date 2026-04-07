@@ -222,6 +222,8 @@ export type DeliveryPartnerType = 'hosteller' | 'non_hosteller' | 'teacher';
 
 export type DeliveryPartnerGender = 'male' | 'female' | 'other';
 
+export type DeliveryPartnerAccountMode = 'customer' | 'delivery';
+
 export type DeliveryAssignmentStatus =
   | 'unassigned'
   | 'assigned'
@@ -241,6 +243,7 @@ export type DeliveryPartnerProfile = {
   building_number: string | null;
   cabin_number: string | null;
   area_label: string | null;
+  account_mode: DeliveryPartnerAccountMode;
   is_online: boolean;
   alert_sound_enabled: boolean;
   last_seen_at: string;

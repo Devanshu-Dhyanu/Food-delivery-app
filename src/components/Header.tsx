@@ -26,6 +26,7 @@ interface HeaderProps {
   userAvatarUrl?: string | null;
   userId?: string;
   appMode?: 'customer' | 'delivery';
+  appModeBusy?: boolean;
   onToggleAppMode?: () => void;
 }
 
@@ -150,6 +151,7 @@ export default function Header({
   userAvatarUrl = null,
   userId,
   appMode = 'customer',
+  appModeBusy = false,
   onToggleAppMode,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -868,14 +870,21 @@ export default function Header({
               <button
                 type="button"
                 onClick={onToggleAppMode}
+                disabled={appModeBusy}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
                   isDeliveryMode
                     ? 'border-emerald-400/35 bg-emerald-500/15 text-emerald-100 hover:bg-emerald-500/20'
                     : 'border-sky-400/25 bg-sky-500/10 text-sky-100 hover:bg-sky-500/15'
-                }`}
+                } ${appModeBusy ? 'cursor-not-allowed opacity-60' : ''}`}
               >
                 <Truck className="h-4 w-4" />
-                <span>{isDeliveryMode ? 'Delivery Off' : 'Delivery On'}</span>
+                <span>
+                  {appModeBusy
+                    ? 'Switching...'
+                    : isDeliveryMode
+                      ? 'Delivery Off'
+                      : 'Delivery On'}
+                </span>
               </button>
             )}
             <button
@@ -938,15 +947,16 @@ export default function Header({
               <button
                 type="button"
                 onClick={onToggleAppMode}
+                disabled={appModeBusy}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-semibold transition-colors ${
                   isDeliveryMode
                     ? 'border-emerald-400/35 bg-emerald-500/15 text-emerald-100'
                     : 'border-sky-400/25 bg-sky-500/10 text-sky-100'
-                }`}
+                } ${appModeBusy ? 'cursor-not-allowed opacity-60' : ''}`}
                 aria-label={isDeliveryMode ? 'Turn delivery mode off' : 'Turn delivery mode on'}
               >
                 <Truck className="h-4 w-4" />
-                <span>{isDeliveryMode ? 'Off' : 'On'}</span>
+                <span>{appModeBusy ? '...' : isDeliveryMode ? 'Off' : 'On'}</span>
               </button>
             )}
 

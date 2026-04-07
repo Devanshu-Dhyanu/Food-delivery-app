@@ -1,5 +1,6 @@
 import type {
   DeliveryAssignmentStatus,
+  DeliveryPartnerAccountMode,
   DeliveryPartnerProfile,
   DeliveryPartnerType,
   UserProfile,
@@ -56,6 +57,12 @@ export const DELIVERY_HOSTELS = [
 ];
 
 export const DELIVERY_APP_MODE_STORAGE_KEY = 'vajra-app-mode';
+
+export const DELIVERY_MODE_SYNC_INTERVAL = 8000;
+
+export const normalizeDeliveryAccountMode = (
+  value: string | null | undefined
+): DeliveryPartnerAccountMode => (value === 'delivery' ? 'delivery' : 'customer');
 
 export const getDeliveryPartnerTypeLabel = (value: DeliveryPartnerType) => {
   switch (value) {
