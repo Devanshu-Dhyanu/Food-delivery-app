@@ -10,11 +10,13 @@ import {
   XCircle,
 } from 'lucide-react';
 import BrandedLoader from './BrandedLoader';
+import OrderCancellationRequestModal from './OrderCancellationRequestModal';
 import DeliveryFeedbackModal from './DeliveryFeedbackModal';
 import OrderIssueReportModal from './OrderIssueReportModal';
 import { sanitizeText } from '../lib/inputSanitization';
 import {
   supabase,
+  OrderCancellationRequest,
   DeliveryFeedback,
   Order,
   OrderItem,
@@ -30,6 +32,7 @@ interface OrderWithItems extends Order {
   items: OrderItem[];
   feedback: DeliveryFeedback | null;
   issueReport: OrderIssueReport | null;
+  cancellationRequest: OrderCancellationRequest | null;
 }
 
 const getIssueTypeLabel = (issueType: OrderIssueType) => {
@@ -90,15 +93,53 @@ const isIssueReportingSchemaMissing = (error: unknown) => {
   );
 };
 
+const getCancellationStatusLabel = (status: OrderCancellationRequest['status']) => {
+  switch (status) {
+    case 'approved':
+      return 'Approved';
+    case 'rejected':
+      return 'Rejected';
+    case 'open':
+    default:
+      return 'Pending review';
+  }
+};
+
+const getCancellationStatusClasses = (status: OrderCancellationRequest['status']) => {
+  switch (status) {
+    case 'approved':
+      return 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200';
+    case 'rejected':
+      return 'border-red-500/25 bg-red-500/10 text-red-200';
+    case 'open':
+    default:
+      return 'border-yellow-500/25 bg-yellow-500/10 text-yellow-200';
+  }
+};
+
+const isCancellationSchemaMissing = (error: unknown) => {
+  const maybeError = error as { code?: string; message?: string; details?: string };
+  const details = `${maybeError?.code ?? ''} ${maybeError?.message ?? ''} ${maybeError?.details ?? ''}`.toLowerCase();
+
+  return (
+    details.includes('order_cancellation_requests') ||
+    details.includes('42p01') ||
+    details.includes('pgrst')
+  );
+};
+
 export default function OrderTracking() {
   const [orders, setOrders] = useState<OrderWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFeedbackOrder, setActiveFeedbackOrder] = useState<OrderWithItems | null>(null);
+  const [activeCancellationOrder, setActiveCancellationOrder] = useState<OrderWithItems | null>(null);
   const [activeIssueOrder, setActiveIssueOrder] = useState<OrderWithItems | null>(null);
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [submittingCancellationRequest, setSubmittingCancellationRequest] = useState(false);
   const [submittingIssueReport, setSubmittingIssueReport] = useState(false);
   const [dismissedOrderIds, setDismissedOrderIds] = useState<string[]>([]);
   const [feedbackEnabled, setFeedbackEnabled] = useState(true);
+  const [cancellationEnabled, setCancellationEnabled] = useState(true);
   const [issueReportingEnabled, setIssueReportingEnabled] = useState(true);
 
   useEffect(() => {
@@ -131,6 +172,7 @@ export default function OrderTracking() {
 
       const orderIds = (ordersData || []).map((order) => order.id);
       let feedbackByOrderId: Record<string, DeliveryFeedback> = {};
+      let cancellationRequestsByOrderId: Record<string, OrderCancellationRequest> = {};
       let issueReportsByOrderId: Record<string, OrderIssueReport> = {};
 
       if (feedbackEnabled && orderIds.length > 0) {
@@ -145,6 +187,32 @@ export default function OrderTracking() {
         } else {
           feedbackByOrderId = (feedbackData || []).reduce<Record<string, DeliveryFeedback>>((acc, feedback) => {
             acc[feedback.order_id] = feedback;
+            return acc;
+          }, {});
+        }
+      }
+
+      if (cancellationEnabled && orderIds.length > 0) {
+        const { data: cancellationRequestData, error: cancellationRequestError } = await supabase
+          .from('order_cancellation_requests')
+          .select('*')
+          .in('order_id', orderIds);
+
+        if (cancellationRequestError) {
+          if (isCancellationSchemaMissing(cancellationRequestError)) {
+            console.warn(
+              'Order cancellation requests are unavailable. Orders will still be shown.',
+              cancellationRequestError
+            );
+            setCancellationEnabled(false);
+          } else {
+            throw cancellationRequestError;
+          }
+        } else {
+          cancellationRequestsByOrderId = (cancellationRequestData || []).reduce<
+            Record<string, OrderCancellationRequest>
+          >((acc, cancellationRequest) => {
+            acc[cancellationRequest.order_id] = cancellationRequest;
             return acc;
           }, {});
         }
@@ -188,6 +256,7 @@ export default function OrderTracking() {
             ...order,
             items: items || [],
             feedback: feedbackByOrderId[order.id] || null,
+            cancellationRequest: cancellationRequestsByOrderId[order.id] || null,
             issueReport: issueReportsByOrderId[order.id] || null,
           };
         })
@@ -213,6 +282,8 @@ export default function OrderTracking() {
         return 'text-orange-500';
       case 'delivered':
         return 'text-green-500';
+      case 'cancelled':
+        return 'text-red-400';
       case 'rejected':
         return 'text-red-500';
       default:
@@ -232,6 +303,8 @@ export default function OrderTracking() {
         return <Truck className="w-6 h-6" />;
       case 'delivered':
         return <CheckCircle className="w-6 h-6" />;
+      case 'cancelled':
+        return <XCircle className="w-6 h-6" />;
       case 'rejected':
         return <XCircle className="w-6 h-6" />;
       default:
@@ -258,6 +331,8 @@ export default function OrderTracking() {
         return 'border-orange-500/30 bg-orange-500/10 text-orange-300';
       case 'delivered':
         return 'border-green-500/30 bg-green-500/10 text-green-300';
+      case 'cancelled':
+        return 'border-red-500/30 bg-red-500/10 text-red-200';
       case 'rejected':
         return 'border-red-500/30 bg-red-500/10 text-red-300';
       default:
@@ -273,6 +348,8 @@ export default function OrderTracking() {
         return 2;
       case 'preparing':
         return 3;
+      case 'cancelled':
+        return 2;
       case 'out_for_delivery':
       case 'delivered':
         return 4;
@@ -287,13 +364,14 @@ export default function OrderTracking() {
 
   useEffect(() => {
     if (!feedbackEnabled) return;
-    if (!latestDeliveredOrder || activeFeedbackOrder || activeIssueOrder) return;
+    if (!latestDeliveredOrder || activeFeedbackOrder || activeCancellationOrder || activeIssueOrder) return;
     if (latestDeliveredOrder.feedback) return;
     if (dismissedOrderIds.includes(latestDeliveredOrder.id)) return;
 
     setActiveFeedbackOrder(latestDeliveredOrder);
   }, [
     activeFeedbackOrder,
+    activeCancellationOrder,
     activeIssueOrder,
     dismissedOrderIds,
     feedbackEnabled,
@@ -375,6 +453,52 @@ export default function OrderTracking() {
     }
   };
 
+  const handleSubmitCancellationRequest = async ({ reason }: { reason: string }) => {
+    if (!activeCancellationOrder) return;
+
+    setSubmittingCancellationRequest(true);
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) throw userError;
+      if (!user) throw new Error('You must be signed in to request cancellation.');
+
+      const sanitizedReason = sanitizeText(
+        reason,
+        'Cancellation reason',
+        10,
+        500
+      );
+
+      const { error } = await supabase.from('order_cancellation_requests').insert([
+        {
+          order_id: activeCancellationOrder.id,
+          user_id: user.id,
+          reason: sanitizedReason,
+          status: 'open',
+        },
+      ]);
+
+      if (error && error.code !== '23505') throw error;
+
+      setActiveCancellationOrder(null);
+      void fetchOrders();
+    } catch (error) {
+      console.error('Error submitting order cancellation request:', error);
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to submit your cancellation request. Please try again.'
+      );
+    } finally {
+      setSubmittingCancellationRequest(false);
+    }
+  };
+
   const handleSubmitIssueReport = async ({
     issueType,
     description,
@@ -450,7 +574,12 @@ export default function OrderTracking() {
           <div className="space-y-6">
             {orders.map((order) => {
               const isRejected = order.status === 'rejected';
+              const isCancelled = order.status === 'cancelled';
               const isDelivered = order.status === 'delivered';
+              const canRequestCancellation =
+                cancellationEnabled &&
+                !order.cancellationRequest &&
+                (order.status === 'pending' || order.status === 'confirmed');
               const canReportIssue =
                 isDelivered && issueReportingEnabled && !order.issueReport;
               const timelineProgress = getTimelineProgress(order.status);
@@ -482,6 +611,71 @@ export default function OrderTracking() {
                   {isRejected && (
                     <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
                       This order was rejected by the restaurant.
+                    </div>
+                  )}
+
+                  {isCancelled && (
+                    <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                      This order has been cancelled.
+                    </div>
+                  )}
+
+                  {order.cancellationRequest && (
+                    <div className="mb-5 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <div className="mb-2 flex items-center gap-2">
+                            <XCircle className="h-4 w-4 text-yellow-300" />
+                            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-200">
+                              Cancellation Request Submitted
+                            </p>
+                          </div>
+                          <p className="max-w-2xl text-sm leading-6 text-yellow-100/90">
+                            {order.cancellationRequest.reason}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-gray-200">
+                              Submitted {new Date(order.cancellationRequest.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          {order.cancellationRequest.admin_notes && (
+                            <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-gray-200">
+                              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">
+                                Admin note
+                              </p>
+                              <p>{order.cancellationRequest.admin_notes}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <span
+                          className={`inline-flex self-start rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${getCancellationStatusClasses(order.cancellationRequest.status)}`}
+                        >
+                          {getCancellationStatusLabel(order.cancellationRequest.status)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {canRequestCancellation && (
+                    <div className="mb-5 rounded-2xl border border-dashed border-yellow-500/30 bg-gray-950/40 p-4">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="mb-1 text-sm font-semibold text-white">
+                            Need to cancel this order?
+                          </p>
+                          <p className="text-sm leading-6 text-gray-400">
+                            You can request cancellation while the order is still pending or confirmed.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveCancellationOrder(order)}
+                          className="inline-flex items-center justify-center rounded-full border border-yellow-500/35 bg-yellow-500/10 px-5 py-3 text-sm font-semibold text-yellow-100 transition-colors hover:bg-yellow-500/20"
+                        >
+                          Request cancellation
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -624,10 +818,10 @@ export default function OrderTracking() {
                     </div>
 
                     <div className="flex space-x-2">
-                      {isRejected ? (
+                      {isRejected || isCancelled ? (
                         <>
-                          <div className="flex-1 h-2 rounded-full bg-red-500" />
-                          <div className="flex-1 h-2 rounded-full bg-red-500/60" />
+                          <div className={`flex-1 h-2 rounded-full ${isCancelled ? 'bg-red-500' : 'bg-red-500'}`} />
+                          <div className={`flex-1 h-2 rounded-full ${isCancelled ? 'bg-red-500/80' : 'bg-red-500/60'}`} />
                           <div className="flex-1 h-2 rounded-full bg-gray-700" />
                           <div className="flex-1 h-2 rounded-full bg-gray-700" />
                         </>
@@ -646,11 +840,13 @@ export default function OrderTracking() {
                     </div>
 
                     <div className="mt-3 grid grid-cols-4 gap-2 text-[11px] uppercase tracking-[0.16em] text-gray-500">
-                      {isRejected ? (
+                      {isRejected || isCancelled ? (
                         <>
                           <span className="text-red-300">Placed</span>
-                          <span className="text-red-300">Reviewed</span>
-                          <span>Stopped</span>
+                          <span className="text-red-300">
+                            {isCancelled ? 'Confirmed' : 'Reviewed'}
+                          </span>
+                          <span>{isCancelled ? 'Cancelled' : 'Stopped'}</span>
                           <span>Closed</span>
                         </>
                       ) : (
@@ -676,6 +872,15 @@ export default function OrderTracking() {
           orderId={activeFeedbackOrder.id}
           onClose={handleDismissFeedback}
           onSubmit={handleSubmitFeedback}
+        />
+      )}
+
+      {activeCancellationOrder && (
+        <OrderCancellationRequestModal
+          loading={submittingCancellationRequest}
+          orderId={activeCancellationOrder.id}
+          onClose={() => setActiveCancellationOrder(null)}
+          onSubmit={handleSubmitCancellationRequest}
         />
       )}
 

@@ -92,6 +92,22 @@ export type OrderIssueReport = {
   updated_at: string;
 };
 
+export type OrderCancellationRequestStatus =
+  | 'open'
+  | 'approved'
+  | 'rejected';
+
+export type OrderCancellationRequest = {
+  id: string;
+  order_id: string;
+  user_id: string;
+  reason: string;
+  status: OrderCancellationRequestStatus;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Announcement = {
   id: string;
   title: string;
