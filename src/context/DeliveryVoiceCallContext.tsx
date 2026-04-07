@@ -30,6 +30,14 @@ type CallNotice = {
   text: string;
 } | null;
 
+type MicrophonePermissionState =
+  | 'unknown'
+  | 'prompt'
+  | 'checking'
+  | 'granted'
+  | 'denied'
+  | 'unsupported';
+
 type DeliveryVoiceCallContextValue = {
   activeOrderId: string | null;
   callBusy: boolean;
@@ -84,6 +92,8 @@ export function DeliveryVoiceCallProvider({
   const [notice, setNotice] = useState<CallNotice>(null);
   const [phase, setPhase] = useState<CallPhase>('idle');
   const [sheetMinimized, setSheetMinimized] = useState(false);
+  const [microphonePermission, setMicrophonePermission] =
+    useState<MicrophonePermissionState>('unknown');
 
   const activeSessionRef = useRef<DeliveryCallSession | null>(null);
   const agoraModuleRef = useRef<any>(null);
@@ -92,6 +102,7 @@ export function DeliveryVoiceCallProvider({
   const ringLoopRef = useRef<number | null>(null);
   const rtcClientRef = useRef<any>(null);
   const joinedSessionIdRef = useRef<string | null>(null);
+  const missingLiveSessionPollsRef = useRef(0);
 
   const syncSessionState = (session: DeliveryCallSession | null) => {
     activeSessionRef.current = session;
@@ -133,6 +144,35 @@ export function DeliveryVoiceCallProvider({
 
   const pushNotice = (tone: NonNullable<CallNotice>['tone'], text: string) => {
     setNotice({ tone, text });
+  };
+
+  const syncMicrophonePermission = async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setMicrophonePermission('unsupported');
+      return;
+    }
+
+    if (!('permissions' in navigator) || !navigator.permissions?.query) {
+      setMicrophonePermission((current) => (current === 'unknown' ? 'prompt' : current));
+      return;
+    }
+
+    try {
+      const permissionStatus = await navigator.permissions.query({
+        name: 'microphone' as PermissionName,
+      });
+
+      const nextState =
+        permissionStatus.state === 'granted'
+          ? 'granted'
+          : permissionStatus.state === 'denied'
+            ? 'denied'
+            : 'prompt';
+
+      setMicrophonePermission(nextState);
+    } catch {
+      setMicrophonePermission((current) => (current === 'unknown' ? 'prompt' : current));
+    }
   };
 
   const getAudioContext = () => {
@@ -255,6 +295,53 @@ export function DeliveryVoiceCallProvider({
       rtcClientRef.current = null;
       joinedSessionIdRef.current = null;
       setMuted(false);
+    }
+  };
+
+  const ensureMicrophoneAccess = async () => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setMicrophonePermission('unsupported');
+      throw new Error('This device/browser does not support microphone access for in-app calling.');
+    }
+
+    setMicrophonePermission('checking');
+    await resumeAudioContext();
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+
+      stream.getTracks().forEach((track) => track.stop());
+      setMicrophonePermission('granted');
+      return true;
+    } catch (error) {
+      const maybeError = error as DOMException & { name?: string };
+      const errorName = maybeError?.name || '';
+
+      if (
+        errorName === 'NotAllowedError' ||
+        errorName === 'PermissionDeniedError' ||
+        errorName === 'SecurityError'
+      ) {
+        setMicrophonePermission('denied');
+        throw new Error(
+          'Microphone permission allow karo. Tabhi in-app call laptop ya phone dono par chalegi.'
+        );
+      }
+
+      if (errorName === 'NotFoundError' || errorName === 'DevicesNotFoundError') {
+        setMicrophonePermission('unsupported');
+        throw new Error('Is device par microphone detect nahi hua. Headset ya phone mic check karo.');
+      }
+
+      setMicrophonePermission('prompt');
+      throw new Error(
+        'Microphone open nahi ho saka. Browser mic access ya device audio settings check karo.'
+      );
     }
   };
 
@@ -429,6 +516,90 @@ export function DeliveryVoiceCallProvider({
     }
   };
 
+  const fetchLatestLiveSession = async () => {
+    const { data, error } = await supabase
+      .from('delivery_call_sessions')
+      .select('*')
+      .or(`caller_user_id.eq.${userId},receiver_user_id.eq.${userId}`)
+      .in('status', LIVE_DELIVERY_CALL_STATUSES)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    return ((data || [])[0] as DeliveryCallSession | undefined) ?? null;
+  };
+
+  const syncLiveSession = async () => {
+    try {
+      const nextSession = await fetchLatestLiveSession();
+      const currentSession = activeSessionRef.current;
+
+      if (!nextSession) {
+        if (currentSession && isLiveDeliveryCallStatus(currentSession.status)) {
+          missingLiveSessionPollsRef.current += 1;
+
+          if (missingLiveSessionPollsRef.current < 3) {
+            return;
+          }
+
+          await resetCallUi({
+            tone: 'info',
+            text:
+              currentSession.status === 'ringing'
+                ? 'The voice call request was closed.'
+                : 'Voice call finished successfully.',
+          });
+        }
+
+        return;
+      }
+
+      missingLiveSessionPollsRef.current = 0;
+      syncSessionState(nextSession);
+
+      if (nextSession.status === 'ringing') {
+        const ringingTooLong =
+          nextSession.caller_user_id === userId &&
+          Date.now() - new Date(nextSession.initiated_at).getTime() >= DELIVERY_CALL_RING_TIMEOUT_MS;
+
+        if (ringingTooLong) {
+          await endSession('missed', 'no-answer', nextSession, {
+            tone: 'info',
+            text: 'Call was not answered in time.',
+          });
+          return;
+        }
+
+        setPhase(nextSession.receiver_user_id === userId ? 'incoming' : 'dialing');
+        startRingLoop();
+
+        if (!currentSession || currentSession.id !== nextSession.id) {
+          setErrorMessage(null);
+          setSheetMinimized(false);
+        }
+
+        return;
+      }
+
+      stopRingLoop();
+
+      if (nextSession.status === 'accepted') {
+        if (joinedSessionIdRef.current !== nextSession.id) {
+          await joinAcceptedSession(nextSession);
+        } else {
+          setPhase('connected');
+        }
+      }
+    } catch (error) {
+      if (!isDeliveryCallSchemaMissing(error)) {
+        console.error('Unexpected delivery voice call sync error:', error);
+      }
+    }
+  };
+
   const createOutgoingSession = async ({
     callerLabel,
     callerRole,
@@ -502,6 +673,8 @@ export function DeliveryVoiceCallProvider({
     setErrorMessage(null);
 
     try {
+      await ensureMicrophoneAccess();
+
       const { data, error } = await supabase
         .from('delivery_call_sessions')
         .update({
@@ -525,6 +698,11 @@ export function DeliveryVoiceCallProvider({
       await joinAcceptedSession(nextSession);
     } catch (error) {
       console.error('Error accepting incoming delivery call:', error);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'Incoming call could not be accepted right now. Please try again.'
+      );
 
       pushNotice(
         'error',
@@ -563,6 +741,17 @@ export function DeliveryVoiceCallProvider({
       return;
     }
 
+    try {
+      await ensureMicrophoneAccess();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Microphone permission is required for calling.');
+      pushNotice(
+        'error',
+        error instanceof Error ? error.message : 'Microphone permission is required for calling.'
+      );
+      return;
+    }
+
     await createOutgoingSession({
       callerLabel: userDisplayName || order.customer_name || 'Customer',
       callerRole: 'customer',
@@ -592,6 +781,17 @@ export function DeliveryVoiceCallProvider({
       return;
     }
 
+    try {
+      await ensureMicrophoneAccess();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Microphone permission is required for calling.');
+      pushNotice(
+        'error',
+        error instanceof Error ? error.message : 'Microphone permission is required for calling.'
+      );
+      return;
+    }
+
     await createOutgoingSession({
       callerLabel: callerLabel || userDisplayName || 'Delivery partner',
       callerRole: 'delivery_partner',
@@ -617,92 +817,63 @@ export function DeliveryVoiceCallProvider({
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
+    void syncMicrophonePermission();
 
-    const syncLiveSession = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('delivery_call_sessions')
-          .select('*')
-          .or(`caller_user_id.eq.${userId},receiver_user_id.eq.${userId}`)
-          .in('status', LIVE_DELIVERY_CALL_STATUSES)
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (error) {
-          if (!isDeliveryCallSchemaMissing(error)) {
-            console.error('Error syncing delivery voice calls:', error);
-          }
-
-          return;
-        }
-
-        const nextSession = ((data || [])[0] as DeliveryCallSession | undefined) ?? null;
-        const currentSession = activeSessionRef.current;
-
-        if (!nextSession) {
-          if (currentSession && isLiveDeliveryCallStatus(currentSession.status)) {
-            await resetCallUi({
-              tone: 'info',
-              text:
-                currentSession.status === 'ringing'
-                  ? 'The voice call request was closed.'
-                  : 'Voice call finished successfully.',
-            });
-          }
-
-          return;
-        }
-
-        syncSessionState(nextSession);
-
-        if (nextSession.status === 'ringing') {
-          const ringingTooLong =
-            nextSession.caller_user_id === userId &&
-            Date.now() - new Date(nextSession.initiated_at).getTime() >= DELIVERY_CALL_RING_TIMEOUT_MS;
-
-          if (ringingTooLong) {
-            await endSession('missed', 'no-answer', nextSession, {
-              tone: 'info',
-              text: 'Call was not answered in time.',
-            });
-            return;
-          }
-
-          setPhase(nextSession.receiver_user_id === userId ? 'incoming' : 'dialing');
-          startRingLoop();
-
-          if (!currentSession || currentSession.id !== nextSession.id) {
-            setErrorMessage(null);
-            setSheetMinimized(false);
-          }
-
-          return;
-        }
-
-        stopRingLoop();
-
-        if (nextSession.status === 'accepted') {
-          if (joinedSessionIdRef.current !== nextSession.id) {
-            await joinAcceptedSession(nextSession);
-          } else {
-            setPhase('connected');
-          }
-        }
-      } catch (error) {
-        console.error('Unexpected delivery voice call sync error:', error);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void syncMicrophonePermission();
       }
     };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
 
     void syncLiveSession();
 
     const interval = window.setInterval(() => {
-      void syncLiveSession();
+      if (isMounted) {
+        void syncLiveSession();
+      }
     }, DELIVERY_CALL_POLL_INTERVAL);
+
+    const realtimeChannel = supabase
+      .channel(`delivery-voice-calls-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'delivery_call_sessions',
+          filter: `caller_user_id=eq.${userId}`,
+        },
+        () => {
+          if (isMounted) {
+            void syncLiveSession();
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'delivery_call_sessions',
+          filter: `receiver_user_id=eq.${userId}`,
+        },
+        () => {
+          if (isMounted) {
+            void syncLiveSession();
+          }
+        }
+      )
+      .subscribe();
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -716,6 +887,7 @@ export function DeliveryVoiceCallProvider({
       isMounted = false;
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      void supabase.removeChannel(realtimeChannel);
       void cleanupRtcConnection();
     };
   }, [userId]);
@@ -772,10 +944,12 @@ export function DeliveryVoiceCallProvider({
       {modalSession && counterpartData && !sheetMinimized && phase !== 'idle' && (
         <DeliveryVoiceCallModal
           busy={busy}
+          canMinimize={phase === 'connected'}
           counterpartLabel={counterpartData.label}
           counterpartRole={counterpartData.role}
           elapsedSeconds={elapsedSeconds}
           errorMessage={errorMessage}
+          microphonePermission={microphonePermission}
           muted={muted}
           onAccept={() => void acceptIncomingCall()}
           onClose={() => setSheetMinimized(true)}

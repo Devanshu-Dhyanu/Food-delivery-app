@@ -27,10 +27,12 @@ type DeliveryVoiceCallPhase =
 
 interface DeliveryVoiceCallModalProps {
   busy: boolean;
+  canMinimize: boolean;
   counterpartLabel: string;
   counterpartRole: 'customer' | 'delivery_partner';
   elapsedSeconds: number;
   errorMessage: string | null;
+  microphonePermission: 'unknown' | 'prompt' | 'checking' | 'granted' | 'denied' | 'unsupported';
   muted: boolean;
   onAccept: () => void;
   onClose: () => void;
@@ -94,10 +96,12 @@ const getCenterIcon = (phase: DeliveryVoiceCallPhase, busy: boolean) => {
 
 export default function DeliveryVoiceCallModal({
   busy,
+  canMinimize,
   counterpartLabel,
   counterpartRole,
   elapsedSeconds,
   errorMessage,
+  microphonePermission,
   muted,
   onAccept,
   onClose,
@@ -121,6 +125,16 @@ export default function DeliveryVoiceCallModal({
       : busy
         ? 'Working...'
         : phaseCopy.status;
+  const microphoneStatusLabel =
+    microphonePermission === 'granted'
+      ? 'Mic ready'
+      : microphonePermission === 'checking'
+        ? 'Checking mic'
+        : microphonePermission === 'denied'
+          ? 'Mic blocked'
+          : microphonePermission === 'unsupported'
+            ? 'Mic unsupported'
+            : 'Mic needed';
 
   return (
     <div className="fixed inset-0 z-[140] overflow-y-auto bg-black/95 backdrop-blur-xl">
@@ -137,13 +151,19 @@ export default function DeliveryVoiceCallModal({
                 {phaseCopy.title}
               </div>
 
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-white/20 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              {canMinimize ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:border-white/20 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              ) : (
+                <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+                  Stay open
+                </div>
+              )}
             </div>
 
             <div className="flex flex-1 flex-col items-center justify-center text-center">
@@ -192,10 +212,20 @@ export default function DeliveryVoiceCallModal({
                 </div>
                 <div className="flex flex-col items-center gap-3 text-slate-400">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5">
-                    {muted ? <MicOff className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    {microphonePermission === 'denied' || microphonePermission === 'unsupported' ? (
+                      <MicOff className="h-5 w-5" />
+                    ) : muted ? (
+                      <MicOff className="h-5 w-5" />
+                    ) : (
+                      <Volume2 className="h-5 w-5" />
+                    )}
                   </div>
-                  <span className="text-xs uppercase tracking-[0.18em]">
-                    {phase === 'connected' ? (muted ? 'Muted' : 'Live audio') : 'Voice'}
+                  <span className="text-center text-xs uppercase tracking-[0.18em]">
+                    {phase === 'connected' && microphonePermission === 'granted'
+                      ? muted
+                        ? 'Muted'
+                        : 'Live audio'
+                      : microphoneStatusLabel}
                   </span>
                 </div>
               </div>

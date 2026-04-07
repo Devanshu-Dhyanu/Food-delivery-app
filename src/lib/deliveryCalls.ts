@@ -1,6 +1,6 @@
 import type { DeliveryCallParticipantRole, DeliveryCallSessionStatus } from './supabase';
 
-export const DELIVERY_CALL_POLL_INTERVAL = 2500;
+export const DELIVERY_CALL_POLL_INTERVAL = 1200;
 export const DELIVERY_CALL_RING_TIMEOUT_MS = 45000;
 export const DELIVERY_CALL_TOKEN_TTL_SECONDS = 60 * 60;
 
