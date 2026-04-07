@@ -66,6 +66,32 @@ export type DeliveryFeedback = {
   created_at: string;
 };
 
+export type OrderIssueType =
+  | 'missing_item'
+  | 'wrong_order'
+  | 'late_delivery'
+  | 'other';
+
+export type OrderIssueReportStatus =
+  | 'open'
+  | 'reviewing'
+  | 'resolved'
+  | 'refund_approved'
+  | 'refund_rejected';
+
+export type OrderIssueReport = {
+  id: string;
+  order_id: string;
+  user_id: string;
+  issue_type: OrderIssueType;
+  description: string;
+  refund_requested: boolean;
+  status: OrderIssueReportStatus;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Announcement = {
   id: string;
   title: string;
