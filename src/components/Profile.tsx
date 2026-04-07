@@ -4,12 +4,14 @@ import {
   Building2,
   CreditCard,
   Home,
+  ImagePlus,
   MapPin,
   Moon,
   PencilLine,
   Phone,
   Save,
   Sun,
+  Trash2,
   User,
   X,
 } from 'lucide-react';
@@ -27,6 +29,7 @@ interface ProfileProps {
 type EditableProfile = {
   name: string;
   phone: string;
+  avatar_url: string;
   gender: string;
   user_role: 'student' | 'teacher';
   location_type: string;
@@ -42,10 +45,14 @@ type EditableProfile = {
 type ProfileTheme = 'dark' | 'light';
 
 const PROFILE_THEME_STORAGE_KEY = 'vajra-profile-theme';
+const MAX_PROFILE_IMAGE_FILE_SIZE = 5 * 1024 * 1024;
+const PROFILE_IMAGE_MAX_DIMENSION = 720;
+const PROFILE_IMAGE_QUALITY = 0.82;
 
 const emptyProfileForm: EditableProfile = {
   name: '',
   phone: '',
+  avatar_url: '',
   gender: '',
   user_role: 'student',
   location_type: '',
@@ -88,6 +95,7 @@ const isStudentLocationComplete = (profile: EditableProfile) => {
 const mapProfileToForm = (profile?: Partial<UserProfile> | null): EditableProfile => ({
   name: profile?.name ?? '',
   phone: profile?.phone ?? '',
+  avatar_url: profile?.avatar_url ?? '',
   gender: profile?.gender ?? '',
   user_role: profile?.user_role === 'teacher' ? 'teacher' : 'student',
   location_type: profile?.location_type ?? '',
@@ -160,12 +168,64 @@ const getInputClasses = (isLightTheme: boolean) =>
       : 'border-white/10 bg-gray-800 text-white focus:border-orange-500/40'
   }`;
 
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error('Unable to read the selected image.'));
+    };
+
+    reader.onerror = () => reject(new Error('Unable to read the selected image.'));
+    reader.readAsDataURL(file);
+  });
+
+const optimizeProfileImage = async (file: File) => {
+  const source = await readFileAsDataUrl(file);
+
+  return new Promise<string>((resolve, reject) => {
+    const image = new Image();
+
+    image.onload = () => {
+      const largestSide = Math.max(image.width, image.height);
+      const scale = largestSide > PROFILE_IMAGE_MAX_DIMENSION
+        ? PROFILE_IMAGE_MAX_DIMENSION / largestSide
+        : 1;
+      const targetWidth = Math.max(1, Math.round(image.width * scale));
+      const targetHeight = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement('canvas');
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+
+      const context = canvas.getContext('2d');
+
+      if (!context) {
+        reject(new Error('Unable to process the selected image.'));
+        return;
+      }
+
+      context.drawImage(image, 0, 0, targetWidth, targetHeight);
+      resolve(canvas.toDataURL('image/jpeg', PROFILE_IMAGE_QUALITY));
+    };
+
+    image.onerror = () => reject(new Error('Unable to process the selected image.'));
+    image.src = source;
+  });
+};
+
 export default function Profile({ userId, onBack, onProfileUpdated }: ProfileProps) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [form, setForm] = useState<EditableProfile>(emptyProfileForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [processingProfileImage, setProcessingProfileImage] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [theme, setTheme] = useState<ProfileTheme>(() => {
@@ -253,6 +313,7 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
   const isTeacher = form.user_role === 'teacher';
   const isSaveDisabled =
     saving ||
+    processingProfileImage ||
     !form.name.trim() ||
     !form.phone.trim() ||
     !form.gender ||
@@ -286,29 +347,32 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       const sanitizedUserRole = form.user_role === 'teacher' ? 'teacher' : 'student';
       const locationType =
         sanitizedUserRole === 'teacher' ? 'Faculty Cabin' : form.location_type;
+      const shouldIncludeAvatarField = Boolean(form.avatar_url.trim() || profile?.avatar_url);
+      const profilePayload = {
+        user_id: userId,
+        name: sanitizedName,
+        phone: sanitizedPhone,
+        ...(shouldIncludeAvatarField
+          ? { avatar_url: form.avatar_url.trim() || null }
+          : {}),
+        gender: form.gender,
+        user_role: sanitizedUserRole,
+        location_type: locationType,
+        hostel_name: sanitizedUserRole === 'student' ? sanitizedHostelName || null : null,
+        block: sanitizedUserRole === 'student' ? sanitizedBlock || null : null,
+        room_number: sanitizedUserRole === 'student' ? sanitizedRoomNumber || null : null,
+        building_number: sanitizedBuildingNumber || null,
+        cabin_number:
+          sanitizedUserRole === 'teacher' ? sanitizedCabinNumber || null : null,
+        exact_location:
+          sanitizedUserRole === 'student' ? sanitizedExactLocation || null : null,
+        uid: sanitizedUid,
+      };
 
       const { data, error } = await supabase
         .from('user_profiles')
         .upsert(
-          [
-            {
-              user_id: userId,
-              name: sanitizedName,
-              phone: sanitizedPhone,
-              gender: form.gender,
-              user_role: sanitizedUserRole,
-              location_type: locationType,
-              hostel_name: sanitizedUserRole === 'student' ? sanitizedHostelName || null : null,
-              block: sanitizedUserRole === 'student' ? sanitizedBlock || null : null,
-              room_number: sanitizedUserRole === 'student' ? sanitizedRoomNumber || null : null,
-              building_number: sanitizedBuildingNumber || null,
-              cabin_number:
-                sanitizedUserRole === 'teacher' ? sanitizedCabinNumber || null : null,
-              exact_location:
-                sanitizedUserRole === 'student' ? sanitizedExactLocation || null : null,
-              uid: sanitizedUid,
-            },
-          ],
+          [profilePayload],
           { onConflict: 'user_id' }
         )
         .select('*')
@@ -325,10 +389,58 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
     } catch (error) {
       console.error('Error updating user profile:', error);
       const message =
-        error instanceof Error ? error.message : 'We could not save your changes. Please try again.';
+        error instanceof Error && error.message.toLowerCase().includes('avatar_url')
+          ? 'Profile photo support needs one SQL update first. Run the avatar SQL, then try saving again.'
+          : error instanceof Error
+            ? error.message
+            : 'We could not save your changes. Please try again.';
       setErrorMessage(message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleProfileImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const nextFile = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!nextFile) {
+      return;
+    }
+
+    if (!nextFile.type.startsWith('image/')) {
+      setErrorMessage('Please choose a valid image file.');
+      setSuccessMessage('');
+      return;
+    }
+
+    if (nextFile.size > MAX_PROFILE_IMAGE_FILE_SIZE) {
+      setErrorMessage('Please choose an image smaller than 5 MB.');
+      setSuccessMessage('');
+      return;
+    }
+
+    setProcessingProfileImage(true);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      const optimizedImage = await optimizeProfileImage(nextFile);
+
+      setForm((current) => ({
+        ...current,
+        avatar_url: optimizedImage,
+      }));
+      setSuccessMessage('Profile photo is ready. Save changes to update it.');
+    } catch (error) {
+      console.error('Error preparing profile image:', error);
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : 'We could not process that photo. Please try another image.'
+      );
+    } finally {
+      setProcessingProfileImage(false);
     }
   };
 
@@ -395,6 +507,11 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       ? 'border-orange-200 bg-orange-100 text-orange-700'
       : 'border-orange-500/25 bg-orange-500/15 text-orange-200'
   }`;
+  const avatarPreviewClassName = `relative flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border text-3xl font-bold ${
+    isLightTheme
+      ? 'border-orange-200 bg-orange-100 text-orange-700'
+      : 'border-orange-500/25 bg-orange-500/15 text-orange-200'
+  }`;
   const iconBadgeClassName = `rounded-full border p-3 ${
     isLightTheme
       ? 'border-orange-200 bg-orange-100 text-orange-600'
@@ -436,7 +553,17 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
       <div className={heroCardClassName}>
         <div className="flex flex-col gap-5 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-4">
-            <div className={avatarClassName}>{profileInitial}</div>
+            <div className={`${avatarClassName} overflow-hidden`}>
+              {form.avatar_url ? (
+                <img
+                  src={form.avatar_url}
+                  alt={form.name ? `${form.name}'s profile` : 'Profile'}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                profileInitial
+              )}
+            </div>
             <div>
               <p className={heroOverlineClassName}>Your profile</p>
               <h1 className={heroTitleClassName}>{form.name || 'Campus user'}</h1>
@@ -490,6 +617,74 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
               </div>
 
               <div className="grid gap-5 sm:grid-cols-2">
+                <div
+                  className={`sm:col-span-2 rounded-[24px] border p-5 ${
+                    isLightTheme
+                      ? 'border-slate-200 bg-slate-50/80'
+                      : 'border-white/5 bg-white/5'
+                  }`}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className={avatarPreviewClassName}>
+                      {form.avatar_url ? (
+                        <img
+                          src={form.avatar_url}
+                          alt={form.name ? `${form.name}'s profile` : 'Profile'}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        profileInitial
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <span className={labelClassName}>Profile Photo</span>
+                      <p className={`text-sm leading-6 ${bodyTextClassName}`}>
+                        Add a clear photo from your device. It will appear on your profile header.
+                      </p>
+
+                      <div className="mt-4 flex flex-wrap gap-3">
+                        <label
+                          className={`${secondaryButtonClassName} cursor-pointer ${
+                            processingProfileImage || saving
+                              ? 'pointer-events-none opacity-60'
+                              : ''
+                          }`}
+                        >
+                          <ImagePlus className="h-4 w-4" />
+                          <span>{form.avatar_url ? 'Change photo' : 'Upload photo'}</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleProfileImageChange}
+                            className="hidden"
+                          />
+                        </label>
+
+                        {form.avatar_url && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateField('avatar_url', '');
+                              setSuccessMessage('Profile photo removed. Save changes to update it.');
+                            }}
+                            className={secondaryButtonClassName}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span>Remove photo</span>
+                          </button>
+                        )}
+                      </div>
+
+                      <p className={`mt-3 text-xs ${bodyTextClassName}`}>
+                        {processingProfileImage
+                          ? 'Preparing your image...'
+                          : 'JPG, PNG, and WEBP are supported. We optimize it automatically before saving.'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <label className="block">
                   <span className={labelClassName}>Full Name</span>
                   <input
@@ -770,7 +965,13 @@ export default function Profile({ userId, onBack, onProfileUpdated }: ProfilePro
 
                   <button type="submit" disabled={isSaveDisabled} className={primaryButtonClassName}>
                     <Save className="h-4 w-4" />
-                    <span>{saving ? 'Saving changes...' : 'Save changes'}</span>
+                    <span>
+                      {processingProfileImage
+                        ? 'Preparing photo...'
+                        : saving
+                          ? 'Saving changes...'
+                          : 'Save changes'}
+                    </span>
                   </button>
                 </div>
               </div>
