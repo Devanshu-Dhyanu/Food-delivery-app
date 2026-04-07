@@ -77,20 +77,31 @@ export default function FounderPage({ onNavigate }: FounderPageProps) {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-white/8 bg-black/20 p-6 backdrop-blur-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">
-              Founder note
-            </p>
-            <p className="mt-4 text-2xl font-bold text-white">
-              Build something campus users actually want to keep opening.
-            </p>
-            <p className="mt-4 text-sm leading-7 text-gray-300">
-              The Vajra is being shaped around speed, clarity, and daily usefulness. The focus is
-              not just on placing an order, but on reducing the small repeated hassles that make
-              campus life slower than it should be.
-            </p>
+          <div className="overflow-hidden rounded-[28px] border border-white/8 bg-black/20 backdrop-blur-sm">
+            <div className="relative">
+              <img
+                src="/founder.png"
+                alt="Founder of The Vajra"
+                className="h-[420px] w-full object-cover object-top"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent" />
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <div className="absolute inset-x-0 bottom-0 p-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">
+                  Founder note
+                </p>
+                <p className="mt-3 text-2xl font-bold text-white">
+                  Build something campus users actually want to keep opening.
+                </p>
+                <p className="mt-3 text-sm leading-7 text-gray-200">
+                  The Vajra is being shaped around speed, clarity, and daily usefulness. The focus
+                  is not just on placing an order, but on reducing the small repeated hassles that
+                  make campus life slower than it should be.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 p-6 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
               <div className="rounded-2xl border border-white/8 bg-white/5 px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Current focus</p>
                 <p className="mt-2 text-sm font-semibold text-white">Food delivery and support</p>
