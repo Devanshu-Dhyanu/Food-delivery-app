@@ -49,7 +49,9 @@ export default function MarketplaceListingDetailModal({
   }, [listing?.id]);
 
   const images = useMemo(() => listing?.image_urls ?? [], [listing?.image_urls]);
-  const activeImage = images[selectedImageIndex] || getMarketplacePrimaryImage(listing as MarketplaceListing);
+  const activeImage = listing
+    ? images[selectedImageIndex] || getMarketplacePrimaryImage(listing)
+    : '';
   const whatsappLink = listing
     ? buildMarketplaceWhatsappLink(listing.seller_phone, listing.title)
     : '';
