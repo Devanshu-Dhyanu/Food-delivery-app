@@ -62,8 +62,9 @@ export default function MarketplaceListingDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-6xl overflow-hidden rounded-[30px] border border-white/10 bg-gray-950 shadow-2xl shadow-black/40">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 px-4 py-4 backdrop-blur-sm sm:py-8">
+      <div className="flex min-h-full items-start justify-center sm:items-center">
+        <div className="w-full max-w-6xl overflow-hidden rounded-[30px] border border-white/10 bg-gray-950 shadow-2xl shadow-black/40">
         <div className="flex items-start justify-between gap-4 border-b border-white/5 px-6 py-5 sm:px-7">
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">
@@ -290,6 +291,7 @@ export default function MarketplaceListingDetailModal({
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
