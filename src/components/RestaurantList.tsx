@@ -5,6 +5,7 @@ import {
   CarFront,
   CarTaxiFront,
   Clock,
+  Heart,
   Search,
   Sparkles,
   Star,
@@ -79,6 +80,48 @@ type CuisineExplorerItem = {
   label: string;
   count: number;
   imageUrl: string | null;
+};
+
+const FAVORITE_RESTAURANTS_STORAGE_PREFIX = 'vajra-favorite-restaurants';
+
+const getFavoriteRestaurantsStorageKey = (userId: string) =>
+  `${FAVORITE_RESTAURANTS_STORAGE_PREFIX}:${userId}`;
+
+const loadStoredFavoriteRestaurantIds = (userId: string) => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(getFavoriteRestaurantsStorageKey(userId));
+
+    if (!rawValue) {
+      return [];
+    }
+
+    const parsedValue = JSON.parse(rawValue);
+    return Array.isArray(parsedValue)
+      ? parsedValue.filter((item): item is string => typeof item === 'string')
+      : [];
+  } catch (error) {
+    console.warn('Unable to read saved restaurant favourites:', error);
+    return [];
+  }
+};
+
+const saveStoredFavoriteRestaurantIds = (userId: string, restaurantIds: string[]) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      getFavoriteRestaurantsStorageKey(userId),
+      JSON.stringify(restaurantIds)
+    );
+  } catch (error) {
+    console.warn('Unable to save restaurant favourites:', error);
+  }
 };
 
 const campusServices = [
@@ -168,12 +211,30 @@ export default function RestaurantList({
   const [selectedService, setSelectedService] = useState<CampusService>('restaurants');
   const [carRentalScreen, setCarRentalScreen] = useState<CarRentalScreen>('list');
   const [selectedRentalVehicle, setSelectedRentalVehicle] = useState<RentalVehicle | null>(null);
+  const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<string[]>(() =>
+    loadStoredFavoriteRestaurantIds(userId)
+  );
   const { cartRestaurantId, cartRestaurantName } = useCart();
   const restaurantResultsRef = useRef<HTMLDivElement | null>(null);
+  const skipFavoriteStorageSyncRef = useRef(false);
 
   useEffect(() => {
     fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    skipFavoriteStorageSyncRef.current = true;
+    setFavoriteRestaurantIds(loadStoredFavoriteRestaurantIds(userId));
+  }, [userId]);
+
+  useEffect(() => {
+    if (skipFavoriteStorageSyncRef.current) {
+      skipFavoriteStorageSyncRef.current = false;
+      return;
+    }
+
+    saveStoredFavoriteRestaurantIds(userId, favoriteRestaurantIds);
+  }, [favoriteRestaurantIds, userId]);
 
   useEffect(() => {
     if (selectedService !== 'car-rent') {
@@ -323,6 +384,7 @@ export default function RestaurantList({
 
   const renderRestaurantCard = (restaurant: Restaurant, index: number) => {
     const isLocked = !!cartRestaurantId && cartRestaurantId !== restaurant.id;
+    const isFavorite = favoriteRestaurantIds.includes(restaurant.id);
     const statusLabel = isLocked ? 'Locked' : restaurant.is_open ? 'Open Now' : 'Closed';
     const statusClasses = isLocked
       ? 'border-white/10 bg-black/45 text-white/85'
@@ -331,17 +393,56 @@ export default function RestaurantList({
       : 'border-red-400/25 bg-red-500/20 text-red-100';
 
     return (
-      <button
+      <div
         key={restaurant.id}
-        onClick={() => onSelectRestaurant(restaurant.id)}
-        disabled={isLocked}
-        className={`reveal-card group overflow-hidden rounded-[24px] border text-left transition-all duration-300 ${
+        role="button"
+        tabIndex={isLocked ? -1 : 0}
+        aria-disabled={isLocked}
+        onClick={() => {
+          if (!isLocked) {
+            onSelectRestaurant(restaurant.id);
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget || isLocked) {
+            return;
+          }
+
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelectRestaurant(restaurant.id);
+          }
+        }}
+        className={`reveal-card group relative overflow-hidden rounded-[24px] border text-left transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 ${
           isLocked
             ? 'cursor-not-allowed border-white/5 bg-gray-900/70 opacity-80'
             : 'border-white/5 bg-gray-900 hover:-translate-y-1 hover:border-orange-500/40 hover:shadow-2xl hover:shadow-orange-500/10'
         }`}
         style={{ animationDelay: `${index * 70}ms` }}
       >
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            setFavoriteRestaurantIds((currentIds) =>
+              currentIds.includes(restaurant.id)
+                ? currentIds.filter((currentId) => currentId !== restaurant.id)
+                : [...currentIds, restaurant.id]
+            );
+          }}
+          aria-pressed={isFavorite}
+          aria-label={`${
+            isFavorite ? 'Remove restaurant from favourites' : 'Save restaurant to favourites'
+          }: ${restaurant.name}`}
+          className={`absolute right-4 top-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-full border shadow-lg shadow-black/20 transition-all ${
+            isFavorite
+              ? 'border-orange-300/40 bg-orange-500/20 text-orange-100'
+              : 'border-white/10 bg-black/35 text-white/85 hover:border-white/20 hover:bg-black/50'
+          }`}
+        >
+          <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+        </button>
+
         <div className="relative h-64 overflow-hidden bg-gray-700">
           {restaurant.image_url ? (
             <img
@@ -366,7 +467,7 @@ export default function RestaurantList({
             </div>
           </div>
 
-          <div className="absolute right-4 top-4">
+          <div className="absolute right-4 top-16 z-10">
             <span className={`inline-flex items-center rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] shadow-lg shadow-black/20 ${statusClasses}`}>
               {statusLabel}
             </span>
@@ -404,7 +505,7 @@ export default function RestaurantList({
             </div>
           </div>
         </div>
-      </button>
+      </div>
     );
   };
 

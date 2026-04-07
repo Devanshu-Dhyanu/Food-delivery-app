@@ -22,7 +22,7 @@ interface VajraWalletPanelProps {
   theme?: 'dark' | 'light';
 }
 
-const TOPUP_PRESETS = [100, 200, 500, 1000];
+const DEFAULT_TOPUP_SUGGESTIONS = [100, 200, 500, 1000];
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-IN', {
@@ -84,6 +84,60 @@ const getWalletInputClasses = (isLightTheme: boolean) =>
       : 'border-white/10 bg-gray-800 text-white focus:border-emerald-500/40'
   }`;
 
+const roundWalletSuggestionAmount = (amount: number) => {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return 0;
+  }
+
+  if (amount < 500) {
+    return Math.max(100, Math.ceil(amount / 50) * 50);
+  }
+
+  if (amount < 2000) {
+    return Math.ceil(amount / 100) * 100;
+  }
+
+  return Math.ceil(amount / 250) * 250;
+};
+
+const getSuggestedTopupAmounts = (balance: number, transactions: WalletTransaction[]) => {
+  const recentSuccessfulDebits = transactions
+    .filter((transaction) => transaction.direction === 'debit' && transaction.status === 'success')
+    .slice(0, 4);
+
+  const averageRecentDebit = recentSuccessfulDebits.length
+    ? recentSuccessfulDebits.reduce((total, transaction) => total + transaction.amount, 0) /
+      recentSuccessfulDebits.length
+    : 0;
+
+  const suggestedBaseAmount = roundWalletSuggestionAmount(
+    Math.max(
+      averageRecentDebit > 0 ? averageRecentDebit * 2 : 0,
+      balance < 150 ? 300 : balance < 300 ? 200 : 150
+    )
+  );
+
+  const candidates = [
+    suggestedBaseAmount * 0.5,
+    suggestedBaseAmount,
+    suggestedBaseAmount * 1.5,
+    suggestedBaseAmount * 2,
+    ...DEFAULT_TOPUP_SUGGESTIONS,
+  ];
+
+  const uniqueSuggestions: number[] = [];
+
+  candidates.forEach((candidate) => {
+    const roundedCandidate = roundWalletSuggestionAmount(candidate);
+
+    if (roundedCandidate > 0 && !uniqueSuggestions.includes(roundedCandidate)) {
+      uniqueSuggestions.push(roundedCandidate);
+    }
+  });
+
+  return uniqueSuggestions.slice(0, 4);
+};
+
 export default function VajraWalletPanel({ userId, theme = 'dark' }: VajraWalletPanelProps) {
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
@@ -99,6 +153,11 @@ export default function VajraWalletPanel({ userId, theme = 'dark' }: VajraWallet
   const [processingTopup, setProcessingTopup] = useState(false);
 
   const numericTopupAmount = useMemo(() => Number(topupAmount), [topupAmount]);
+  const topupSuggestions = useMemo(
+    () => getSuggestedTopupAmounts(balance, passbookTransactions.length > 0 ? passbookTransactions : transactions),
+    [balance, passbookTransactions, transactions]
+  );
+  const recommendedTopupAmount = topupSuggestions[1] ?? topupSuggestions[0] ?? 200;
   const filteredPassbookTransactions = useMemo(
     () =>
       passbookTransactions.filter((transaction) => {
@@ -156,7 +215,12 @@ export default function VajraWalletPanel({ userId, theme = 'dark' }: VajraWallet
     }
 
     setShowTopupModal(false);
-    setTopupAmount('200');
+    setTopupAmount(String(recommendedTopupAmount));
+  };
+
+  const openTopupModal = () => {
+    setTopupAmount(String(recommendedTopupAmount));
+    setShowTopupModal(true);
   };
 
   const handleTopup = async () => {
@@ -362,7 +426,7 @@ export default function VajraWalletPanel({ userId, theme = 'dark' }: VajraWallet
               <span>View Passbook</span>
             </button>
             <button
-              onClick={() => setShowTopupModal(true)}
+              onClick={openTopupModal}
               disabled={!schemaReady || loading}
               className={walletPrimaryButtonClassName}
             >
@@ -662,7 +726,7 @@ export default function VajraWalletPanel({ userId, theme = 'dark' }: VajraWallet
             </div>
 
             <div className="mb-4 grid grid-cols-2 gap-3">
-              {TOPUP_PRESETS.map((amount) => {
+              {topupSuggestions.map((amount) => {
                 const isSelected = numericTopupAmount === amount;
 
                 return (
@@ -677,6 +741,10 @@ export default function VajraWalletPanel({ userId, theme = 'dark' }: VajraWallet
                 );
               })}
             </div>
+
+            <p className={`mb-5 text-xs leading-5 ${walletMetaTextClassName}`}>
+              Smart suggestions are adjusted from your current wallet balance and recent wallet spending.
+            </p>
 
             <label className="mb-5 block">
               <span className={`mb-2 block text-sm font-medium ${isLightTheme ? 'text-slate-700' : 'text-gray-300'}`}>
