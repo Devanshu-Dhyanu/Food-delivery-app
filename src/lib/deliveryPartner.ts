@@ -61,6 +61,11 @@ export const DELIVERY_APP_MODE_STORAGE_KEY = 'vajra-app-mode';
 
 export const DELIVERY_MODE_SYNC_INTERVAL = 8000;
 
+export const DELIVERY_ACTIVE_TRIP_LOCK_STATUSES: DeliveryAssignmentStatus[] = [
+  'assigned',
+  'picked_up',
+];
+
 export const normalizeDeliveryAccountMode = (
   value: string | null | undefined
 ): DeliveryPartnerAccountMode => (value === 'delivery' ? 'delivery' : 'customer');

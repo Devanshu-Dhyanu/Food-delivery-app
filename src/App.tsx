@@ -25,6 +25,7 @@ import DeliveryPartnerHub from './components/DeliveryPartnerHub';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import {
   DELIVERY_APP_MODE_STORAGE_KEY,
+  DELIVERY_ACTIVE_TRIP_LOCK_STATUSES,
   DELIVERY_MODE_SYNC_INTERVAL,
   normalizeDeliveryAccountMode,
 } from './lib/deliveryPartner';
@@ -383,6 +384,26 @@ function App() {
       if (!deliveryPartnerData) {
         setAppMode(nextMode);
         return;
+      }
+
+      if (nextMode === 'customer') {
+        const { data: activeTripData, error: activeTripError } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('delivery_partner_user_id', user.id)
+          .in('delivery_assignment_status', DELIVERY_ACTIVE_TRIP_LOCK_STATUSES)
+          .limit(1);
+
+        if (activeTripError) {
+          throw activeTripError;
+        }
+
+        if ((activeTripData?.length ?? 0) > 0) {
+          window.alert(
+            'Accepted delivery complete karne ke baad hi Delivery Off ya Home mode par ja sakte ho.'
+          );
+          return;
+        }
       }
 
       const nextProfileState =

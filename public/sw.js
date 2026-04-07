@@ -1,10 +1,30 @@
-const CACHE_NAME = 'the-vajra-shell-v2';
+const SHELL_CACHE_NAME = 'the-vajra-shell-v3';
+const IMAGE_CACHE_NAME = 'the-vajra-images-v1';
 const APP_SHELL = ['/', '/site.webmanifest', '/the-vajra-mark.svg'];
+
+const isCacheableImageRequest = (request, url) => {
+  if (request.destination !== 'image') {
+    return false;
+  }
+
+  if (!url.protocol.startsWith('http')) {
+    return false;
+  }
+
+  if (url.origin === self.location.origin && url.pathname.startsWith('/api/')) {
+    return false;
+  }
+
+  return true;
+};
+
+const shouldCacheResponse = (response) =>
+  response && (response.ok || response.type === 'opaque');
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
-      .open(CACHE_NAME)
+      .open(SHELL_CACHE_NAME)
       .then((cache) => cache.addAll(APP_SHELL))
       .then(() => self.skipWaiting())
   );
@@ -15,7 +35,11 @@ self.addEventListener('activate', (event) => {
     caches
       .keys()
       .then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+        Promise.all(
+          keys
+            .filter((key) => ![SHELL_CACHE_NAME, IMAGE_CACHE_NAME].includes(key))
+            .map((key) => caches.delete(key))
+        )
       )
       .then(() => self.clients.claim())
   );
@@ -30,6 +54,27 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
+  if (isCacheableImageRequest(request, url)) {
+    event.respondWith(
+      caches.open(IMAGE_CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(request);
+
+        const networkResponsePromise = fetch(request)
+          .then((response) => {
+            if (shouldCacheResponse(response)) {
+              void cache.put(request, response.clone());
+            }
+
+            return response;
+          })
+          .catch(() => cachedResponse);
+
+        return cachedResponse || networkResponsePromise;
+      })
+    );
+    return;
+  }
+
   if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) {
     return;
   }
@@ -39,7 +84,7 @@ self.addEventListener('fetch', (event) => {
       fetch(request)
         .then((response) => {
           const responseClone = response.clone();
-          void caches.open(CACHE_NAME).then((cache) => cache.put('/', responseClone));
+          void caches.open(SHELL_CACHE_NAME).then((cache) => cache.put('/', responseClone));
           return response;
         })
         .catch(async () => {
@@ -59,7 +104,7 @@ self.addEventListener('fetch', (event) => {
       return fetch(request).then((response) => {
         if (response.ok && response.type === 'basic') {
           const responseClone = response.clone();
-          void caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          void caches.open(SHELL_CACHE_NAME).then((cache) => cache.put(request, responseClone));
         }
 
         return response;

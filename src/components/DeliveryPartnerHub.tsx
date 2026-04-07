@@ -25,6 +25,7 @@ import DeliveryPartnerOnboarding, {
 import { useDeliveryVoiceCall } from '../context/DeliveryVoiceCallContext';
 import {
   buildDeliveryPartnerBaseLabel,
+  DELIVERY_ACTIVE_TRIP_LOCK_STATUSES,
   getDefaultDeliveryPartnerForm,
   getDeliveryAssignmentStatusLabel,
   getDeliveryPartnerTypeLabel,
@@ -676,6 +677,14 @@ export default function DeliveryPartnerHub({
       return;
     }
 
+    if (profile.is_online && hasLockedActiveTrip) {
+      setStatusMessage({
+        tone: 'info',
+        text: 'Accepted delivery ko pehle delivered karo. Tabhi Delivery Off ya Home mode allowed hoga.',
+      });
+      return;
+    }
+
     try {
       if (!profile.is_online) {
         await primeAlertAudio();
@@ -874,6 +883,9 @@ export default function DeliveryPartnerHub({
   const queueValue = availableOrders.length;
   const liveTripsValue = assignedOrders.length;
   const completedValue = completedOrders.length;
+  const hasLockedActiveTrip = assignedOrders.some((order) =>
+    DELIVERY_ACTIVE_TRIP_LOCK_STATUSES.includes(order.delivery_assignment_status)
+  );
   const completedOrderWorth = completedOrders.reduce(
     (total, order) => total + Number(order.total_amount || 0),
     0
@@ -986,11 +998,12 @@ export default function DeliveryPartnerHub({
               <button
                 type="button"
                 onClick={handleToggleOnline}
+                disabled={profile.is_online && hasLockedActiveTrip}
                 className={`rounded-[28px] border p-5 text-left transition ${
                   profile.is_online
                     ? 'border-emerald-400/30 bg-emerald-500/15 text-white'
                     : 'border-white/10 bg-white/[0.03] text-slate-200'
-                }`}
+                } ${profile.is_online && hasLockedActiveTrip ? 'cursor-not-allowed opacity-70' : ''}`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/40">
@@ -1005,11 +1018,17 @@ export default function DeliveryPartnerHub({
                   </span>
                 </div>
                 <p className="mt-4 text-lg font-bold">
-                  {profile.is_online ? 'Pause new orders' : 'Start taking orders'}
+                  {profile.is_online
+                    ? hasLockedActiveTrip
+                      ? 'Complete active trip first'
+                      : 'Pause new orders'
+                    : 'Start taking orders'}
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-300">
                   {profile.is_online
-                    ? 'You are visible for new delivery assignments right now.'
+                    ? hasLockedActiveTrip
+                      ? 'Aapne order accept kar liya hai. Delivered hone tak delivery off ya home mode allowed nahi hoga.'
+                      : 'You are visible for new delivery assignments right now.'
                     : 'Go online whenever you are ready to hear new order alerts.'}
                 </p>
               </button>
