@@ -72,13 +72,9 @@ export default function Login() {
         @media (max-width: 720px) {
           .login-navbar {
             padding: 14px 16px !important;
-            flex-wrap: wrap !important;
-            gap: 14px !important;
-            align-items: center !important;
           }
 
           .login-logo {
-            min-width: 0 !important;
             gap: 10px !important;
           }
 
@@ -98,23 +94,11 @@ export default function Login() {
           }
 
           .login-nav-right {
-            width: 100% !important;
             gap: 10px !important;
           }
 
-          .login-nav-link,
-          .login-nav-btn {
-            flex: 1 1 0 !important;
-            text-align: center !important;
-            justify-content: center !important;
-            padding: 11px 14px !important;
-            border-radius: 999px !important;
-            min-height: 42px !important;
-          }
-
-          .login-nav-link {
-            background: #f4f4f4 !important;
-            border: 1px solid #e6e6e6 !important;
+          .login-nav-btn-mobile-hide {
+            display: none !important;
           }
         }
 
@@ -125,10 +109,6 @@ export default function Login() {
 
           .login-logo-title {
             font-size: 18px !important;
-          }
-
-          .login-nav-right {
-            flex-direction: column !important;
           }
         }
       `}</style>
@@ -149,8 +129,8 @@ export default function Login() {
             </div>
           </div>
           <div className="login-nav-right" style={styles.navRight}>
-            <button className="login-nav-link" style={styles.navLink} onClick={() => openModal('signin')}>Sign in</button>
-            <button className="login-nav-btn" style={styles.navBtn} onClick={() => openModal('signup')}>Get started</button>
+            <button style={styles.navLink} onClick={() => openModal('signin')}>Sign in</button>
+            <button className="login-nav-btn-mobile-hide" style={styles.navBtn} onClick={() => openModal('signup')}>Get started</button>
           </div>
         </nav>
 
