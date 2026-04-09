@@ -100,6 +100,91 @@ export default function Login() {
           .login-nav-btn-mobile-hide {
             display: none !important;
           }
+
+          .login-hero {
+            justify-content: flex-start !important;
+            padding: 48px 18px 56px !important;
+          }
+
+          .login-hero-title {
+            font-size: 42px !important;
+            line-height: 1.04 !important;
+            letter-spacing: -1px !important;
+            margin-bottom: 14px !important;
+          }
+
+          .login-hero-sub {
+            max-width: 100% !important;
+            font-size: 15px !important;
+            line-height: 1.7 !important;
+            margin-bottom: 12px !important;
+          }
+
+          .login-company-line {
+            margin-bottom: 24px !important;
+          }
+
+          .login-pill-row {
+            gap: 8px !important;
+            margin-bottom: 28px !important;
+            max-width: 100% !important;
+            padding: 0 4px !important;
+          }
+
+          .login-pill {
+            padding: 7px 12px !important;
+            font-size: 12px !important;
+          }
+
+          .login-cta-btn {
+            width: 100% !important;
+            max-width: 280px !important;
+            justify-content: center !important;
+            margin-bottom: 14px !important;
+          }
+
+          .login-secondary-link-row {
+            margin-top: 2px !important;
+          }
+
+          .login-secondary-link {
+            font-size: 13px !important;
+            color: #9a6844 !important;
+          }
+
+          .login-footer-bar {
+            padding: 16px 18px !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+          }
+
+          .login-footer-links {
+            flex-wrap: wrap !important;
+            gap: 10px !important;
+          }
+
+          .login-modal {
+            width: calc(100% - 24px) !important;
+            max-width: 440px !important;
+            border-radius: 18px !important;
+            padding: 38px 20px 26px !important;
+          }
+
+          .login-modal-title {
+            font-size: 24px !important;
+            margin-bottom: 22px !important;
+          }
+
+          .login-social-btn,
+          .login-email-input,
+          .login-submit-btn {
+            min-height: 48px !important;
+          }
+
+          .login-modal-footer {
+            padding: 0 16px !important;
+          }
         }
 
         @media (max-width: 420px) {
@@ -109,6 +194,31 @@ export default function Login() {
 
           .login-logo-title {
             font-size: 18px !important;
+          }
+
+          .login-hero {
+            padding: 42px 16px 48px !important;
+          }
+
+          .login-hero-title {
+            font-size: 35px !important;
+          }
+
+          .login-pill-row {
+            gap: 7px !important;
+          }
+
+          .login-cta-btn {
+            max-width: 100% !important;
+          }
+
+          .login-modal {
+            width: calc(100% - 18px) !important;
+            padding: 34px 16px 22px !important;
+          }
+
+          .login-modal-footer {
+            padding: 0 8px !important;
           }
         }
       `}</style>
@@ -135,34 +245,34 @@ export default function Login() {
         </nav>
 
         {/* HERO */}
-        <section style={styles.hero}>
+        <section className="login-hero" style={styles.hero}>
           <p style={styles.heroTag}>Campus ordering platform for LPU</p>
-          <h1 style={styles.heroTitle}>{PRODUCT_NAME}</h1>
-          <p style={styles.heroSub}>
+          <h1 className="login-hero-title" style={styles.heroTitle}>{PRODUCT_NAME}</h1>
+          <p className="login-hero-sub" style={styles.heroSub}>
             Order food, discover campus offers, and access student services in one place with
             The Vajra.
           </p>
-          <p style={styles.companyLine}>Operated by {COMPANY_NAME}</p>
-          <div style={styles.pillRow}>
+          <p className="login-company-line" style={styles.companyLine}>Operated by {COMPANY_NAME}</p>
+          <div className="login-pill-row" style={styles.pillRow}>
             {['Food delivery', 'Campus offers', 'Student marketplace', 'Fast ordering', 'Campus services'].map((p) => (
-              <span key={p} style={styles.pill}>{p}</span>
+              <span key={p} className="login-pill" style={styles.pill}>{p}</span>
             ))}
           </div>
-          <button style={styles.ctaBtn} onClick={() => openModal('signup')}>{'Start now ->'}</button>
+          <button className="login-cta-btn" style={styles.ctaBtn} onClick={() => openModal('signup')}>{'Start now ->'}</button>
           <p style={styles.signInHint}>
             Already have an account?{' '}
             <button style={styles.hintLink} onClick={() => openModal('signin')}>Sign in</button>
           </p>
-          <p style={styles.secondaryLinkRow}>
-            <a href="/founder" style={styles.secondaryLink}>Read founder story</a>
+          <p className="login-secondary-link-row" style={styles.secondaryLinkRow}>
+            <a href="/founder" className="login-secondary-link" style={styles.secondaryLink}>Read founder story</a>
           </p>
         </section>
       </div>
 
       <footer style={styles.siteFooter}>
-        <div style={styles.footerBar}>
+        <div className="login-footer-bar" style={styles.footerBar}>
           <p style={styles.footerCopy}>(c) {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
-          <div style={styles.footerLinks}>
+          <div className="login-footer-links" style={styles.footerLinks}>
             <a href="/privacy" style={styles.footerBarLink}>Privacy Policy</a>
             <span style={{ color: '#555' }}>|</span>
             <a href="/terms" style={styles.footerBarLink}>Terms of Service</a>
@@ -173,13 +283,13 @@ export default function Login() {
       {/* MODAL */}
       {modalOpen && (
         <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}>
-          <div style={styles.modal}>
+          <div className="login-modal" style={styles.modal}>
             <button style={styles.closeBtn} onClick={() => setModalOpen(false)}>x</button>
-            <h2 style={styles.modalTitle}>
+            <h2 className="login-modal-title" style={styles.modalTitle}>
               {mode === 'signup' ? `Join ${BRAND_NAME}.` : 'Welcome back.'}
             </h2>
 
-            <button style={styles.socialBtn} onClick={handleGoogleLogin}>
+            <button className="login-social-btn" style={styles.socialBtn} onClick={handleGoogleLogin}>
               <GoogleIcon />
               Continue with Google
             </button>
@@ -192,6 +302,7 @@ export default function Login() {
 
             <form onSubmit={handleEmailSubmit}>
               <input
+                className="login-email-input"
                 style={styles.emailInput}
                 type="email"
                 placeholder="Your email address"
@@ -199,7 +310,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <button style={styles.submitBtn} type="submit" disabled={loading}>
+              <button className="login-submit-btn" style={styles.submitBtn} type="submit" disabled={loading}>
                 {loading ? 'Sending...' : mode === 'signup' ? 'Continue with email' : 'Sign in with email'}
               </button>
             </form>
@@ -210,7 +321,7 @@ export default function Login() {
               </p>
             )}
 
-            <p style={styles.modalFooter}>
+            <p className="login-modal-footer" style={styles.modalFooter}>
               By continuing, you agree to our <a href="/terms" style={styles.modalFooterLink}>Terms</a> and <a href="/privacy" style={styles.modalFooterLink}>Privacy Policy</a>.
             </p>
 
