@@ -17,6 +17,7 @@ import Profile from './components/Profile';
 import FounderPage from './components/FounderPage';
 import BrandedLoader from './components/BrandedLoader';
 import ContactUs from './components/ContactUs';
+import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsAndConditions from './components/TermsAndConditions';
 import RefundCancellationPolicy from './components/RefundCancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
@@ -31,15 +32,30 @@ import {
 } from './lib/deliveryPartner';
 import { supabase, Announcement, type DeliveryPartnerAccountMode } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'contact-us' | 'terms-conditions' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'contact-us' | 'terms-conditions' | 'privacy-policy' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
 type AppMode = DeliveryPartnerAccountMode;
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 const FOUNDER_PATHS = ['/founder', '/about-founder', '/about-vajra'] as const;
+const TERMS_PATHS = ['/terms', '/terms-conditions'] as const;
+const PRIVACY_PATHS = ['/privacy', '/privacy-policy'] as const;
 
 const getInitialPageFromPath = (): Page => {
   const pathname = window.location.pathname.toLowerCase();
-  return FOUNDER_PATHS.includes(pathname as (typeof FOUNDER_PATHS)[number]) ? 'founder' : 'home';
+
+  if (FOUNDER_PATHS.includes(pathname as (typeof FOUNDER_PATHS)[number])) {
+    return 'founder';
+  }
+
+  if (TERMS_PATHS.includes(pathname as (typeof TERMS_PATHS)[number])) {
+    return 'terms-conditions';
+  }
+
+  if (PRIVACY_PATHS.includes(pathname as (typeof PRIVACY_PATHS)[number])) {
+    return 'privacy-policy';
+  }
+
+  return 'home';
 };
 
 const priorityRank: Record<Announcement['priority'], number> = {
@@ -354,6 +370,7 @@ function App() {
       page === 'founder' ||
       page === 'contact-us' ||
       page === 'terms-conditions' ||
+      page === 'privacy-policy' ||
       page === 'refund-cancellation' ||
       page === 'shipping-policy'
     ) {
@@ -523,6 +540,12 @@ function App() {
   const isFounderPath = FOUNDER_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof FOUNDER_PATHS)[number]
   );
+  const isTermsPath = TERMS_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof TERMS_PATHS)[number]
+  );
+  const isPrivacyPath = PRIVACY_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof PRIVACY_PATHS)[number]
+  );
 
   useEffect(() => {
     if (window.location.pathname === '/auth/callback') {
@@ -552,6 +575,12 @@ function App() {
 
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
   if (window.location.pathname === '/payment/callback') return <PaymentCallback />;
+  if (isTermsPath) {
+    return <TermsAndConditions />;
+  }
+  if (isPrivacyPath) {
+    return <PrivacyPolicy />;
+  }
   if (isFounderPath && !user) {
     return <FounderPage publicView />;
   }
@@ -718,6 +747,8 @@ function App() {
         return <ContactUs />;
       case 'terms-conditions':
         return <TermsAndConditions />;
+      case 'privacy-policy':
+        return <PrivacyPolicy />;
       case 'refund-cancellation':
         return <RefundCancellationPolicy />;
       case 'shipping-policy':

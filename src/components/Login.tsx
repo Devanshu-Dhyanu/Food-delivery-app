@@ -68,21 +68,89 @@ export default function Login() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'DM Sans', sans-serif; background: #fff; }
         button { cursor: pointer; }
+
+        @media (max-width: 720px) {
+          .login-navbar {
+            padding: 14px 16px !important;
+            flex-wrap: wrap !important;
+            gap: 14px !important;
+            align-items: center !important;
+          }
+
+          .login-logo {
+            min-width: 0 !important;
+            gap: 10px !important;
+          }
+
+          .login-logo-icon {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 14px !important;
+          }
+
+          .login-logo-title {
+            font-size: 20px !important;
+          }
+
+          .login-logo-accent {
+            font-size: 10px !important;
+            letter-spacing: 0.08em !important;
+          }
+
+          .login-nav-right {
+            width: 100% !important;
+            gap: 10px !important;
+          }
+
+          .login-nav-link,
+          .login-nav-btn {
+            flex: 1 1 0 !important;
+            text-align: center !important;
+            justify-content: center !important;
+            padding: 11px 14px !important;
+            border-radius: 999px !important;
+            min-height: 42px !important;
+          }
+
+          .login-nav-link {
+            background: #f4f4f4 !important;
+            border: 1px solid #e6e6e6 !important;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .login-navbar {
+            padding: 12px 14px !important;
+          }
+
+          .login-logo-title {
+            font-size: 18px !important;
+          }
+
+          .login-nav-right {
+            flex-direction: column !important;
+          }
+        }
       `}</style>
 
       <div style={styles.page}>
         {/* NAVBAR */}
-        <nav style={styles.navbar}>
-          <div style={styles.logo}>
-            <img src="/the-vajra-mark.svg" alt="The Vajra Campus Delivery logo" style={styles.logoIcon} />
+        <nav className="login-navbar" style={styles.navbar}>
+          <div className="login-logo" style={styles.logo}>
+            <img
+              src="/the-vajra-mark.svg"
+              alt="The Vajra Campus Delivery logo"
+              className="login-logo-icon"
+              style={styles.logoIcon}
+            />
             <div style={styles.logoTextGroup}>
-              <span style={styles.logoTitle}>{BRAND_NAME}</span>
-              <span style={styles.logoAccent}>Campus delivery</span>
+              <span className="login-logo-title" style={styles.logoTitle}>{BRAND_NAME}</span>
+              <span className="login-logo-accent" style={styles.logoAccent}>Campus delivery</span>
             </div>
           </div>
-          <div style={styles.navRight}>
-            <button style={styles.navLink} onClick={() => openModal('signin')}>Sign in</button>
-            <button style={styles.navBtn} onClick={() => openModal('signup')}>Get started</button>
+          <div className="login-nav-right" style={styles.navRight}>
+            <button className="login-nav-link" style={styles.navLink} onClick={() => openModal('signin')}>Sign in</button>
+            <button className="login-nav-btn" style={styles.navBtn} onClick={() => openModal('signup')}>Get started</button>
           </div>
         </nav>
 
