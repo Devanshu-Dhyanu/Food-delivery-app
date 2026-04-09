@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
+const COMPANY_NAME = 'The VajraCognixia Technologies Private Limited';
+const BRAND_NAME = 'The Vajra';
+const PRODUCT_NAME = 'The Vajra Campus Delivery';
+const HOME_TITLE = `${PRODUCT_NAME} | ${COMPANY_NAME}`;
+
 function GoogleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
@@ -21,24 +26,7 @@ export default function Login() {
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   useEffect(() => {
-    const hour = new Date().getHours();
-
-    if (hour >= 22 || hour < 5) {
-      document.title = 'Late-night cravings at The Vajra';
-      return;
-    }
-
-    if (hour < 11) {
-      document.title = 'Fresh campus breakfast at The Vajra';
-      return;
-    }
-
-    if (hour < 17) {
-      document.title = 'Lunch is live at The Vajra';
-      return;
-    }
-
-    document.title = 'Evening cravings at The Vajra';
+    document.title = HOME_TITLE;
   }, []);
 
   const openModal = (m: 'signup' | 'signin') => {
@@ -68,7 +56,7 @@ export default function Login() {
     if (error) {
       setMessage('Something went wrong. Try again.');
     } else {
-      setMessage('✓ Magic link sent! Check your email.');
+      setMessage('Success: Magic link sent. Check your email.');
     }
     setLoading(false);
   };
@@ -86,9 +74,9 @@ export default function Login() {
         {/* NAVBAR */}
         <nav style={styles.navbar}>
           <div style={styles.logo}>
-            <img src="/the-vajra-mark.svg" alt="The Vajra" style={styles.logoIcon} />
+            <img src="/the-vajra-mark.svg" alt="The Vajra Campus Delivery logo" style={styles.logoIcon} />
             <div style={styles.logoTextGroup}>
-              <span style={styles.logoTitle}>The Vajra</span>
+              <span style={styles.logoTitle}>{BRAND_NAME}</span>
               <span style={styles.logoAccent}>Campus delivery</span>
             </div>
           </div>
@@ -100,30 +88,35 @@ export default function Login() {
 
         {/* HERO */}
         <section style={styles.hero}>
-          <p style={styles.heroTag}>Campus Services Platform — LPU</p>
-          <h1 style={styles.heroTitle}>Think fast,<br />move faster.</h1>
+          <p style={styles.heroTag}>Campus ordering platform for LPU</p>
+          <h1 style={styles.heroTitle}>{PRODUCT_NAME}</h1>
           <p style={styles.heroSub}>
-            Rent cars & bikes, order food, buy & sell second-hand items — everything on campus, in one place.
+            Order food, discover campus offers, and access student services in one place with
+            The Vajra.
           </p>
+          <p style={styles.companyLine}>Operated by {COMPANY_NAME}</p>
           <div style={styles.pillRow}>
-            {['🚗 Car Rental', '🚲 Bike Rental', '🍱 LPU Services', '📦 Second-hand Market', '⚡ Fast Delivery'].map((p) => (
+            {['Food delivery', 'Campus offers', 'Student marketplace', 'Fast ordering', 'Campus services'].map((p) => (
               <span key={p} style={styles.pill}>{p}</span>
             ))}
           </div>
-          <button style={styles.ctaBtn} onClick={() => openModal('signup')}>Start now →</button>
+          <button style={styles.ctaBtn} onClick={() => openModal('signup')}>{'Start now ->'}</button>
           <p style={styles.signInHint}>
             Already have an account?{' '}
             <button style={styles.hintLink} onClick={() => openModal('signin')}>Sign in</button>
+          </p>
+          <p style={styles.secondaryLinkRow}>
+            <a href="/founder" style={styles.secondaryLink}>Read founder story</a>
           </p>
         </section>
       </div>
 
       <footer style={styles.siteFooter}>
         <div style={styles.footerBar}>
-          <p style={styles.footerCopy}>© {new Date().getFullYear()} The Vajra. All rights reserved.</p>
+          <p style={styles.footerCopy}>(c) {new Date().getFullYear()} {COMPANY_NAME}. All rights reserved.</p>
           <div style={styles.footerLinks}>
             <a href="/privacy" style={styles.footerBarLink}>Privacy Policy</a>
-            <span style={{ color: '#555' }}>·</span>
+            <span style={{ color: '#555' }}>|</span>
             <a href="/terms" style={styles.footerBarLink}>Terms of Service</a>
           </div>
         </div>
@@ -133,9 +126,9 @@ export default function Login() {
       {modalOpen && (
         <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && setModalOpen(false)}>
           <div style={styles.modal}>
-            <button style={styles.closeBtn} onClick={() => setModalOpen(false)}>×</button>
+            <button style={styles.closeBtn} onClick={() => setModalOpen(false)}>x</button>
             <h2 style={styles.modalTitle}>
-              {mode === 'signup' ? 'Join The Vajra.' : 'Welcome back.'}
+              {mode === 'signup' ? `Join ${BRAND_NAME}.` : 'Welcome back.'}
             </h2>
 
             <button style={styles.socialBtn} onClick={handleGoogleLogin}>
@@ -164,7 +157,7 @@ export default function Login() {
             </form>
 
             {message && (
-              <p style={{ textAlign: 'center', fontSize: 13, color: message.startsWith('✓') ? '#2a7a4f' : '#c0392b', marginBottom: 12 }}>
+              <p style={{ textAlign: 'center', fontSize: 13, color: message.startsWith('Success:') ? '#2a7a4f' : '#c0392b', marginBottom: 12 }}>
                 {message}
               </p>
             )}
@@ -201,12 +194,15 @@ const styles: Record<string, React.CSSProperties> = {
   hero: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 20px' },
   heroTag: { fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#999', marginBottom: 20 },
   heroTitle: { fontFamily: "'Source Serif 4', serif", fontSize: 58, fontWeight: 600, lineHeight: 1.08, letterSpacing: '-1.5px', maxWidth: 620, marginBottom: 18, color: '#1a1a1a' },
-  heroSub: { fontSize: 16, color: '#666', lineHeight: 1.65, maxWidth: 400, marginBottom: 32 },
+  heroSub: { fontSize: 16, color: '#666', lineHeight: 1.65, maxWidth: 520, marginBottom: 14 },
+  companyLine: { fontSize: 13, color: '#8a5d3b', lineHeight: 1.6, marginBottom: 32, fontWeight: 600, letterSpacing: '0.02em' },
   pillRow: { display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginBottom: 40 },
   pill: { background: '#fff', border: '1px solid #e0e0e0', borderRadius: 20, padding: '7px 16px', fontSize: 13, color: '#333' },
   ctaBtn: { display: 'inline-flex', alignItems: 'center', gap: 8, padding: '14px 30px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 40, fontSize: 16, fontFamily: 'inherit', marginBottom: 16 },
   signInHint: { fontSize: 14, color: '#777' },
   hintLink: { color: '#1a1a1a', textDecoration: 'underline', background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 14, padding: 0 },
+  secondaryLinkRow: { fontSize: 14, color: '#777' },
+  secondaryLink: { color: '#8a5d3b', textDecoration: 'none', fontWeight: 600 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.48)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 },
   modal: { background: '#fff', width: '100%', maxWidth: 440, borderRadius: 6, padding: '48px 40px 36px', position: 'relative' },
   closeBtn: { position: 'absolute', top: 14, right: 18, fontSize: 24, color: '#aaa', background: 'none', border: 'none', lineHeight: 1 },

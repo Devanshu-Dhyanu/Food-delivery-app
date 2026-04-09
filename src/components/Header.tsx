@@ -744,14 +744,14 @@ export default function Header({
               )}
               <img
                 src="/the-vajra-mark.svg"
-                alt="The Vajra"
+                alt="The Vajra Campus Delivery logo"
                 className="relative h-10 w-10 rounded-2xl border border-white/10 shadow-lg shadow-black/30 transition-transform duration-300 group-hover:scale-105 sm:h-11 sm:w-11"
               />
             </div>
             <div className="hidden flex-col items-start sm:flex">
               <span className="text-lg font-bold tracking-tight text-white sm:text-xl">The Vajra</span>
               <span className="hidden text-xs text-gray-400 sm:block">
-                {isDeliveryMode ? 'Delivery partner console' : 'Campus Food Delivery'}
+                {isDeliveryMode ? 'Delivery partner console' : 'The Vajra Campus Delivery'}
               </span>
             </div>
           </button>

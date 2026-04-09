@@ -300,7 +300,7 @@ export function generateInvoiceHTML(receipt: any, paymentData: any): string {
 
         <div class="footer">
           <p>Thank you for your order! This is a digitally generated invoice.</p>
-          <p>For any queries, contact us at support@vajracognixia.in</p>
+          <p>For any queries, contact us at info@vajracognixia.in</p>
         </div>
       </div>
     </body>

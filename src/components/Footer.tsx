@@ -15,14 +15,14 @@ export default function Footer({ onNavigate }: FooterProps) {
         <div className="grid gap-6 lg:grid-cols-[1.15fr,0.85fr] lg:items-start">
           <div>
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-orange-300">
-              The Vajra
+              The Vajra Campus Delivery
             </p>
             <h2 className="mb-3 text-2xl font-bold text-white sm:text-3xl">
-              Campus platform for daily essentials, starting with food delivery.
+              Campus food delivery and student services, operated by The VajraCognixia Technologies Private Limited.
             </h2>
             <p className="max-w-2xl text-sm leading-6 text-gray-400 sm:text-base">
-              Restaurants are live right now, while rentals and other campus services can plug into
-              the same experience as the platform grows.
+              The Vajra brings campus ordering, delivery, and future student services into one
+              platform with a clear brand name and company identity.
             </p>
           </div>
 
@@ -42,7 +42,13 @@ export default function Footer({ onNavigate }: FooterProps) {
         </div>
 
         <div className="mt-8 border-t border-white/5 pt-6">
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 mb-6">
+          <div className="mb-6 grid gap-4 sm:grid-cols-2 md:grid-cols-5">
+            <a
+              href="/founder"
+              className="text-sm text-gray-400 hover:text-orange-300 transition-colors text-left"
+            >
+              Founder & Vision
+            </a>
             <button 
               onClick={() => handleLinkClick('contact-us')}
               className="text-sm text-gray-400 hover:text-orange-300 transition-colors text-left"
@@ -70,8 +76,8 @@ export default function Footer({ onNavigate }: FooterProps) {
           </div>
           
           <div className="flex flex-col gap-3 pt-5 border-t border-white/5 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>&copy; {new Date().getFullYear()} The VajraCognixia. All rights reserved.</p>
-            <p>Built for fast campus ordering and future campus services.</p>
+            <p>&copy; {new Date().getFullYear()} The VajraCognixia Technologies Private Limited. All rights reserved.</p>
+            <p>The Vajra Campus Delivery brand and logo are used across the platform.</p>
           </div>
         </div>
       </div>

@@ -225,7 +225,7 @@ export default function PaymentConfirmation({
               <p className="mb-3 text-xs text-gray-400">Need help?</p>
               <p className="text-xs text-gray-500">
                 Contact our support team:{' '}
-                <span className="text-orange-300">support@vajracognixia.in</span>
+                <span className="text-orange-300">info@vajracognixia.in</span>
               </p>
             </div>
           </div>

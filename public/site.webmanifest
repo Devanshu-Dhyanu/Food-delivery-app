@@ -1,8 +1,8 @@
 {
-  "name": "The Vajra",
+  "name": "The Vajra Campus Delivery",
   "short_name": "The Vajra",
   "id": "/",
-  "description": "Campus food ordering, second-hand marketplace, and delivery partner mode from The Vajra.",
+  "description": "Campus food ordering and student services by The VajraCognixia Technologies Private Limited.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

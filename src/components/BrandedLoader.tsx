@@ -22,7 +22,7 @@ export default function BrandedLoader({
           <div className="rounded-[22px] border border-white/10 bg-white/5 p-3 shadow-lg shadow-black/20">
             <img
               src="/the-vajra-mark.svg"
-              alt="The Vajra"
+              alt="The Vajra Campus Delivery logo"
               className="h-16 w-16 rounded-2xl object-cover"
             />
           </div>

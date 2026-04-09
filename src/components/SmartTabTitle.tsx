@@ -22,28 +22,14 @@ type SmartTabTitleProps = {
   hasProfile: boolean | null;
 };
 
+const HOME_TITLE = 'The Vajra Campus Delivery | The VajraCognixia Technologies Private Limited';
+
 const getCartTitle = (totalItems: number, suffix: string) => {
   const itemLabel = totalItems === 1 ? 'item' : 'items';
   return `${totalItems} ${itemLabel} ${suffix} | The Vajra`;
 };
 
-const getHomeTitle = () => {
-  const hour = new Date().getHours();
-
-  if (hour >= 22 || hour < 5) {
-    return 'Late-night cravings at The Vajra';
-  }
-
-  if (hour < 11) {
-    return 'Fresh campus breakfast at The Vajra';
-  }
-
-  if (hour < 17) {
-    return 'Lunch is live at The Vajra';
-  }
-
-  return 'Evening cravings at The Vajra';
-};
+const getHomeTitle = () => HOME_TITLE;
 
 export default function SmartTabTitle({
   currentPage,
@@ -113,13 +99,13 @@ export default function SmartTabTitle({
         document.title = 'Your profile | The Vajra';
         break;
       case 'founder':
-        document.title = 'Founder & vision | The Vajra';
+        document.title = 'Devanshu Dhyanu | Founder of The Vajra Campus Delivery';
         break;
       case 'payment-callback':
         document.title = 'Processing payment | The Vajra';
         break;
       default:
-        document.title = 'The Vajra';
+        document.title = HOME_TITLE;
     }
   }, [currentPage, hasProfile, isAuthenticated, loading, totalItems]);
 

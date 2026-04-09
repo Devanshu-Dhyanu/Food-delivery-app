@@ -35,6 +35,12 @@ type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 
 type AppMode = DeliveryPartnerAccountMode;
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
+const FOUNDER_PATHS = ['/founder', '/about-founder', '/about-vajra'] as const;
+
+const getInitialPageFromPath = (): Page => {
+  const pathname = window.location.pathname.toLowerCase();
+  return FOUNDER_PATHS.includes(pathname as (typeof FOUNDER_PATHS)[number]) ? 'founder' : 'home';
+};
 
 const priorityRank: Record<Announcement['priority'], number> = {
   high: 0,
@@ -54,7 +60,7 @@ const sortAnnouncements = (items: Announcement[]) =>
   });
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('home');
+  const [currentPage, setCurrentPage] = useState<Page>(() => getInitialPageFromPath());
   const [appMode, setAppMode] = useState<AppMode>(() => {
     try {
       return window.localStorage.getItem(DELIVERY_APP_MODE_STORAGE_KEY) === 'delivery'
@@ -514,6 +520,9 @@ function App() {
   const hasUnreadAnnouncements = announcements.some(
     (announcement) => !dismissedAnnouncementIds.includes(announcement.id)
   );
+  const isFounderPath = FOUNDER_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof FOUNDER_PATHS)[number]
+  );
 
   useEffect(() => {
     if (window.location.pathname === '/auth/callback') {
@@ -543,6 +552,9 @@ function App() {
 
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
   if (window.location.pathname === '/payment/callback') return <PaymentCallback />;
+  if (isFounderPath && !user) {
+    return <FounderPage publicView />;
+  }
   if (loading) {
     return <BrandedLoader fullScreen message="Loading The Vajra..." />;
   }
