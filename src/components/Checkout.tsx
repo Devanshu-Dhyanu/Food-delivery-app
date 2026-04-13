@@ -58,6 +58,7 @@ const getScheduledDeliveryIsoValue = (value: string) => {
 export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const { cart, cartRestaurantId, cartRestaurantName, getTotalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [deliveryFee, setDeliveryFee] = useState(20);
   const [deliveryPreference, setDeliveryPreference] = useState<DeliveryPreference | null>(null);
   const [scheduleDelivery, setScheduleDelivery] = useState(false);
   const [scheduledDeliveryInput, setScheduledDeliveryInput] = useState('');
@@ -78,7 +79,6 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const [walletSchemaReady, setWalletSchemaReady] = useState(true);
 
   const subtotalAmount = getTotalAmount();
-  const deliveryFee = 20;
   const totalAmount = subtotalAmount + deliveryFee;
 
   const orderItemsPayload: OrderItemPayload[] = cart.map((item) => ({
@@ -102,6 +102,54 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
     deliveryPreference,
     scheduledDeliveryAt,
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!cartRestaurantId) {
+      setDeliveryFee(20);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    const loadRestaurantDeliveryFee = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('restaurants')
+          .select('delivery_fee')
+          .eq('id', cartRestaurantId)
+          .maybeSingle();
+
+        if (error) {
+          throw error;
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        const nextDeliveryFee =
+          typeof data?.delivery_fee === 'number' && Number.isFinite(data.delivery_fee)
+            ? data.delivery_fee
+            : 20;
+
+        setDeliveryFee(nextDeliveryFee);
+      } catch (error) {
+        console.error('Error loading restaurant delivery fee:', error);
+
+        if (isMounted) {
+          setDeliveryFee(20);
+        }
+      }
+    };
+
+    void loadRestaurantDeliveryFee();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [cartRestaurantId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -174,7 +222,7 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
   const createOrderWithLegacyInsert = async (userId: string, sanitizedData: { name: string; phone: string; address: string }) => {
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants')
-      .select('is_open')
+      .select('is_open, delivery_fee')
       .eq('id', cartRestaurantId)
       .maybeSingle();
 
@@ -281,9 +329,9 @@ export default function Checkout({ onBack, onOrderPlaced }: CheckoutProps) {
 
       const { data: restaurant, error: restaurantError } = await supabase
         .from('restaurants')
-        .select('is_open')
-        .eq('id', cartRestaurantId)
-        .maybeSingle();
+      .select('is_open, delivery_fee')
+      .eq('id', cartRestaurantId)
+      .maybeSingle();
 
       if (restaurantError) throw restaurantError;
       if (!restaurant) throw new Error('Restaurant not found.');

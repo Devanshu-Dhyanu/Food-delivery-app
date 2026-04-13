@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { logAdminActivityEvent } from '../lib/adminActivity';
 import { supabase } from '../lib/supabase';
 
 interface OnboardingProps {
@@ -131,6 +132,19 @@ export default function Onboarding({ userId, onComplete }: OnboardingProps) {
     setLoading(false);
 
     if (!error) {
+      await logAdminActivityEvent({
+        actorUserId: userId,
+        eventType: 'user_registered',
+        title: 'New user registered',
+        detail: `${payload.name} completed onboarding in The Vajra.`,
+        metadata: {
+          name: payload.name,
+          phone: payload.phone,
+          uid: payload.uid,
+          user_role: payload.user_role,
+          location_type: payload.location_type,
+        },
+      });
       onComplete();
       return;
     }

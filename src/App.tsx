@@ -24,6 +24,7 @@ import ShippingPolicy from './components/ShippingPolicy';
 import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
+import { logAdminSignInEvent } from './lib/adminActivity';
 import {
   DELIVERY_APP_MODE_STORAGE_KEY,
   DELIVERY_ACTIVE_TRIP_LOCK_STATUSES,
@@ -221,8 +222,12 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       syncSession(session);
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        void logAdminSignInEvent(session.user);
+      }
     });
 
     return () => {

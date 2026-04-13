@@ -14,6 +14,7 @@ export type Restaurant = {
   delivery_time: string;
   cuisine_type: string;
   is_open: boolean;
+  delivery_fee: number;
   created_at: string;
 };
 
@@ -134,6 +135,16 @@ export type Announcement = {
   created_by: string | null;
   created_at: string;
   updated_at: string | null;
+};
+
+export type AdminActivityEvent = {
+  id: string;
+  actor_user_id: string | null;
+  event_type: string;
+  title: string;
+  detail: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
 };
 
 export type RentalVehicle = {
