@@ -265,10 +265,7 @@ export default function RestaurantList({
   };
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
-  const firstName = greetingName?.trim().split(/\s+/)[0] || 'there';
   const currentHour = new Date().getHours();
-  const greetingLabel =
-    currentHour < 12 ? 'Good morning' : currentHour < 18 ? 'Good afternoon' : 'Good evening';
   const moodBanner =
     currentHour >= 5 && currentHour < 11
       ? {
@@ -297,7 +294,6 @@ export default function RestaurantList({
           summary: 'Closed restaurants stay visible below, while active options remain up top.',
           accent: 'border-cyan-400/20 bg-cyan-500/10 text-cyan-200',
         };
-  const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
   const selectedServiceDetails =
     campusServices.find((service) => service.id === selectedService) ?? campusServices[0];
   const searchMatchedRestaurants = [...restaurants]
@@ -608,46 +604,16 @@ export default function RestaurantList({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-white/5 via-gray-900 to-gray-900 shadow-xl shadow-black/20">
-        <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
-              {greetingLabel}, {firstName}
-            </p>
-            <h2 className="text-2xl font-bold text-white sm:text-3xl">
-              Ready for your next campus meal?
-            </h2>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[420px]">
-            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
-              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Open now</p>
-              <p className="text-lg font-semibold text-white">{openRestaurantsCount}</p>
-            </div>
-            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
-              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Visible spots</p>
-              <p className="text-lg font-semibold text-white">{visibleRestaurants.length}</p>
-            </div>
-            <div className="rounded-2xl border border-white/5 bg-white/5 px-4 py-4">
-              <p className="mb-1 text-xs uppercase tracking-[0.16em] text-gray-500">Quick note</p>
-              <p className="text-sm font-semibold text-orange-300">
-                {cartRestaurantName ? `Locked to ${cartRestaurantName}` : 'Fresh picks waiting'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800/95 shadow-xl shadow-black/20">
-        <div className="flex flex-col gap-5 px-5 py-5 sm:px-6">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-orange-300">
                 Service Switch
               </p>
-              <h2 className="text-2xl font-bold text-white">Choose what you want to use on The Vajra</h2>
+              <h2 className="text-xl font-bold text-white sm:text-2xl">Choose what you want to use on The Vajra</h2>
             </div>
-            <p className="max-w-2xl text-sm leading-6 text-gray-400">
+            <p className="max-w-2xl text-sm leading-6 text-gray-400 lg:text-[13px]">
               Restaurants stay live as usual, car rentals keep their own booking flow, and the marketplace is now ready for campus buying and selling.
             </p>
           </div>
@@ -664,7 +630,7 @@ export default function RestaurantList({
                   key={service.id}
                   type="button"
                   onClick={() => handleSelectService(service.id)}
-                  className={`group relative min-h-[210px] overflow-hidden rounded-[28px] border p-5 text-left transition-all duration-300 ${
+                  className={`group relative min-h-[170px] overflow-hidden rounded-[24px] border p-4 text-left transition-all duration-300 ${
                     isSelected
                       ? 'border-orange-300/35 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.20),transparent_58%),linear-gradient(180deg,rgba(64,44,35,0.96),rgba(17,24,39,0.94))] shadow-[0_20px_55px_rgba(249,115,22,0.16)]'
                       : 'border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] hover:-translate-y-0.5 hover:border-white/20 hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.09),rgba(255,255,255,0.04))]'
@@ -677,15 +643,15 @@ export default function RestaurantList({
                   />
 
                   <div className="relative flex h-full flex-col">
-                    <div className="mb-5 flex items-start justify-between gap-3">
+                    <div className="mb-4 flex items-start justify-between gap-3">
                       <span
-                        className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${
+                        className={`flex h-10 w-10 items-center justify-center rounded-[18px] border ${
                           isSelected
                             ? 'border-orange-300/35 bg-orange-500/15 text-orange-100'
                             : 'border-white/10 bg-white/5 text-gray-300'
                         }`}
                       >
-                        <Icon className="h-5 w-5" />
+                        <Icon className="h-4.5 w-4.5" />
                       </span>
 
                       <span
@@ -699,18 +665,18 @@ export default function RestaurantList({
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-white">{service.label}</h3>
+                    <h3 className="text-base font-semibold text-white">{service.label}</h3>
                     <p
-                      className={`mt-3 text-sm leading-6 ${
+                      className={`mt-2.5 text-sm leading-6 ${
                         isSelected ? 'text-orange-50/80' : 'text-gray-400'
                       }`}
                     >
                       {service.description}
                     </p>
 
-                    <div className="mt-auto pt-6">
+                    <div className="mt-auto pt-4">
                       <span
-                        className={`inline-flex h-1.5 w-12 rounded-full transition-all ${
+                        className={`inline-flex h-1.5 w-10 rounded-full transition-all ${
                           isSelected
                             ? 'bg-orange-400 shadow-[0_0_16px_rgba(251,146,60,0.8)]'
                             : 'bg-white/10 group-hover:bg-white/25'
