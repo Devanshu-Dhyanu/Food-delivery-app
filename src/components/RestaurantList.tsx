@@ -157,6 +157,7 @@ const campusServices = [
 ] as const;
 
 type CampusService = (typeof campusServices)[number]['id'];
+type FeaturedServiceSwitch = 'car-rent' | 'second-hand-market';
 type CarRentalScreen = 'list' | 'booking' | 'bookings';
 
 const campusServiceFeatureCopy: Record<
@@ -210,6 +211,8 @@ export default function RestaurantList({
   const [selectedCuisineFilter, setSelectedCuisineFilter] = useState('');
   const [sortBy, setSortBy] = useState<'rating' | 'delivery' | 'newest' | 'open'>('rating');
   const [selectedService, setSelectedService] = useState<CampusService>('restaurants');
+  const [featuredServiceSwitch, setFeaturedServiceSwitch] =
+    useState<FeaturedServiceSwitch>('car-rent');
   const [carRentalScreen, setCarRentalScreen] = useState<CarRentalScreen>('list');
   const [selectedRentalVehicle, setSelectedRentalVehicle] = useState<RentalVehicle | null>(null);
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<string[]>(() =>
@@ -243,6 +246,14 @@ export default function RestaurantList({
       setSelectedRentalVehicle(null);
     }
   }, [selectedService]);
+
+  const handleSelectService = (service: CampusService) => {
+    setSelectedService(service);
+
+    if (service === 'car-rent' || service === 'second-hand-market') {
+      setFeaturedServiceSwitch(service);
+    }
+  };
 
   const fetchRestaurants = async () => {
     try {
@@ -296,6 +307,9 @@ export default function RestaurantList({
   const openRestaurantsCount = restaurants.filter((restaurant) => restaurant.is_open).length;
   const selectedServiceDetails =
     campusServices.find((service) => service.id === selectedService) ?? campusServices[0];
+  const homeService =
+    campusServices.find((service) => service.id === 'restaurants') ?? campusServices[0];
+  const taxiService = campusServices.find((service) => service.id === 'taxi') ?? campusServices[2];
   const searchMatchedRestaurants = [...restaurants]
     .filter((restaurant) => {
       if (!normalizedQuery) return true;
@@ -533,7 +547,7 @@ export default function RestaurantList({
           </div>
           <button
             type="button"
-            onClick={() => setSelectedService('restaurants')}
+            onClick={() => handleSelectService('restaurants')}
             className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
           >
             Back to Restaurants
@@ -604,6 +618,234 @@ export default function RestaurantList({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <style>{`
+        .vajra-feature-switch-container {
+          --vajra-card-width: 50%;
+          --vajra-card-height: 118px;
+          --vajra-switch-bg: rgba(255, 255, 255, 0.06);
+          --vajra-switch-border: rgba(255, 255, 255, 0.1);
+          --vajra-switch-text: #f8fafc;
+          --vajra-switch-muted: rgba(248, 250, 252, 0.62);
+          --vajra-switch-shadow: rgba(0, 0, 0, 0.3);
+          --vajra-switch-card-bg: linear-gradient(
+            145deg,
+            rgba(249, 115, 22, 0.2),
+            rgba(251, 191, 36, 0.12)
+          );
+          --vajra-switch-highlight: #fb923c;
+          width: 100%;
+          max-width: 380px;
+          font-family: inherit;
+        }
+
+        .vajra-feature-switch {
+          display: flex;
+          position: relative;
+          width: 100%;
+          min-height: var(--vajra-card-height);
+          background: var(--vajra-switch-bg);
+          border-radius: 24px;
+          border: 1px solid var(--vajra-switch-border);
+          box-shadow:
+            0 18px 40px rgba(15, 23, 42, 0.22),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          perspective: 1000px;
+          overflow: hidden;
+        }
+
+        .vajra-feature-switch input[type="radio"] {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        .vajra-feature-switch-button {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 16px 12px;
+          cursor: pointer;
+          z-index: 2;
+          color: var(--vajra-switch-muted);
+          transition: color 0.3s ease;
+          -webkit-tap-highlight-color: transparent;
+          position: relative;
+          text-align: center;
+        }
+
+        .vajra-feature-switch-button:hover {
+          color: var(--vajra-switch-text);
+        }
+
+        .vajra-feature-switch-button:hover svg {
+          transform: translateY(-3px);
+          filter: drop-shadow(0 4px 6px var(--vajra-switch-shadow)) brightness(1.12);
+        }
+
+        .vajra-feature-switch-button svg {
+          width: 24px;
+          height: 24px;
+          transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+          filter: drop-shadow(0 2px 3px var(--vajra-switch-shadow));
+        }
+
+        .vajra-feature-switch-label {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          align-items: center;
+        }
+
+        .vajra-feature-switch-title {
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+        }
+
+        .vajra-feature-switch-meta {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          opacity: 0.86;
+        }
+
+        .vajra-feature-switch #vajra-service-car-rent:checked ~ label[for="vajra-service-car-rent"],
+        .vajra-feature-switch #vajra-service-second-hand:checked ~ label[for="vajra-service-second-hand"] {
+          color: var(--vajra-switch-text);
+          text-shadow: 0 0 8px rgba(251, 146, 60, 0.24);
+        }
+
+        .vajra-feature-switch-card {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: var(--vajra-card-width);
+          height: 100%;
+          z-index: 1;
+          transform-style: preserve-3d;
+        }
+
+        .vajra-feature-switch-face {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border-radius: 24px;
+          background: var(--vajra-switch-card-bg);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow:
+            0 10px 30px rgba(249, 115, 22, 0.1),
+            inset 0 2px 10px rgba(255, 255, 255, 0.08);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+
+        .vajra-feature-switch-back {
+          transform: rotateY(180deg);
+        }
+
+        .vajra-feature-switch #vajra-service-second-hand:checked ~ .vajra-feature-switch-card {
+          animation: vajraFeatureFlipRight 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+        }
+
+        .vajra-feature-switch #vajra-service-car-rent:checked ~ .vajra-feature-switch-card {
+          animation: vajraFeatureFlipLeft 0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+        }
+
+        .vajra-feature-switch
+          #vajra-service-car-rent:checked
+          ~ label[for="vajra-service-car-rent"]::after,
+        .vajra-feature-switch
+          #vajra-service-second-hand:checked
+          ~ label[for="vajra-service-second-hand"]::after {
+          content: "";
+          position: absolute;
+          bottom: 12px;
+          width: 34px;
+          height: 3px;
+          background: var(--vajra-switch-highlight);
+          border-radius: 999px;
+          animation: vajraFeatureGlow 1.5s infinite alternate;
+        }
+
+        @keyframes vajraFeatureFlipRight {
+          0% {
+            transform: translateX(0%) rotateY(0deg);
+          }
+
+          50% {
+            transform: translateX(50%) rotateY(90deg) scale(1.03);
+          }
+
+          100% {
+            transform: translateX(100%) rotateY(180deg) scale(1);
+          }
+        }
+
+        @keyframes vajraFeatureFlipLeft {
+          0% {
+            transform: translateX(100%) rotateY(180deg);
+          }
+
+          50% {
+            transform: translateX(50%) rotateY(90deg) scale(1.03);
+          }
+
+          100% {
+            transform: translateX(0%) rotateY(0deg) scale(1);
+          }
+        }
+
+        @keyframes vajraFeatureGlow {
+          from {
+            box-shadow: 0 0 6px var(--vajra-switch-highlight);
+          }
+
+          to {
+            box-shadow:
+              0 0 14px rgba(251, 146, 60, 0.95),
+              0 0 22px rgba(249, 115, 22, 0.4);
+          }
+        }
+
+        @media (max-width: 640px) {
+          .vajra-feature-switch-container {
+            max-width: none;
+          }
+
+          .vajra-feature-switch {
+            min-height: 108px;
+          }
+
+          .vajra-feature-switch-button {
+            gap: 8px;
+            padding: 14px 10px;
+          }
+
+          .vajra-feature-switch-title {
+            font-size: 13px;
+          }
+
+          .vajra-feature-switch-meta {
+            font-size: 10px;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .vajra-feature-switch-card,
+          .vajra-feature-switch-button svg,
+          .vajra-feature-switch-button::after {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
+      `}</style>
+
       <div className="mb-6 overflow-hidden rounded-[28px] border border-white/5 bg-gradient-to-br from-white/5 via-gray-900 to-gray-900 shadow-xl shadow-black/20">
         <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -648,47 +890,108 @@ export default function RestaurantList({
             </p>
           </div>
 
-          <div className="rounded-[24px] border border-white/5 bg-black/20 p-2">
-            <div className="flex flex-wrap gap-2">
-              {campusServices.map((service) => {
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,380px)]">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {[homeService, taxiService].map((service) => {
                 const Icon = service.icon;
                 const isSelected = selectedService === service.id;
-                const isLive =
-                  service.availability === 'Live now' || service.availability === 'Now booking';
+                const isLive = service.availability === 'Live now' || service.availability === 'Now booking';
 
                 return (
                   <button
                     key={service.id}
                     type="button"
-                    onClick={() => setSelectedService(service.id)}
-                    className={`inline-flex items-center gap-3 rounded-full border px-4 py-3 text-left transition-all ${
+                    onClick={() => handleSelectService(service.id)}
+                    className={`group rounded-[24px] border p-4 text-left transition-all ${
                       isSelected
-                        ? 'border-orange-500/35 bg-orange-500/12 text-white shadow-lg shadow-orange-500/10'
-                        : 'border-white/8 bg-white/5 text-gray-300 hover:border-white/15 hover:bg-white/10 hover:text-white'
+                        ? 'border-orange-500/30 bg-orange-500/10 shadow-lg shadow-orange-500/10'
+                        : 'border-white/8 bg-white/5 hover:border-white/15 hover:bg-white/[0.08]'
                     }`}
                   >
-                    <span
-                      className={`flex h-9 w-9 items-center justify-center rounded-full border ${
-                        isSelected
-                          ? 'border-orange-400/30 bg-orange-500/15 text-orange-200'
-                          : 'border-white/10 bg-white/5 text-gray-300'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="flex flex-col items-start">
-                      <span className="text-sm font-semibold">{service.label}</span>
+                    <div className="mb-4 flex items-center justify-between gap-3">
                       <span
-                        className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${
-                          isLive ? 'text-emerald-300' : 'text-blue-200'
+                        className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${
+                          isSelected
+                            ? 'border-orange-400/30 bg-orange-500/15 text-orange-200'
+                            : 'border-white/10 bg-white/5 text-gray-300'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <span
+                        className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                          isLive
+                            ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200'
+                            : 'border-blue-500/20 bg-blue-500/10 text-blue-200'
                         }`}
                       >
                         {service.availability}
                       </span>
-                    </span>
+                    </div>
+
+                    <h3 className="text-base font-semibold text-white">{service.label}</h3>
+                    <p className="mt-2 text-sm leading-6 text-gray-400">{service.description}</p>
                   </button>
                 );
               })}
+            </div>
+
+            <div className="rounded-[28px] border border-orange-500/15 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.12),transparent_55%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(17,24,39,0.98))] p-4 shadow-lg shadow-black/20 sm:p-5">
+              <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-300">
+                    Featured Switch
+                  </p>
+                  <h3 className="mt-2 text-lg font-semibold text-white">Car rental or second-hand market</h3>
+                </div>
+                <span className="inline-flex w-fit rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-gray-300">
+                  Tap to jump fast
+                </span>
+              </div>
+
+              <div className="vajra-feature-switch-container">
+                <div className="vajra-feature-switch" role="radiogroup" aria-label="Choose a featured campus service">
+                  <input
+                    type="radio"
+                    id="vajra-service-car-rent"
+                    name="vajra-feature-service-switch"
+                    checked={featuredServiceSwitch === 'car-rent'}
+                    onChange={() => handleSelectService('car-rent')}
+                  />
+                  <input
+                    type="radio"
+                    id="vajra-service-second-hand"
+                    name="vajra-feature-service-switch"
+                    checked={featuredServiceSwitch === 'second-hand-market'}
+                    onChange={() => handleSelectService('second-hand-market')}
+                  />
+
+                  <label htmlFor="vajra-service-car-rent" className="vajra-feature-switch-button">
+                    <CarFront aria-hidden="true" />
+                    <span className="vajra-feature-switch-label">
+                      <span className="vajra-feature-switch-title">Car Rent</span>
+                      <span className="vajra-feature-switch-meta">Now booking</span>
+                    </span>
+                  </label>
+
+                  <label htmlFor="vajra-service-second-hand" className="vajra-feature-switch-button">
+                    <Store aria-hidden="true" />
+                    <span className="vajra-feature-switch-label">
+                      <span className="vajra-feature-switch-title">Second-hand</span>
+                      <span className="vajra-feature-switch-meta">Live market</span>
+                    </span>
+                  </label>
+
+                  <div className="vajra-feature-switch-card" aria-hidden="true">
+                    <div className="vajra-feature-switch-face" />
+                    <div className="vajra-feature-switch-face vajra-feature-switch-back" />
+                  </div>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm leading-6 text-gray-400">
+                Ek clean flip switch ke saath rentals aur campus resale listings ke beech instantly move karo, bina main home flow ko disturb kiye.
+              </p>
             </div>
           </div>
 

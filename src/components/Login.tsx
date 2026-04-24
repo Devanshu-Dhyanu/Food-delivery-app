@@ -69,7 +69,21 @@ export default function Login() {
         body { font-family: 'DM Sans', sans-serif; background: #fff; }
         button { cursor: pointer; }
 
+        .login-email-input::placeholder {
+          color: rgba(255, 255, 255, 0.76);
+        }
+
+        .login-email-input:focus {
+          box-shadow:
+            inset 2px 5px 10px rgb(5, 5, 5),
+            0 0 0 2px rgba(192, 87, 42, 0.28) !important;
+        }
+
         @media (max-width: 720px) {
+          .login-hero-backdrop {
+            display: none !important;
+          }
+
           .login-navbar {
             padding: 14px 16px !important;
           }
@@ -220,6 +234,15 @@ export default function Login() {
           .login-modal-footer {
             padding: 0 8px !important;
           }
+
+          .login-gravity-title {
+            font-size: 56px !important;
+            letter-spacing: -1px !important;
+          }
+
+          .login-gravity-wrap {
+            padding: 56px 16px 68px !important;
+          }
         }
       `}</style>
 
@@ -246,26 +269,107 @@ export default function Login() {
 
         {/* HERO */}
         <section className="login-hero" style={styles.hero}>
-          <p style={styles.heroTag}>Campus ordering platform for LPU</p>
-          <h1 className="login-hero-title" style={styles.heroTitle}>{PRODUCT_NAME}</h1>
-          <p className="login-hero-sub" style={styles.heroSub}>
-            Order food, discover campus offers, and access student services in one place with
-            The Vajra.
-          </p>
-          <p className="login-company-line" style={styles.companyLine}>Operated by {COMPANY_NAME}</p>
-          <div className="login-pill-row" style={styles.pillRow}>
-            {['Food delivery', 'Campus offers', 'Student marketplace', 'Fast ordering', 'Campus services'].map((p) => (
-              <span key={p} className="login-pill" style={styles.pill}>{p}</span>
-            ))}
+          <div className="login-hero-backdrop" style={styles.heroBackdrop} aria-hidden="true">
+            <div style={{ ...styles.heroBackdropCard, ...styles.heroBackdropCardLeft }}>
+              <div style={styles.cardDots}>
+                <span style={{ ...styles.cardDot, background: '#ff605c' }} />
+                <span style={{ ...styles.cardDot, background: '#ffbd44' }} />
+                <span style={{ ...styles.cardDot, background: '#00ca4e' }} />
+              </div>
+              <h3 style={styles.cardTitle}>Instant delivery</h3>
+              <p style={styles.cardBody}>Live updates from restaurant to doorstep with reliable ETAs.</p>
+            </div>
+            <div style={{ ...styles.heroBackdropCard, ...styles.heroBackdropCardCenter }}>
+              <div style={styles.cardDots}>
+                <span style={{ ...styles.cardDot, background: '#ff605c' }} />
+                <span style={{ ...styles.cardDot, background: '#ffbd44' }} />
+                <span style={{ ...styles.cardDot, background: '#00ca4e' }} />
+              </div>
+              <h3 style={styles.cardTitle}>Campus offers</h3>
+              <p style={styles.cardBody}>Exclusive discounts and limited drops across LPU partners.</p>
+            </div>
+            <div style={{ ...styles.heroBackdropCard, ...styles.heroBackdropCardRight }}>
+              <div style={styles.cardDots}>
+                <span style={{ ...styles.cardDot, background: '#ff605c' }} />
+                <span style={{ ...styles.cardDot, background: '#ffbd44' }} />
+                <span style={{ ...styles.cardDot, background: '#00ca4e' }} />
+              </div>
+              <h3 style={styles.cardTitle}>Everything in one place</h3>
+              <p style={styles.cardBody}>Food, rentals, and marketplace without switching apps.</p>
+            </div>
           </div>
-          <button className="login-cta-btn" style={styles.ctaBtn} onClick={() => openModal('signup')}>{'Start now ->'}</button>
-          <p style={styles.signInHint}>
-            Already have an account?{' '}
-            <button style={styles.hintLink} onClick={() => openModal('signin')}>Sign in</button>
-          </p>
-          <p className="login-secondary-link-row" style={styles.secondaryLinkRow}>
-            <a href="/founder" className="login-secondary-link" style={styles.secondaryLink}>Read founder story</a>
-          </p>
+          <div style={styles.heroContent}>
+            <p style={styles.heroTag}>Campus ordering platform for LPU</p>
+            <h1 className="login-hero-title" style={styles.heroTitle}>{PRODUCT_NAME}</h1>
+            <p className="login-hero-sub" style={styles.heroSub}>
+              Order food, discover campus offers, and access student services in one place with
+              The Vajra.
+            </p>
+            <p className="login-company-line" style={styles.companyLine}>Operated by {COMPANY_NAME}</p>
+            <div className="login-pill-row" style={styles.pillRow}>
+              {['Food delivery', 'Campus offers', 'Student marketplace', 'Fast ordering', 'Campus services'].map((p) => (
+                <span key={p} className="login-pill" style={styles.pill}>{p}</span>
+              ))}
+            </div>
+            <button className="login-cta-btn" style={styles.ctaBtn} onClick={() => openModal('signup')}>{'Start now ->'}</button>
+            <p style={styles.signInHint}>
+              Already have an account?{' '}
+              <button style={styles.hintLink} onClick={() => openModal('signin')}>Sign in</button>
+            </p>
+            <p className="login-secondary-link-row" style={styles.secondaryLinkRow}>
+              <a href="/founder" className="login-secondary-link" style={styles.secondaryLink}>Read founder story</a>
+            </p>
+            <div style={styles.cardRow}>
+              {[
+                {
+                  title: 'Instant delivery',
+                  body: 'Live updates from restaurant to doorstep with reliable ETAs.',
+                },
+                {
+                  title: 'Campus offers',
+                  body: 'Exclusive discounts and limited drops across LPU partners.',
+                },
+                {
+                  title: 'Everything in one place',
+                  body: 'Food, rentals, and marketplace without switching apps.',
+                },
+              ].map((card) => (
+                <div key={card.title} style={styles.glassCard}>
+                  <div style={styles.cardDots}>
+                    <span style={{ ...styles.cardDot, background: '#ff605c' }} />
+                    <span style={{ ...styles.cardDot, background: '#ffbd44' }} />
+                    <span style={{ ...styles.cardDot, background: '#00ca4e' }} />
+                  </div>
+                  <h3 style={styles.cardTitle}>{card.title}</h3>
+                  <p style={styles.cardBody}>{card.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </section>
+
+        <section className="login-gravity-wrap" style={styles.gravityWrap}>
+          <div style={styles.gravityInner}>
+            <div style={styles.gravityTop}>
+              <div>
+                <p style={styles.gravityEyebrow}>Experience liftoff</p>
+              </div>
+              <div style={styles.gravityLinksWrap}>
+                <div style={styles.gravityLinksCol}>
+                  {['Download', 'Product', 'Docs', 'Changelog', 'Press', 'Releases'].map((item) => (
+                    <span key={item} style={styles.gravityLink}>{item}</span>
+                  ))}
+                </div>
+                <div style={styles.gravityLinksCol}>
+                  {['Blog', 'Pricing', 'Use Cases'].map((item) => (
+                    <span key={item} style={styles.gravityLink}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <h2 className="login-gravity-title" style={styles.gravityTitle}>The Vajra</h2>
+          </div>
         </section>
       </div>
 
@@ -350,7 +454,8 @@ const styles: Record<string, React.CSSProperties> = {
   navRight: { display: 'flex', alignItems: 'center', gap: 16 },
   navLink: { fontSize: 14, color: '#555', background: 'none', border: 'none', fontFamily: 'inherit', padding: '8px 4px' },
   navBtn: { padding: '9px 22px', background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 40, fontSize: 14, fontFamily: 'inherit' },
-  hero: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 20px' },
+  hero: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '80px 20px', position: 'relative', overflow: 'visible' },
+  heroContent: { position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: 980 },
   heroTag: { fontSize: 12, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#999', marginBottom: 20 },
   heroTitle: { fontFamily: "'Source Serif 4', serif", fontSize: 58, fontWeight: 600, lineHeight: 1.08, letterSpacing: '-1.5px', maxWidth: 620, marginBottom: 18, color: '#1a1a1a' },
   heroSub: { fontSize: 16, color: '#666', lineHeight: 1.65, maxWidth: 520, marginBottom: 14 },
@@ -362,6 +467,39 @@ const styles: Record<string, React.CSSProperties> = {
   hintLink: { color: '#1a1a1a', textDecoration: 'underline', background: 'none', border: 'none', fontFamily: 'inherit', fontSize: 14, padding: 0 },
   secondaryLinkRow: { fontSize: 14, color: '#777' },
   secondaryLink: { color: '#8a5d3b', textDecoration: 'none', fontWeight: 600 },
+  cardRow: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 18, marginTop: 28, width: '100%', alignItems: 'stretch', maxWidth: 900, zIndex: 3 },
+  heroBackdrop: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, pointerEvents: 'none', zIndex: 1 },
+  heroBackdropCard: {
+    width: 240,
+    minHeight: 150,
+    padding: '16px 18px 18px',
+    borderRadius: 18,
+    background: 'rgba(255, 255, 255, 0.92)',
+    border: '1px solid rgba(0,0,0,0.12)',
+    boxShadow: '0 28px 50px rgba(0, 0, 0, 0.15)',
+    backdropFilter: 'blur(6px)',
+    textAlign: 'left',
+    transform: 'skewX(4deg)',
+    opacity: 0.85,
+  },
+  heroBackdropCardLeft: { transform: 'translate(-260px, 40px) rotate(-6deg)', opacity: 0.7 },
+  heroBackdropCardCenter: { transform: 'translate(0px, 90px)', opacity: 0.9 },
+  heroBackdropCardRight: { transform: 'translate(260px, 40px) rotate(5deg)', opacity: 0.7 },
+  glassCard: {
+    padding: '18px 20px 20px',
+    borderRadius: 16,
+    background: 'rgba(255, 255, 255, 0.92)',
+    border: '1px solid rgba(0,0,0,0.2)',
+    boxShadow: '0 18px 36px rgba(0, 0, 0, 0.18)',
+    backdropFilter: 'blur(6px)',
+    textAlign: 'left',
+    minWidth: 220,
+    transform: 'skewX(2deg)',
+  },
+  cardDots: { display: 'flex', gap: 6, marginBottom: 12 },
+  cardDot: { width: 10, height: 10, borderRadius: '50%', boxShadow: '-4px 4px 6px rgba(0,0,0,0.18)' },
+  cardTitle: { fontSize: 16, fontWeight: 600, color: '#1a1a1a', marginBottom: 8 },
+  cardBody: { fontSize: 13, color: '#5a5a5a', lineHeight: 1.6 },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.48)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 },
   modal: { background: '#fff', width: '100%', maxWidth: 440, borderRadius: 6, padding: '48px 40px 36px', position: 'relative' },
   closeBtn: { position: 'absolute', top: 14, right: 18, fontSize: 24, color: '#aaa', background: 'none', border: 'none', lineHeight: 1 },
@@ -370,7 +508,21 @@ const styles: Record<string, React.CSSProperties> = {
   divider: { display: 'flex', alignItems: 'center', gap: 12, margin: '16px 0' },
   dividerLine: { flex: 1, height: 1, background: '#ececec' },
   dividerText: { fontSize: 13, color: '#bbb' },
-  emailInput: { width: '100%', padding: '13px 18px', border: '1px solid #ddd', borderRadius: 40, fontSize: 15, fontFamily: 'inherit', outline: 'none', marginBottom: 10, display: 'block', background: '#f9f9f9', color: '#1a1a1a' },
+  emailInput: {
+    width: '100%',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: 9999,
+    fontSize: 16,
+    fontFamily: 'inherit',
+    outline: 'none',
+    marginBottom: 12,
+    display: 'block',
+    background: '#111',
+    color: '#fff',
+    boxShadow: 'inset 2px 5px 10px rgb(5, 5, 5)',
+    WebkitAppearance: 'none',
+  },
   submitBtn: { width: '100%', padding: 13, background: '#1a1a1a', color: '#fff', border: 'none', borderRadius: 40, fontSize: 15, fontFamily: 'inherit', marginBottom: 16 },
   modalFooter: { fontSize: 12, color: '#aaa', textAlign: 'center', lineHeight: 1.7, marginBottom: 12, padding: '0 80px' },
   modalFooterLink: { color: '#555', textDecoration: 'underline' },
@@ -381,4 +533,12 @@ const styles: Record<string, React.CSSProperties> = {
   footerCopy: { fontSize: 13, color: '#666', margin: 0 },
   footerLinks: { display: 'flex', alignItems: 'center', gap: 12 },
   footerBarLink: { fontSize: 13, color: '#666', textDecoration: 'none' },
+  gravityWrap: { width: '100%', padding: '90px 20px 110px', display: 'flex', justifyContent: 'center' },
+  gravityInner: { width: '100%', maxWidth: 1200, textAlign: 'left' },
+  gravityTop: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 40 },
+  gravityEyebrow: { fontSize: 14, color: '#1a1a1a', letterSpacing: '0.02em', marginBottom: 0 },
+  gravityLinksWrap: { display: 'flex', gap: 60, flexWrap: 'wrap' },
+  gravityLinksCol: { display: 'flex', flexDirection: 'column', gap: 10 },
+  gravityLink: { fontSize: 14, color: '#1a1a1a' },
+  gravityTitle: { fontFamily: "'Source Serif 4', serif", fontSize: 120, fontWeight: 600, color: '#111317', letterSpacing: '-3px', lineHeight: 0.92 },
 };
