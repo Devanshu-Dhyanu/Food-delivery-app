@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   X,
   Zap,
+  type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -153,6 +154,57 @@ const deliverySignals = [
   'Safer Handoffs',
   'Local Commerce',
   'Future Logistics',
+] as const;
+
+type ShowcaseSideCard = {
+  title: string;
+  subtitle: string;
+  icon?: LucideIcon;
+  image?: string;
+  tone?: 'soft' | 'accent';
+};
+
+const showcaseSideCards: ShowcaseSideCard[] = [
+  {
+    title: 'Track order live',
+    subtitle: 'Follow every dispatch step with clearer delivery visibility.',
+    icon: MapPin,
+    tone: 'soft',
+  },
+  {
+    title: 'Campus updates',
+    subtitle: 'Announcements, launch notes, and important platform signals in one place.',
+    image: '/founder.png',
+  },
+  {
+    title: 'AI support',
+    subtitle: 'Ask about The Vajra, careers, founder details, or any general question.',
+    icon: ShieldCheck,
+    tone: 'accent',
+  },
+  {
+    title: 'Open roles',
+    subtitle: 'Discover current positions across tech, support, growth, and research.',
+    icon: Briefcase,
+    tone: 'soft',
+  },
+  {
+    title: 'Founder vision',
+    subtitle: 'See how the platform is being designed beyond everyday food delivery.',
+    image: '/area/podium.png',
+  },
+  {
+    title: 'Launch access',
+    subtitle: 'Join early and stay close to the roadmap as The Vajra goes live.',
+    icon: Zap,
+    tone: 'accent',
+  },
+] as const;
+
+const showcasePhoneHighlights = [
+  'Today: drone-ready routing overview',
+  'Support assistant available now',
+  'Careers, founder story, and launch info in one flow',
 ] as const;
 
 function GoogleIcon() {
@@ -1144,6 +1196,383 @@ export default function Login() {
           color: #768749;
         }
 
+        .area-showcase {
+          position: relative;
+          padding: 76px 0 88px;
+          overflow: hidden;
+        }
+
+        .area-showcase::before {
+          content: '';
+          position: absolute;
+          inset: 18% 12% auto;
+          height: 58%;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(217, 226, 194, 0.68) 0%, rgba(248, 246, 240, 0) 72%);
+          pointer-events: none;
+          filter: blur(18px);
+        }
+
+        .area-showcase-head {
+          max-width: 760px;
+          margin: 0 auto 42px;
+          text-align: center;
+        }
+
+        .area-showcase-head .area-title {
+          margin: 18px 0 18px;
+          font-size: clamp(3rem, 5vw, 4.2rem);
+          line-height: 0.98;
+        }
+
+        .area-showcase-head .area-copy {
+          max-width: 680px;
+          margin: 0 auto;
+        }
+
+        .area-showcase-stage {
+          position: relative;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+          align-items: center;
+          gap: 22px;
+        }
+
+        .area-showcase-column {
+          display: grid;
+          gap: 22px;
+        }
+
+        .area-showcase-column.is-left {
+          padding-right: 14px;
+        }
+
+        .area-showcase-column.is-right {
+          padding-left: 14px;
+        }
+
+        .area-showcase-card {
+          display: grid;
+          grid-template-columns: 92px minmax(0, 1fr);
+          align-items: stretch;
+          min-height: 168px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 32px;
+          background: rgba(255, 253, 248, 0.84);
+          box-shadow: 0 18px 44px rgba(17, 17, 17, 0.08);
+          overflow: hidden;
+          backdrop-filter: blur(12px);
+        }
+
+        .area-showcase-card-media {
+          position: relative;
+          min-height: 100%;
+          background: linear-gradient(135deg, #dce9b6, #f4ebd4);
+        }
+
+        .area-showcase-card-media img {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .area-showcase-card-media.is-soft {
+          background: linear-gradient(135deg, rgba(220, 233, 182, 0.94), rgba(255, 253, 248, 0.82));
+        }
+
+        .area-showcase-card-media.is-accent {
+          background: linear-gradient(135deg, rgba(95, 118, 22, 0.94), rgba(129, 152, 51, 0.92));
+        }
+
+        .area-showcase-card-icon {
+          position: absolute;
+          inset: 50% auto auto 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 54px;
+          height: 54px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+          background: rgba(255, 255, 255, 0.88);
+          color: #223006;
+          box-shadow: 0 14px 26px rgba(17, 17, 17, 0.12);
+        }
+
+        .area-showcase-card-copy {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 10px;
+          padding: 20px 20px 22px;
+        }
+
+        .area-showcase-card-copy h3 {
+          font-size: 1.55rem;
+          line-height: 1.05;
+          letter-spacing: -0.05em;
+        }
+
+        .area-showcase-card-copy p {
+          color: var(--area-muted);
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        .area-showcase-device-wrap {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          padding: 10px 6px;
+        }
+
+        .area-showcase-device-glow {
+          position: absolute;
+          inset: 16% 8% 12%;
+          background: radial-gradient(circle, rgba(243, 239, 228, 0.96) 0%, rgba(243, 239, 228, 0.1) 72%, rgba(243, 239, 228, 0) 100%);
+          filter: blur(14px);
+          pointer-events: none;
+        }
+
+        .area-showcase-device {
+          position: relative;
+          width: min(100%, 388px);
+          padding: 14px;
+          border-radius: 48px;
+          background: linear-gradient(180deg, #1f1f1d 0%, #050505 100%);
+          box-shadow:
+            0 28px 60px rgba(17, 17, 17, 0.22),
+            inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+        }
+
+        .area-showcase-device-screen {
+          position: relative;
+          min-height: 720px;
+          padding: 22px 18px 18px;
+          border-radius: 38px;
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 244, 236, 0.98)),
+            #ffffff;
+          overflow: hidden;
+        }
+
+        .area-showcase-notch {
+          position: absolute;
+          top: 12px;
+          left: 50%;
+          width: 124px;
+          height: 28px;
+          border-radius: 999px;
+          background: #050505;
+          transform: translateX(-50%);
+          box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+        }
+
+        .area-showcase-status {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-top: 10px;
+          margin-bottom: 18px;
+          color: #111111;
+          font-size: 15px;
+          font-weight: 700;
+        }
+
+        .area-showcase-status-dots {
+          display: inline-flex;
+          gap: 6px;
+        }
+
+        .area-showcase-status-dots span {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          background: #111111;
+          opacity: 0.75;
+        }
+
+        .area-showcase-appbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 18px;
+        }
+
+        .area-showcase-wordmark {
+          color: #6f4ef6;
+          font-size: 1.85rem;
+          font-weight: 800;
+          letter-spacing: -0.06em;
+        }
+
+        .area-showcase-appicons {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .area-showcase-appicons span {
+          width: 36px;
+          height: 36px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 50%;
+          background: #ffffff;
+        }
+
+        .area-showcase-feed-card {
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 28px;
+          background: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
+          overflow: hidden;
+        }
+
+        .area-showcase-feed-card + .area-showcase-feed-card {
+          margin-top: 16px;
+        }
+
+        .area-showcase-feed-head {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 18px 18px 10px;
+        }
+
+        .area-showcase-avatar {
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+
+        .area-showcase-feed-name {
+          color: #111111;
+          font-size: 1rem;
+          font-weight: 700;
+        }
+
+        .area-showcase-feed-time {
+          color: #8d8d88;
+          font-size: 12px;
+        }
+
+        .area-showcase-feed-text {
+          padding: 0 18px 14px;
+          color: #373731;
+          font-size: 14px;
+          line-height: 1.65;
+        }
+
+        .area-showcase-feed-image {
+          display: block;
+          width: calc(100% - 28px);
+          height: 294px;
+          margin: 0 auto;
+          border-radius: 24px;
+          object-fit: cover;
+        }
+
+        .area-showcase-feed-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 14px 18px 18px;
+        }
+
+        .area-showcase-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          height: 36px;
+          padding: 0 14px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 999px;
+          color: #3c3c38;
+          font-size: 14px;
+          font-weight: 600;
+          background: rgba(255, 255, 255, 0.94);
+        }
+
+        .area-showcase-highlight {
+          position: relative;
+          margin-top: 16px;
+          padding: 18px 18px 20px;
+          border-radius: 28px;
+          background: linear-gradient(135deg, #6f4ef6, #8b6fff);
+          color: #ffffff;
+          overflow: hidden;
+        }
+
+        .area-showcase-highlight::after {
+          content: '';
+          position: absolute;
+          right: -18px;
+          bottom: -18px;
+          width: 108px;
+          height: 108px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.12);
+        }
+
+        .area-showcase-highlight-label {
+          display: inline-flex;
+          margin-bottom: 12px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          opacity: 0.84;
+        }
+
+        .area-showcase-highlight h3 {
+          max-width: 14ch;
+          margin-bottom: 14px;
+          font-size: 1.9rem;
+          line-height: 0.98;
+          letter-spacing: -0.05em;
+        }
+
+        .area-showcase-highlight-list {
+          display: grid;
+          gap: 10px;
+          position: relative;
+          z-index: 1;
+        }
+
+        .area-showcase-highlight-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 13px;
+          line-height: 1.45;
+        }
+
+        .area-showcase-highlight-item::before {
+          content: '';
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.88);
+        }
+
+        .area-showcase-bottom-nav {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+          margin-top: 16px;
+          padding: 14px 8px 2px;
+          color: #aaa7b1;
+          font-size: 12px;
+          text-align: center;
+        }
+
+        .area-showcase-bottom-nav span:first-child {
+          color: #6f4ef6;
+          font-weight: 700;
+        }
+
         .area-testimonial {
           padding: 70px 0 82px;
         }
@@ -1571,12 +2000,23 @@ export default function Login() {
           }
 
           .area-feature-grid,
-          .area-testimonial-grid {
+          .area-testimonial-grid,
+          .area-showcase-stage {
             grid-template-columns: 1fr;
           }
 
           .area-feature-visual {
             max-width: 520px;
+          }
+
+          .area-showcase-column.is-left,
+          .area-showcase-column.is-right {
+            padding: 0;
+          }
+
+          .area-showcase-device-wrap {
+            order: -1;
+            margin-bottom: 12px;
           }
         }
 
@@ -1660,6 +2100,24 @@ export default function Login() {
 
           .area-specs {
             padding-bottom: 70px;
+          }
+
+          .area-showcase {
+            padding-top: 62px;
+            padding-bottom: 72px;
+          }
+
+          .area-showcase-card {
+            grid-template-columns: 82px minmax(0, 1fr);
+            min-height: 148px;
+          }
+
+          .area-showcase-device {
+            width: min(100%, 370px);
+          }
+
+          .area-showcase-device-screen {
+            min-height: 680px;
           }
 
           .area-howto-head {
@@ -1759,6 +2217,7 @@ export default function Login() {
 
           .area-feature-copy .area-title,
           .area-specs-header .area-title,
+          .area-showcase-head .area-title,
           .area-contact .area-title,
           .area-howto-head .area-title {
             font-size: clamp(2.6rem, 12vw, 3.8rem);
@@ -1770,6 +2229,7 @@ export default function Login() {
 
           .area-feature,
           .area-specs,
+          .area-showcase,
           .area-testimonial,
           .area-howto,
           .area-contact {
@@ -1802,6 +2262,66 @@ export default function Login() {
 
           .area-table {
             min-width: 760px;
+          }
+
+          .area-showcase-head {
+            margin-bottom: 30px;
+          }
+
+          .area-showcase-stage {
+            gap: 18px;
+          }
+
+          .area-showcase-column {
+            gap: 18px;
+          }
+
+          .area-showcase-card {
+            grid-template-columns: 1fr;
+            min-height: auto;
+          }
+
+          .area-showcase-card-media {
+            min-height: 124px;
+          }
+
+          .area-showcase-card-copy {
+            padding: 18px 18px 20px;
+          }
+
+          .area-showcase-card-copy h3 {
+            font-size: 1.4rem;
+          }
+
+          .area-showcase-device {
+            width: min(100%, 320px);
+            border-radius: 38px;
+            padding: 11px;
+          }
+
+          .area-showcase-device-screen {
+            min-height: 594px;
+            padding: 20px 14px 14px;
+            border-radius: 30px;
+          }
+
+          .area-showcase-notch {
+            width: 104px;
+            height: 24px;
+          }
+
+          .area-showcase-wordmark {
+            font-size: 1.55rem;
+          }
+
+          .area-showcase-feed-image {
+            width: calc(100% - 20px);
+            height: 220px;
+            border-radius: 20px;
+          }
+
+          .area-showcase-highlight h3 {
+            font-size: 1.55rem;
           }
 
           .area-table-heading {
@@ -2133,6 +2653,138 @@ export default function Login() {
                       ))}
                     </div>
                   ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="area-showcase" aria-labelledby="vajra-showcase-title">
+              <div className="area-showcase-head">
+                <p className="area-section-label">Inside The Experience</p>
+                <h2 id="vajra-showcase-title" className="area-title">A closer look at how The Vajra could feel in your hand.</h2>
+                <p className="area-copy">
+                  Right after Why Vajra, this preview makes the platform feel tangible: support, careers, live tracking, and founder context all presented like one polished mobile flow.
+                </p>
+              </div>
+
+              <div className="area-showcase-stage">
+                <div className="area-showcase-column is-left">
+                  {showcaseSideCards.slice(0, 3).map((card) => {
+                    const Icon = card.icon;
+
+                    return (
+                      <article key={card.title} className="area-showcase-card">
+                        <div className={`area-showcase-card-media ${card.tone ? `is-${card.tone}` : ''}`}>
+                          {card.image ? (
+                            <img src={card.image} alt={card.title} />
+                          ) : Icon ? (
+                            <span className="area-showcase-card-icon">
+                              <Icon size={24} strokeWidth={1.9} />
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="area-showcase-card-copy">
+                          <h3>{card.title}</h3>
+                          <p>{card.subtitle}</p>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                <div className="area-showcase-device-wrap">
+                  <div className="area-showcase-device-glow" aria-hidden="true" />
+                  <div className="area-showcase-device">
+                    <div className="area-showcase-device-screen">
+                      <div className="area-showcase-notch" aria-hidden="true" />
+
+                      <div className="area-showcase-status">
+                        <span>9:41</span>
+                        <div className="area-showcase-status-dots" aria-hidden="true">
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                      </div>
+
+                      <div className="area-showcase-appbar">
+                        <div className="area-showcase-wordmark">The Vajra.</div>
+                        <div className="area-showcase-appicons" aria-hidden="true">
+                          <span />
+                          <span />
+                          <span />
+                        </div>
+                      </div>
+
+                      <article className="area-showcase-feed-card">
+                        <div className="area-showcase-feed-head">
+                          <img
+                            src="/founder.png"
+                            alt="Founder profile"
+                            className="area-showcase-avatar"
+                          />
+                          <div>
+                            <p className="area-showcase-feed-name">Founder Signal</p>
+                            <p className="area-showcase-feed-time">12m ago</p>
+                          </div>
+                        </div>
+                        <p className="area-showcase-feed-text">
+                          Building a campus-first platform where support, ordering, and future logistics feel like one clean system.
+                        </p>
+                        <img
+                          src="/area/vajra-hero-drone.jpg"
+                          alt="Drone showcase preview"
+                          className="area-showcase-feed-image"
+                        />
+                        <div className="area-showcase-feed-actions">
+                          <span className="area-showcase-pill">12k</span>
+                          <span className="area-showcase-pill">48</span>
+                          <span className="area-showcase-pill">Share</span>
+                        </div>
+                      </article>
+
+                      <div className="area-showcase-highlight">
+                        <span className="area-showcase-highlight-label">Live inside Vajra</span>
+                        <h3>Support, updates, and launch signals in one flow.</h3>
+                        <div className="area-showcase-highlight-list">
+                          {showcasePhoneHighlights.map((item) => (
+                            <div key={item} className="area-showcase-highlight-item">
+                              {item}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="area-showcase-bottom-nav" aria-hidden="true">
+                        <span>Home</span>
+                        <span>Community</span>
+                        <span>Support</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="area-showcase-column is-right">
+                  {showcaseSideCards.slice(3).map((card) => {
+                    const Icon = card.icon;
+
+                    return (
+                      <article key={card.title} className="area-showcase-card">
+                        <div className={`area-showcase-card-media ${card.tone ? `is-${card.tone}` : ''}`}>
+                          {card.image ? (
+                            <img src={card.image} alt={card.title} />
+                          ) : Icon ? (
+                            <span className="area-showcase-card-icon">
+                              <Icon size={24} strokeWidth={1.9} />
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="area-showcase-card-copy">
+                          <h3>{card.title}</h3>
+                          <p>{card.subtitle}</p>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
               </div>
             </section>
