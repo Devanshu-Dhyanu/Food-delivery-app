@@ -12,10 +12,10 @@ type SupportChatPageProps = {
 };
 
 const suggestionChips = [
-  'Founder kaun hai?',
-  'Company kab establish hui?',
-  'Job roles kya hain?',
-  'The Vajra kya karta hai?',
+  'Who is the founder?',
+  'When was the company established?',
+  'What job roles are open?',
+  'What does The Vajra do?',
 ] as const;
 
 const initialMessages: ChatMessage[] = [
@@ -23,7 +23,7 @@ const initialMessages: ChatMessage[] = [
     id: 'welcome-message',
     role: 'assistant',
     content:
-      'Namaste! Main The Vajra support assistant hoon. Aap founder, launch, company, careers, job roles, product vision ya support details ke baare mein pooch sakte ho.',
+      'Hi, I am The Vajra support assistant. You can ask about the founder, company, careers, launch timing, job roles, product vision, or support details.',
   },
 ];
 
@@ -78,7 +78,7 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
         | null;
 
       if (!response.ok || !data?.reply) {
-        throw new Error(data?.error || 'Support assistant abhi jawab nahi de pa raha.');
+        throw new Error(data?.error || 'The support assistant could not respond right now.');
       }
 
       const reply = data.reply;
@@ -95,7 +95,7 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
       setError(
         requestError instanceof Error
           ? requestError.message
-          : 'Support assistant abhi temporarily unavailable hai.'
+          : 'The support assistant is temporarily unavailable.'
       );
     } finally {
       setLoading(false);
@@ -124,18 +124,16 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
               Support Chat
             </div>
             <h1 className="mt-4 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">
-              Chat Window
+              Talk to Support
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100/80 sm:text-base">
-              Founder, company, job roles, launch timing, platform vision aur support details ke
-              sawaal yahin poochho.
+              Ask about the founder, company, job roles, launch timing, platform vision, or support details.
             </p>
           </div>
 
           {!isAuthenticated && (
             <div className="rounded-3xl border border-white/10 bg-white/8 px-4 py-4 text-sm text-blue-100/80">
-              Sign in karne ki zarurat nahi hai. Yeh support page public hai aur login se pehle bhi
-              use ho sakta hai.
+              No sign-in is required. This support page is public and can be used before login.
             </div>
           )}
         </div>
@@ -163,9 +161,9 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
             <div className="mt-5 rounded-[28px] border border-white/10 bg-gradient-to-br from-fuchsia-500/25 to-cyan-400/10 p-5">
               <p className="text-sm font-semibold text-white">Assistant focus</p>
               <ul className="mt-3 space-y-3 text-sm leading-6 text-blue-100/80">
-                <li>Company overview aur The Vajra product vision</li>
-                <li>Founder info aur careers details</li>
-                <li>Restricted answers only for Vajra-related questions</li>
+                <li>Company overview and The Vajra product vision</li>
+                <li>Founder information and careers details</li>
+                <li>Answers limited to Vajra-related questions</li>
               </ul>
             </div>
           </aside>
@@ -212,7 +210,7 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
                   </div>
                   <div className="flex items-center gap-3 rounded-[26px] rounded-bl-md bg-[#1768ff] px-5 py-4 text-sm text-white shadow-xl">
                     <Loader2 size={18} className="animate-spin" />
-                    Soch raha hoon...
+                    Thinking...
                   </div>
                 </div>
               )}
@@ -232,7 +230,7 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
                   type="text"
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder="Founder kaun hai? Job role kya hai? Company kab launch hogi?"
+                  placeholder="Ask about the founder, careers, launch, or company details..."
                   className="h-14 flex-1 rounded-full border border-white/10 bg-white/10 px-5 text-sm text-white outline-none placeholder:text-blue-100/50 focus:border-cyan-300/60"
                 />
                 <button

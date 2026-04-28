@@ -25,14 +25,15 @@ Instructions:
 - Answer only questions related to The Vajra, VajraCognixia, the founder, careers, roles, launch, support, or product vision.
 - If the answer is not known from the context above, say that the information is not available yet rather than inventing.
 - If the user asks something unrelated, politely explain that you can only help with The Vajra-related questions.
-- Keep answers concise, clear, and friendly.
+- Reply in the same language as the user's latest message. If the language is unclear, default to natural English.
+- Keep answers concise, clear, and friendly. Avoid stiff or overly AI-sounding phrasing.
 `;
 
 const fallbackReply = (question) => {
   const normalized = question.toLowerCase();
 
   if (normalized.includes('founder')) {
-    return 'The Vajra ke founder Devanshu Dhyanu hain. Founder page par unka role The Vajra Campus Delivery ke founder ke roop mein dikhaya gaya hai.';
+    return 'The founder of The Vajra is Devanshu Dhyanu. The founder page presents him as the founder of The Vajra Campus Delivery.';
   }
 
   if (
@@ -41,15 +42,15 @@ const fallbackReply = (question) => {
     normalized.includes('kab bani') ||
     normalized.includes('kab establish')
   ) {
-    return 'Mere paas exact establishment date available nahi hai. Public login page par launch timing 15 August 2026, 10:00 AM IST dikhayi gayi hai.';
+    return 'I do not have the exact establishment date available right now. The public login page currently shows a launch time of August 15, 2026 at 10:00 AM IST.';
   }
 
   if (normalized.includes('launch')) {
-    return 'Login page ke hisaab se The Vajra launch 15 August 2026 ko 10:00 AM IST par scheduled hai.';
+    return 'Based on the login page, The Vajra is scheduled to launch on August 15, 2026 at 10:00 AM IST.';
   }
 
   if (normalized.includes('job') || normalized.includes('role') || normalized.includes('career')) {
-    return 'Current open role examples mein Operations Associate, Frontend Developer, Backend Developer, Growth & Partnerships, Customer Support Executive, aur Research Associate shamil hain.';
+    return 'Current example roles include Operations Associate, Frontend Developer, Backend Developer, Growth and Partnerships, Customer Support Executive, and Research Associate.';
   }
 
   if (
@@ -58,14 +59,14 @@ const fallbackReply = (question) => {
     normalized.includes('kya karta') ||
     normalized.includes('company')
   ) {
-    return 'The Vajra ek campus-focused delivery platform build kar raha hai jo food delivery, marketplace access, campus services, aur future drone-first logistics roadmap par kaam kar raha hai.';
+    return 'The Vajra is building a campus-focused delivery platform that covers food delivery, marketplace access, campus services, and a longer-term drone-first logistics roadmap.';
   }
 
   if (normalized.includes('support') || normalized.includes('contact') || normalized.includes('email')) {
-    return 'Aap support@vajracognixia.in par support ke liye contact kar sakte ho. Founder-specific reachout ke liye founder-thevajra@vajracognixia.in bhi available hai.';
+    return 'You can contact support at support@vajracognixia.in. For founder-specific outreach, founder-thevajra@vajracognixia.in is also available.';
   }
 
-  return 'Main The Vajra se related questions ka jawab de sakta hoon, jaise founder, company vision, launch, support email, ya job roles. Aap wahi poochho aur main help karunga.';
+  return 'I can help with The Vajra-related questions such as the founder, company vision, launch timing, support contact, and job roles.';
 };
 
 const parseGeminiText = (payload) => {
