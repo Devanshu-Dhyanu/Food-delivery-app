@@ -7,15 +7,12 @@ type ChatMessage = {
   content: string;
 };
 
-type SupportChatPageProps = {
-  isAuthenticated?: boolean;
-};
-
 const suggestionChips = [
   'Who is the founder?',
+  'What is quantum computing?',
   'When was the company established?',
   'What job roles are open?',
-  'What does The Vajra do?',
+  'Write a short welcome message',
 ] as const;
 
 const initialMessages: ChatMessage[] = [
@@ -23,11 +20,11 @@ const initialMessages: ChatMessage[] = [
     id: 'welcome-message',
     role: 'assistant',
     content:
-      'Hi, I am The Vajra support assistant. You can ask about the founder, company, careers, launch timing, job roles, product vision, or support details.',
+      'Hi, I am The Vajra support assistant. You can ask me general questions too, and if your question is about The Vajra I will use company-specific context when I answer.',
   },
 ];
 
-export default function SupportChatPage({ isAuthenticated = false }: SupportChatPageProps) {
+export default function SupportChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -152,9 +149,9 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
             <div className="mt-5 rounded-[28px] border border-white/10 bg-gradient-to-br from-fuchsia-500/25 to-cyan-400/10 p-5">
               <p className="text-sm font-semibold text-white">Assistant focus</p>
               <ul className="mt-3 space-y-3 text-sm leading-6 text-blue-100/80">
-                <li>Company overview and The Vajra product vision</li>
-                <li>Founder information and careers details</li>
-                <li>Answers limited to Vajra-related questions</li>
+                <li>General questions and quick writing help</li>
+                <li>The Vajra company, founder, careers, and launch details</li>
+                <li>Company context takes priority for Vajra-specific answers</li>
               </ul>
             </div>
           </aside>
@@ -221,7 +218,7 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
                   type="text"
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder="Ask about the founder, careers, launch, or company details..."
+                  placeholder="Ask anything, or ask about The Vajra..."
                   className="h-14 flex-1 rounded-full border border-white/10 bg-white/10 px-5 text-sm text-white outline-none placeholder:text-blue-100/50 focus:border-cyan-300/60"
                 />
                 <button

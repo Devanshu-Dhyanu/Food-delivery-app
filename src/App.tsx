@@ -634,7 +634,7 @@ function App() {
     return <ShippingPolicy />;
   }
   if (isSupportPath) {
-    return <SupportChatPage isAuthenticated={!!user} />;
+    return <SupportChatPage />;
   }
   if (isCareersPath) {
     return <JobApplication />;

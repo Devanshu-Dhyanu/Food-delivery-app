@@ -22,9 +22,9 @@ Career and role information:
 - Research Associate: delivery trends, customer needs, market signals, operational improvements.
 
 Instructions:
-- Answer only questions related to The Vajra, VajraCognixia, the founder, careers, roles, launch, support, or product vision.
-- If the answer is not known from the context above, say that the information is not available yet rather than inventing.
-- If the user asks something unrelated, politely explain that you can only help with The Vajra-related questions.
+- Answer general questions helpfully and naturally.
+- For questions about The Vajra, VajraCognixia, the founder, careers, roles, launch, support, or product vision, prioritize the company facts above.
+- If a Vajra-specific answer is not known from the context above, say that the information is not available yet rather than inventing it.
 - Reply in the same language as the user's latest message. If the language is unclear, default to natural English.
 - Keep answers concise, clear, and friendly. Avoid stiff or overly AI-sounding phrasing.
 `;
@@ -66,7 +66,7 @@ const fallbackReply = (question) => {
     return 'You can contact support at support@vajracognixia.in. For founder-specific outreach, founder-thevajra@vajracognixia.in is also available.';
   }
 
-  return 'I can help with The Vajra-related questions such as the founder, company vision, launch timing, support contact, and job roles.';
+  return 'I can answer general questions, and I can also help with The Vajra-specific topics such as the founder, company vision, launch timing, support contact, and job roles.';
 };
 
 const parseGeminiText = (payload) => {
