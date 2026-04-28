@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
+    "@vercel/analytics": "^2.0.1",
     "agora-rtc-sdk-ng": "^4.24.0",
     "agora-token": "^2.0.4",
     "lucide-react": "^0.344.0",
