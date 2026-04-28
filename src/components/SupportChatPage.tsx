@@ -126,16 +126,7 @@ export default function SupportChatPage({ isAuthenticated = false }: SupportChat
             <h1 className="mt-4 text-4xl font-black tracking-[-0.06em] text-white sm:text-5xl">
               Talk to Support
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100/80 sm:text-base">
-              Ask about the founder, company, job roles, launch timing, platform vision, or support details.
-            </p>
           </div>
-
-          {!isAuthenticated && (
-            <div className="rounded-3xl border border-white/10 bg-white/8 px-4 py-4 text-sm text-blue-100/80">
-              No sign-in is required. This support page is public and can be used before login.
-            </div>
-          )}
         </div>
 
         <div className="grid flex-1 gap-0 lg:grid-cols-[320px_minmax(0,1fr)]">
