@@ -22,6 +22,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsAndConditions from './components/TermsAndConditions';
 import RefundCancellationPolicy from './components/RefundCancellationPolicy';
 import ShippingPolicy from './components/ShippingPolicy';
+import SupportChatPage from './components/SupportChatPage';
 import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
@@ -34,7 +35,7 @@ import {
 } from './lib/deliveryPartner';
 import { supabase, Announcement, type DeliveryPartnerAccountMode } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'careers' | 'contact-us' | 'terms-conditions' | 'privacy-policy' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'careers' | 'contact-us' | 'terms-conditions' | 'privacy-policy' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback' | 'support';
 type AppMode = DeliveryPartnerAccountMode;
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
@@ -44,6 +45,7 @@ const TERMS_PATHS = ['/terms', '/terms-conditions'] as const;
 const PRIVACY_PATHS = ['/privacy', '/privacy-policy'] as const;
 const REFUND_PATHS = ['/refund-cancellation', '/refund-cancellation-policy'] as const;
 const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
+const SUPPORT_PATHS = ['/support', '/get-support'] as const;
 
 const getInitialPageFromPath = (): Page => {
   const pathname = window.location.pathname.toLowerCase();
@@ -70,6 +72,10 @@ const getInitialPageFromPath = (): Page => {
 
   if (SHIPPING_PATHS.includes(pathname as (typeof SHIPPING_PATHS)[number])) {
     return 'shipping-policy';
+  }
+
+  if (SUPPORT_PATHS.includes(pathname as (typeof SUPPORT_PATHS)[number])) {
+    return 'support';
   }
 
   return 'home';
@@ -394,7 +400,8 @@ function App() {
       page === 'terms-conditions' ||
       page === 'privacy-policy' ||
       page === 'refund-cancellation' ||
-      page === 'shipping-policy'
+      page === 'shipping-policy' ||
+      page === 'support'
     ) {
       setCurrentPage(page);
     }
@@ -582,6 +589,9 @@ function App() {
   const isShippingPath = SHIPPING_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof SHIPPING_PATHS)[number]
   );
+  const isSupportPath = SUPPORT_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof SUPPORT_PATHS)[number]
+  );
 
   useEffect(() => {
     if (window.location.pathname === '/auth/callback') {
@@ -622,6 +632,9 @@ function App() {
   }
   if (isShippingPath) {
     return <ShippingPolicy />;
+  }
+  if (isSupportPath) {
+    return <SupportChatPage isAuthenticated={!!user} />;
   }
   if (isCareersPath) {
     return <JobApplication />;

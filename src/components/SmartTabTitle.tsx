@@ -18,7 +18,8 @@ type SmartTabTitleProps = {
     | 'privacy-policy'
     | 'refund-cancellation'
     | 'shipping-policy'
-    | 'payment-callback';
+    | 'payment-callback'
+    | 'support';
   loading: boolean;
   isAuthenticated: boolean;
   hasProfile: boolean | null;
@@ -108,6 +109,9 @@ export default function SmartTabTitle({
         break;
       case 'payment-callback':
         document.title = 'Processing payment | The Vajra';
+        break;
+      case 'support':
+        document.title = 'Get Support | The Vajra';
         break;
       case 'privacy-policy':
         document.title = 'Privacy Policy | The Vajra Campus Delivery';

@@ -622,6 +622,14 @@ export default function Login() {
           box-shadow: 0 12px 28px rgba(17, 17, 17, 0.06);
         }
 
+        .area-support-cta {
+          min-width: 148px;
+          border: 1px solid rgba(95, 118, 22, 0.18);
+          background: rgba(220, 233, 182, 0.68);
+          color: #243004;
+          box-shadow: 0 12px 28px rgba(95, 118, 22, 0.12);
+        }
+
         .area-nav-menu-toggle {
           display: none;
           align-items: center;
@@ -1905,6 +1913,11 @@ export default function Login() {
               </nav>
 
               <div className="area-nav-actions">
+                <a href="/support" className="area-button area-support-cta">
+                  Get Support
+                  <Mail size={16} />
+                </a>
+
                 <a href="/careers" className="area-button area-job-cta">
                   Apply for Job
                   <Briefcase size={16} />
@@ -1935,6 +1948,11 @@ export default function Login() {
                     </a>
                   ))}
                 </nav>
+
+                <a href="/support" className="area-button area-support-cta" onClick={() => setMobileMenuOpen(false)}>
+                  Get Support
+                  <Mail size={16} />
+                </a>
 
                 <a href="/careers" className="area-button area-job-cta" onClick={() => setMobileMenuOpen(false)}>
                   Apply for Job
@@ -2173,6 +2191,11 @@ export default function Login() {
                 Request early access
                 <ArrowUpRight size={16} />
               </button>
+
+              <a href="/support" className="area-button area-support-cta area-contact-button">
+                Get Support
+                <Mail size={16} />
+              </a>
             </section>
           </main>
 
