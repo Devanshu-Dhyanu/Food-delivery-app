@@ -17,6 +17,7 @@ import Profile from './components/Profile';
 import FounderPage from './components/FounderPage';
 import BrandedLoader from './components/BrandedLoader';
 import ContactUs from './components/ContactUs';
+import JobApplication from './components/JobApplication';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsAndConditions from './components/TermsAndConditions';
 import RefundCancellationPolicy from './components/RefundCancellationPolicy';
@@ -33,13 +34,16 @@ import {
 } from './lib/deliveryPartner';
 import { supabase, Announcement, type DeliveryPartnerAccountMode } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'contact-us' | 'terms-conditions' | 'privacy-policy' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
+type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'careers' | 'contact-us' | 'terms-conditions' | 'privacy-policy' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback';
 type AppMode = DeliveryPartnerAccountMode;
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
 const FOUNDER_PATHS = ['/founder', '/about-founder', '/about-vajra'] as const;
+const CAREERS_PATHS = ['/careers', '/apply', '/job-application'] as const;
 const TERMS_PATHS = ['/terms', '/terms-conditions'] as const;
 const PRIVACY_PATHS = ['/privacy', '/privacy-policy'] as const;
+const REFUND_PATHS = ['/refund-cancellation', '/refund-cancellation-policy'] as const;
+const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
 
 const getInitialPageFromPath = (): Page => {
   const pathname = window.location.pathname.toLowerCase();
@@ -48,12 +52,24 @@ const getInitialPageFromPath = (): Page => {
     return 'founder';
   }
 
+  if (CAREERS_PATHS.includes(pathname as (typeof CAREERS_PATHS)[number])) {
+    return 'careers';
+  }
+
   if (TERMS_PATHS.includes(pathname as (typeof TERMS_PATHS)[number])) {
     return 'terms-conditions';
   }
 
   if (PRIVACY_PATHS.includes(pathname as (typeof PRIVACY_PATHS)[number])) {
     return 'privacy-policy';
+  }
+
+  if (REFUND_PATHS.includes(pathname as (typeof REFUND_PATHS)[number])) {
+    return 'refund-cancellation';
+  }
+
+  if (SHIPPING_PATHS.includes(pathname as (typeof SHIPPING_PATHS)[number])) {
+    return 'shipping-policy';
   }
 
   return 'home';
@@ -373,6 +389,7 @@ function App() {
       page === 'announcements' ||
       page === 'profile' ||
       page === 'founder' ||
+      page === 'careers' ||
       page === 'contact-us' ||
       page === 'terms-conditions' ||
       page === 'privacy-policy' ||
@@ -519,6 +536,11 @@ function App() {
         return;
       }
 
+      if (path === '/careers' || path === '/apply' || path === '/job-application') {
+        setCurrentPage('careers');
+        return;
+      }
+
       if (path === '/menu' && restaurantIdFromQuery) {
         setSelectedRestaurantId(restaurantIdFromQuery);
         setCurrentPage('menu');
@@ -545,11 +567,20 @@ function App() {
   const isFounderPath = FOUNDER_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof FOUNDER_PATHS)[number]
   );
+  const isCareersPath = CAREERS_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof CAREERS_PATHS)[number]
+  );
   const isTermsPath = TERMS_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof TERMS_PATHS)[number]
   );
   const isPrivacyPath = PRIVACY_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof PRIVACY_PATHS)[number]
+  );
+  const isRefundPath = REFUND_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof REFUND_PATHS)[number]
+  );
+  const isShippingPath = SHIPPING_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof SHIPPING_PATHS)[number]
   );
 
   useEffect(() => {
@@ -585,6 +616,15 @@ function App() {
   }
   if (isPrivacyPath) {
     return <PrivacyPolicy />;
+  }
+  if (isRefundPath) {
+    return <RefundCancellationPolicy />;
+  }
+  if (isShippingPath) {
+    return <ShippingPolicy />;
+  }
+  if (isCareersPath) {
+    return <JobApplication />;
   }
   if (isFounderPath && !user) {
     return <FounderPage publicView />;
@@ -698,6 +738,8 @@ function App() {
         );
       case 'founder':
         return <FounderPage onNavigate={handleNavigate} />;
+      case 'careers':
+        return <JobApplication />;
       case 'order-placed':
         return (
           <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">

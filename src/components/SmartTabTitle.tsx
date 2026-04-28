@@ -12,6 +12,7 @@ type SmartTabTitleProps = {
     | 'announcements'
     | 'profile'
     | 'founder'
+    | 'careers'
     | 'contact-us'
     | 'terms-conditions'
     | 'privacy-policy'
@@ -101,6 +102,9 @@ export default function SmartTabTitle({
         break;
       case 'founder':
         document.title = 'Devanshu Dhyanu | Founder of The Vajra Campus Delivery';
+        break;
+      case 'careers':
+        document.title = 'Careers | The Vajra';
         break;
       case 'payment-callback':
         document.title = 'Processing payment | The Vajra';

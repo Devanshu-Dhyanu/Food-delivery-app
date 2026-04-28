@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowUpRight,
+  Briefcase,
   Check,
   Globe2,
   Instagram,
@@ -18,6 +19,36 @@ const HOME_TITLE = 'The Vajra';
 const SUPPORT_EMAIL = 'support@vajracognixia.in';
 const COMPANY_WEBSITE_URL = 'https://www.vajracognixia.in/';
 const COMPANY_INSTAGRAM_URL = 'https://www.instagram.com/vajracognixia.in/';
+const LAUNCH_DATE_ISO = '2026-08-15T10:00:00+05:30';
+const LAUNCH_DATE_LABEL = '15 August 2026, 10:00 AM IST';
+
+const getLaunchCountdown = () => {
+  const remainingMs = new Date(LAUNCH_DATE_ISO).getTime() - Date.now();
+
+  if (remainingMs <= 0) {
+    return {
+      days: '00',
+      hours: '00',
+      minutes: '00',
+      seconds: '00',
+      isLive: true,
+    };
+  }
+
+  const totalSeconds = Math.floor(remainingMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return {
+    days: String(days).padStart(2, '0'),
+    hours: String(hours).padStart(2, '0'),
+    minutes: String(minutes).padStart(2, '0'),
+    seconds: String(seconds).padStart(2, '0'),
+    isLive: false,
+  };
+};
 
 const navLinks = [
   { label: 'Why Vajra', href: '#benefits' },
@@ -25,6 +56,7 @@ const navLinks = [
   { label: 'Vision', href: '#how-to' },
   { label: 'Contact', href: '#contact' },
   { label: 'Founder', href: '/founder' },
+  { label: 'Careers', href: '/careers' },
 ] as const;
 
 const benefits = [
@@ -146,31 +178,36 @@ function GoogleIcon() {
   );
 }
 
-function AreaMark() {
-  return (
-    <svg width="28" height="44" viewBox="0 0 28 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M7 2L2 19H8L10.5 10.2V42H14.5V2H7Z" fill="currentColor" />
-      <path d="M21 2L16 19H22L24.5 10.2V42H28.5V2H21Z" fill="currentColor" transform="translate(-2 0)" />
-      <rect x="11" y="18" width="6" height="4" rx="2" fill="currentColor" />
-    </svg>
-  );
-}
-
 export default function Login() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<'signup' | 'signin'>('signup');
   const [email, setEmail] = useState('');
+  const [footerNewsletterEmail, setFooterNewsletterEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [benefitsAudioEnabled, setBenefitsAudioEnabled] = useState(false);
+  const [launchCountdown, setLaunchCountdown] = useState(getLaunchCountdown);
   const benefitsVideoRef = useRef<HTMLVideoElement | null>(null);
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   useEffect(() => {
     document.title = HOME_TITLE;
+  }, []);
+
+  useEffect(() => {
+    const syncCountdown = () => {
+      setLaunchCountdown(getLaunchCountdown());
+    };
+
+    syncCountdown();
+    const timer = window.setInterval(syncCountdown, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -292,6 +329,19 @@ export default function Login() {
     setLoading(false);
   };
 
+  const handleFooterNewsletterSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const cleanEmail = footerNewsletterEmail.trim();
+    const subject = encodeURIComponent('The Vajra newsletter signup');
+    const body = encodeURIComponent(
+      cleanEmail
+        ? `Please add ${cleanEmail} to The Vajra updates list.`
+        : 'Please add me to The Vajra updates list.'
+    );
+
+    window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+  };
+
   const handleBenefitsAudioToggle = async () => {
     const video = benefitsVideoRef.current;
     if (!video) return;
@@ -311,6 +361,13 @@ export default function Login() {
       }
     }
   };
+
+  const countdownUnits = [
+    { label: 'Days', value: launchCountdown.days },
+    { label: 'Hours', value: launchCountdown.hours },
+    { label: 'Minutes', value: launchCountdown.minutes },
+    { label: 'Seconds', value: launchCountdown.seconds },
+  ];
 
   return (
     <>
@@ -551,6 +608,20 @@ export default function Login() {
           min-width: 142px;
         }
 
+        .area-nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .area-job-cta {
+          min-width: 148px;
+          border: 1px solid rgba(17, 17, 17, 0.1);
+          background: rgba(255, 255, 255, 0.88);
+          color: var(--area-text);
+          box-shadow: 0 12px 28px rgba(17, 17, 17, 0.06);
+        }
+
         .area-nav-menu-toggle {
           display: none;
           align-items: center;
@@ -586,6 +657,11 @@ export default function Login() {
           padding: 10px 6px;
         }
 
+        .area-mobile-menu .area-button {
+          width: 100%;
+          margin-top: 10px;
+        }
+
         .area-hero {
           padding-bottom: 30px;
           text-align: center;
@@ -599,6 +675,95 @@ export default function Login() {
           line-height: 0.84;
           letter-spacing: -0.075em;
           white-space: nowrap;
+        }
+
+        .area-launch-card {
+          display: grid;
+          grid-template-columns: minmax(0, 1.2fr) auto;
+          align-items: center;
+          gap: 18px;
+          width: min(880px, calc(100% - 20px));
+          margin: 0 auto 30px;
+          padding: 18px 20px;
+          border: 1px solid rgba(255, 255, 255, 0.38);
+          border-radius: 26px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+          box-shadow: 0 18px 40px rgba(17, 17, 17, 0.08);
+          backdrop-filter: blur(24px) saturate(135%);
+          -webkit-backdrop-filter: blur(24px) saturate(135%);
+        }
+
+        .area-launch-copy {
+          text-align: left;
+        }
+
+        .area-launch-kicker {
+          margin-bottom: 8px;
+          color: #758449;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+        }
+
+        .area-launch-text {
+          color: #202019;
+          font-size: 15px;
+          line-height: 1.65;
+        }
+
+        .area-launch-text strong {
+          font-weight: 700;
+        }
+
+        .area-launch-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(78px, 92px));
+          gap: 10px;
+        }
+
+        .area-launch-unit {
+          padding: 12px 10px 11px;
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          border-radius: 20px;
+          background: rgba(16, 22, 46, 0.16);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+          text-align: center;
+        }
+
+        .area-launch-value {
+          display: block;
+          color: #111111;
+          font-size: clamp(1.8rem, 2.4vw, 2.35rem);
+          font-weight: 700;
+          line-height: 1;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .area-launch-label {
+          display: block;
+          margin-top: 7px;
+          color: #5f6f3d;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .area-launch-live {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 54px;
+          padding: 0 18px;
+          border: 1px solid rgba(95, 118, 22, 0.24);
+          border-radius: 999px;
+          background: rgba(95, 118, 22, 0.12);
+          color: #243008;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
         }
 
         .area-hero-visual-wrap {
@@ -1087,79 +1252,134 @@ export default function Login() {
         }
 
         .area-footer {
-          padding: 34px 0 40px;
+          margin-top: 10px;
+          width: 100vw;
+          margin-left: calc(50% - 50vw);
+          padding: 0;
+          background: #5c5c5a;
+          color: rgba(255, 255, 255, 0.82);
         }
 
-        .area-footer-top {
-          display: flex;
-          align-items: center;
-          gap: 34px;
-          padding-bottom: 34px;
-          font-size: 14px;
-          font-weight: 600;
+        .area-footer-inner {
+          width: min(1180px, calc(100% - 64px));
+          margin: 0 auto;
+          padding: 48px 0 28px;
         }
 
-        .area-footer-mission {
-          max-width: 760px;
-          padding: 0 0 26px;
-          color: #7e8b57;
-          font-size: 14px;
-          line-height: 1.8;
+        .area-footer-grid {
+          display: grid;
+          grid-template-columns: 1.15fr 0.9fr 0.85fr 1.15fr;
+          gap: 46px;
         }
 
-        .area-footer-links {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          padding-bottom: 26px;
+        .area-footer-heading {
+          margin-bottom: 17px;
+          color: rgba(255, 255, 255, 0.48);
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
         }
 
-        .area-footer-link {
+        .area-footer-list {
+          display: grid;
+          gap: 8px;
+          color: rgba(255, 255, 255, 0.84);
+          font-size: 13px;
+          line-height: 1.4;
+        }
+
+        .area-footer-list a,
+        .area-footer-legal a {
+          text-decoration: underline;
+          text-decoration-thickness: 1px;
+          text-underline-offset: 2px;
+          transition: color 180ms ease;
+        }
+
+        .area-footer-list a:hover,
+        .area-footer-legal a:hover {
+          color: #ffffff;
+        }
+
+        .area-footer-social {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          min-height: 44px;
-          padding: 0 16px;
-          border: 1px solid rgba(95, 118, 22, 0.16);
-          border-radius: 999px;
-          background: rgba(255, 255, 255, 0.5);
-          color: var(--area-text);
-          font-size: 13px;
-          font-weight: 600;
-          transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+          gap: 14px;
+          margin-bottom: 22px;
         }
 
-        .area-footer-link:hover {
-          transform: translateY(-1px);
-          border-color: rgba(95, 118, 22, 0.3);
-          background: rgba(255, 255, 255, 0.82);
+        .area-footer-social a {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 30px;
+          height: 30px;
+          border-radius: 999px;
+          color: rgba(255, 255, 255, 0.9);
+          transition: background-color 180ms ease, color 180ms ease;
+        }
+
+        .area-footer-social a:hover {
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+        }
+
+        .area-footer-newsletter {
+          display: flex;
+          gap: 8px;
+          margin-top: 18px;
+        }
+
+        .area-footer-newsletter input {
+          min-width: 0;
+          flex: 1;
+          height: 44px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.92);
+          padding: 0 14px;
+          color: #222;
+          font-family: inherit;
+          font-size: 12px;
+          outline: none;
+        }
+
+        .area-footer-newsletter button {
+          width: 84px;
+          height: 44px;
+          border: 1px solid rgba(255, 255, 255, 0.38);
+          background: transparent;
+          color: #ffffff;
+          font-family: inherit;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+        }
+
+        .area-footer-copy {
+          max-width: 300px;
+          color: rgba(255, 255, 255, 0.66);
+          font-size: 12px;
+          line-height: 1.7;
         }
 
         .area-footer-bottom {
           display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: 24px;
-        }
-
-        .area-footer-mark {
-          display: flex;
-          align-items: flex-end;
-          gap: 14px;
-          color: var(--area-text);
-        }
-
-        .area-footer-meta {
-          display: flex;
           align-items: center;
-          gap: 12px;
-          color: #8f9d60;
-          font-size: 13px;
+          justify-content: space-between;
+          gap: 18px;
+          margin-top: 44px;
+          padding-top: 22px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          color: rgba(255, 255, 255, 0.42);
+          font-size: 11px;
         }
 
-        .area-footer-rights {
-          color: #8f9d60;
-          font-size: 13px;
+        .area-footer-legal {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 18px;
         }
 
         .login-overlay {
@@ -1371,6 +1591,7 @@ export default function Login() {
           }
 
           .area-nav-links,
+          .area-nav-actions,
           .area-nav-cta,
           .area-floating-nav {
             display: none;
@@ -1392,6 +1613,16 @@ export default function Login() {
             line-height: 0.92;
             letter-spacing: -0.06em;
             white-space: normal;
+          }
+
+          .area-launch-card {
+            grid-template-columns: 1fr;
+            justify-items: center;
+            padding: 16px 18px;
+          }
+
+          .area-launch-copy {
+            text-align: center;
           }
 
           .area-hero-visual-wrap {
@@ -1423,10 +1654,14 @@ export default function Login() {
             padding-bottom: 70px;
           }
 
-          .area-howto-head,
-          .area-footer-bottom {
+          .area-howto-head {
             flex-direction: column;
             align-items: flex-start;
+          }
+
+          .area-footer-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 36px;
           }
         }
 
@@ -1461,6 +1696,34 @@ export default function Login() {
 
           .area-hero {
             padding-bottom: 28px;
+          }
+
+          .area-launch-card {
+            gap: 14px;
+            margin-bottom: 24px;
+            padding: 14px;
+            border-radius: 22px;
+          }
+
+          .area-launch-text {
+            font-size: 13px;
+          }
+
+          .area-launch-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            width: 100%;
+          }
+
+          .area-launch-unit {
+            padding: 12px 8px 10px;
+          }
+
+          .area-launch-value {
+            font-size: 1.65rem;
+          }
+
+          .area-launch-label {
+            font-size: 10px;
           }
 
           .area-trusted {
@@ -1560,29 +1823,19 @@ export default function Login() {
             width: 100%;
           }
 
-          .area-footer-top {
+          .area-footer-inner {
+            width: min(100%, calc(100% - 32px));
+            padding: 38px 0 24px;
+          }
+
+          .area-footer-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+          }
+
+          .area-footer-bottom {
             flex-direction: column;
             align-items: flex-start;
-            gap: 20px;
-          }
-
-          .area-footer-meta,
-          .area-footer-rights {
-            font-size: 12px;
-          }
-
-          .area-footer-mission {
-            padding-bottom: 22px;
-            font-size: 12px;
-          }
-
-          .area-footer-links {
-            padding-bottom: 22px;
-          }
-
-          .area-footer-link {
-            width: 100%;
-            justify-content: center;
           }
 
           .login-overlay {
@@ -1651,10 +1904,17 @@ export default function Login() {
                 ))}
               </nav>
 
-              <button type="button" className="area-button area-button-primary area-nav-cta" onClick={() => openModal('signup')}>
-                Get Started
-                <ArrowUpRight size={16} />
-              </button>
+              <div className="area-nav-actions">
+                <a href="/careers" className="area-button area-job-cta">
+                  Apply for Job
+                  <Briefcase size={16} />
+                </a>
+
+                <button type="button" className="area-button area-button-primary area-nav-cta" onClick={() => openModal('signup')}>
+                  Get Started
+                  <ArrowUpRight size={16} />
+                </button>
+              </div>
 
               <button
                 type="button"
@@ -1676,6 +1936,11 @@ export default function Login() {
                   ))}
                 </nav>
 
+                <a href="/careers" className="area-button area-job-cta" onClick={() => setMobileMenuOpen(false)}>
+                  Apply for Job
+                  <Briefcase size={16} />
+                </a>
+
                 <button type="button" className="area-button area-button-primary" onClick={() => openModal('signup')}>
                   Get Started
                   <ArrowUpRight size={16} />
@@ -1687,6 +1952,28 @@ export default function Login() {
           <main id="top">
             <section className="area-hero">
               <h1 className="area-title area-hero-title">Delivering the future.</h1>
+
+              <div className="area-launch-card" aria-live="polite">
+                <div className="area-launch-copy">
+                  <p className="area-launch-kicker">Launch Countdown</p>
+                  <p className="area-launch-text">
+                    The Vajra goes live on <strong>{LAUNCH_DATE_LABEL}</strong>.
+                  </p>
+                </div>
+
+                {launchCountdown.isLive ? (
+                  <div className="area-launch-live">Now Live</div>
+                ) : (
+                  <div className="area-launch-grid">
+                    {countdownUnits.map((unit) => (
+                      <div key={unit.label} className="area-launch-unit">
+                        <span className="area-launch-value">{unit.value}</span>
+                        <span className="area-launch-label">{unit.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <div className="area-hero-visual-wrap">
                 <img
@@ -1889,56 +2176,79 @@ export default function Login() {
             </section>
           </main>
 
-          <div className="area-divider" />
-
           <footer className="area-footer">
-            <div className="area-footer-top">
-              {navLinks.slice(0, 3).map((item) => (
-                <a key={item.href} href={item.href}>
-                  {item.label}
-                </a>
-              ))}
-            </div>
+            <div className="area-footer-inner">
+              <div className="area-footer-grid">
+                <div>
+                  <h3 className="area-footer-heading">Help & Information</h3>
+                  <nav className="area-footer-list" aria-label="Help and information">
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms & Conditions</a>
+                    <a href="/refund-cancellation">Refund & Cancellation</a>
+                    <a href="/shipping-policy">Shipping Policy</a>
+                    <a href={`mailto:${SUPPORT_EMAIL}`}>Contact Support</a>
+                  </nav>
+                </div>
 
-            <p className="area-footer-mission">
-              Built by The VajraCognixia Technologies Private Limited to shape the future of drone delivery with faster fulfilment, clearer tracking, and smarter local logistics.
-            </p>
+                <div>
+                  <h3 className="area-footer-heading">Explore</h3>
+                  <nav className="area-footer-list" aria-label="Footer navigation">
+                    <a href="#top">Home</a>
+                    <a href="#benefits">Why Vajra</a>
+                    <a href="#specifications">Delivery Model</a>
+                    <a href="/founder">Founder</a>
+                    <a href="/careers">Careers</a>
+                  </nav>
+                </div>
 
-            <div className="area-footer-links">
-              <a href={`mailto:${SUPPORT_EMAIL}`} className="area-footer-link">
-                <Mail size={16} />
-                <span>{SUPPORT_EMAIL}</span>
-              </a>
-              <a
-                href={COMPANY_WEBSITE_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="area-footer-link"
-              >
-                <Globe2 size={16} />
-                <span>vajracognixia.in</span>
-              </a>
-              <a
-                href={COMPANY_INSTAGRAM_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="area-footer-link"
-              >
-                <Instagram size={16} />
-                <span>@vajracognixia.in</span>
-              </a>
-            </div>
+                <div>
+                  <h3 className="area-footer-heading">Company</h3>
+                  <nav className="area-footer-list" aria-label="Company links">
+                    <a href={COMPANY_WEBSITE_URL} target="_blank" rel="noreferrer">VajraCognixia</a>
+                    <a href="#contact">Partnerships</a>
+                    <a href="/careers">Apply for Job</a>
+                    <a href={`mailto:${SUPPORT_EMAIL}`}>Support</a>
+                  </nav>
+                </div>
 
-            <div className="area-footer-bottom">
-              <div className="area-footer-mark">
-                <AreaMark />
-                <div className="area-footer-meta">
-                  <span>Copyright The VajraCognixia Technologies Private Limited</span>
-                  <span>{new Date().getFullYear()}</span>
+                <div>
+                  <h3 className="area-footer-heading">Social Media</h3>
+                  <div className="area-footer-social">
+                    <a href={COMPANY_INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Instagram">
+                      <Instagram size={17} />
+                    </a>
+                    <a href={`mailto:${SUPPORT_EMAIL}`} aria-label="Email">
+                      <Mail size={17} />
+                    </a>
+                    <a href={COMPANY_WEBSITE_URL} target="_blank" rel="noreferrer" aria-label="Website">
+                      <Globe2 size={17} />
+                    </a>
+                  </div>
+                  <p className="area-footer-copy">
+                    Get updates from The Vajra on launch news, careers, and product announcements.
+                  </p>
+                  <form className="area-footer-newsletter" onSubmit={handleFooterNewsletterSubmit}>
+                    <input
+                      type="email"
+                      placeholder="E-Mail Address"
+                      aria-label="Email address"
+                      value={footerNewsletterEmail}
+                      onChange={(event) => setFooterNewsletterEmail(event.target.value)}
+                      required
+                    />
+                    <button type="submit">Send</button>
+                  </form>
                 </div>
               </div>
 
-              <div className="area-footer-rights">All Rights Reserved</div>
+              <div className="area-footer-bottom">
+                <div className="area-footer-legal">
+                  <a href="/privacy">Privacy</a>
+                  <a href="/terms">Terms</a>
+                  <a href="/careers">Careers</a>
+                </div>
+                <div>Copyright {new Date().getFullYear()} The VajraCognixia Technologies Private Limited</div>
+              </div>
             </div>
           </footer>
         </div>
