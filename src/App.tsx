@@ -298,7 +298,7 @@ function App() {
   }, [appMode]);
 
   useEffect(() => {
-    setCurrentPage('home');
+    setCurrentPage(appMode === 'delivery' ? 'home' : 'service-hub');
   }, [appMode]);
 
   useEffect(() => {
