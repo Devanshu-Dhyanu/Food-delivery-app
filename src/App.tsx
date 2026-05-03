@@ -25,6 +25,7 @@ import ShippingPolicy from './components/ShippingPolicy';
 import SupportChatPage from './components/SupportChatPage';
 import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
+import PostLoginServiceHub from './components/PostLoginServiceHub';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import { logAdminSignInEvent } from './lib/adminActivity';
 import {
@@ -35,7 +36,28 @@ import {
 } from './lib/deliveryPartner';
 import { supabase, Announcement, type DeliveryPartnerAccountMode } from './lib/supabase';
 
-type Page = 'home' | 'menu' | 'cart' | 'checkout' | 'orders' | 'order-placed' | 'announcements' | 'profile' | 'founder' | 'careers' | 'contact-us' | 'terms-conditions' | 'privacy-policy' | 'refund-cancellation' | 'shipping-policy' | 'payment-callback' | 'support';
+type Page =
+  | 'service-hub'
+  | 'home'
+  | 'car-rent'
+  | 'second-hand-market'
+  | 'taxi'
+  | 'menu'
+  | 'cart'
+  | 'checkout'
+  | 'orders'
+  | 'order-placed'
+  | 'announcements'
+  | 'profile'
+  | 'founder'
+  | 'careers'
+  | 'contact-us'
+  | 'terms-conditions'
+  | 'privacy-policy'
+  | 'refund-cancellation'
+  | 'shipping-policy'
+  | 'payment-callback'
+  | 'support';
 type AppMode = DeliveryPartnerAccountMode;
 
 const ANNOUNCEMENT_DISMISS_KEY = 'vc_dismissed_announcements';
@@ -78,7 +100,7 @@ const getInitialPageFromPath = (): Page => {
     return 'support';
   }
 
-  return 'home';
+  return 'service-hub';
 };
 
 const priorityRank: Record<Announcement['priority'], number> = {
@@ -386,7 +408,11 @@ function App() {
 
   const handleNavigate = (page: string) => {
     if (
+      page === 'service-hub' ||
       page === 'home' ||
+      page === 'car-rent' ||
+      page === 'second-hand-market' ||
+      page === 'taxi' ||
       page === 'menu' ||
       page === 'cart' ||
       page === 'checkout' ||
@@ -709,12 +735,56 @@ function App() {
     }
 
     switch (currentPage) {
+      case 'service-hub':
+        return <PostLoginServiceHub onNavigate={handleNavigate as (page: 'home' | 'car-rent' | 'second-hand-market' | 'taxi') => void} />;
       case 'home':
         return (
           <RestaurantList
             userId={user.id}
             onSelectRestaurant={handleSelectRestaurant}
             greetingName={userDisplayName}
+            featuredAnnouncement={featuredAnnouncement}
+            announcementsLoading={announcementsLoading}
+            onAnnouncementAction={handleAnnouncementAction}
+            onOpenAnnouncements={() => setCurrentPage('announcements')}
+            onDismissAnnouncement={handleDismissAnnouncement}
+          />
+        );
+      case 'car-rent':
+        return (
+          <RestaurantList
+            userId={user.id}
+            onSelectRestaurant={handleSelectRestaurant}
+            greetingName={userDisplayName}
+            initialService="car-rent"
+            featuredAnnouncement={featuredAnnouncement}
+            announcementsLoading={announcementsLoading}
+            onAnnouncementAction={handleAnnouncementAction}
+            onOpenAnnouncements={() => setCurrentPage('announcements')}
+            onDismissAnnouncement={handleDismissAnnouncement}
+          />
+        );
+      case 'second-hand-market':
+        return (
+          <RestaurantList
+            userId={user.id}
+            onSelectRestaurant={handleSelectRestaurant}
+            greetingName={userDisplayName}
+            initialService="second-hand-market"
+            featuredAnnouncement={featuredAnnouncement}
+            announcementsLoading={announcementsLoading}
+            onAnnouncementAction={handleAnnouncementAction}
+            onOpenAnnouncements={() => setCurrentPage('announcements')}
+            onDismissAnnouncement={handleDismissAnnouncement}
+          />
+        );
+      case 'taxi':
+        return (
+          <RestaurantList
+            userId={user.id}
+            onSelectRestaurant={handleSelectRestaurant}
+            greetingName={userDisplayName}
+            initialService="taxi"
             featuredAnnouncement={featuredAnnouncement}
             announcementsLoading={announcementsLoading}
             onAnnouncementAction={handleAnnouncementAction}
@@ -824,7 +894,7 @@ function App() {
     <CartProvider>
       <DeliveryVoiceCallProvider userId={user.id} userDisplayName={userDisplayName}>
         <div className="flex min-h-screen flex-col bg-gray-900">
-          {appMode === 'customer' && (
+          {currentPage !== 'service-hub' && appMode === 'customer' && (
             <SmartTabTitle
               currentPage={currentPage}
               loading={loading}
@@ -832,20 +902,22 @@ function App() {
               hasProfile={hasProfile}
             />
           )}
-          <Header
-            currentPage={currentPage}
-            onNavigate={handleNavigate}
-            showNavigation={appMode === 'customer'}
-            hasUnreadAnnouncements={hasUnreadAnnouncements}
-            userDisplayName={userDisplayName}
-            userAvatarUrl={userAvatarUrl}
-            userId={user?.id}
-            appMode={appMode}
-            appModeBusy={appModeBusy}
-            onToggleAppMode={handleToggleAppMode}
-          />
+          {currentPage !== 'service-hub' && (
+            <Header
+              currentPage={currentPage}
+              onNavigate={handleNavigate}
+              showNavigation={appMode === 'customer'}
+              hasUnreadAnnouncements={hasUnreadAnnouncements}
+              userDisplayName={userDisplayName}
+              userAvatarUrl={userAvatarUrl}
+              userId={user?.id}
+              appMode={appMode}
+              appModeBusy={appModeBusy}
+              onToggleAppMode={handleToggleAppMode}
+            />
+          )}
           <main className="flex-1">{renderPage()}</main>
-          {appMode === 'customer' && (
+          {appMode === 'customer' && currentPage !== 'service-hub' && (
             <>
               <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
               <Footer onNavigate={handleNavigate} />

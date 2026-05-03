@@ -25,6 +25,7 @@ interface RestaurantListProps {
   userId: string;
   onSelectRestaurant: (restaurantId: string) => void;
   greetingName?: string;
+  initialService?: CampusService;
   featuredAnnouncement?: Announcement | null;
   announcementsLoading?: boolean;
   onAnnouncementAction?: (link?: string | null) => void;
@@ -198,6 +199,7 @@ export default function RestaurantList({
   userId,
   onSelectRestaurant,
   greetingName,
+  initialService = 'restaurants',
   featuredAnnouncement,
   announcementsLoading = false,
   onAnnouncementAction,
@@ -209,7 +211,7 @@ export default function RestaurantList({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCuisineFilter, setSelectedCuisineFilter] = useState('');
   const [sortBy, setSortBy] = useState<'rating' | 'delivery' | 'newest' | 'open'>('rating');
-  const [selectedService, setSelectedService] = useState<CampusService>('restaurants');
+  const [selectedService, setSelectedService] = useState<CampusService>(initialService);
   const [carRentalScreen, setCarRentalScreen] = useState<CarRentalScreen>('list');
   const [selectedRentalVehicle, setSelectedRentalVehicle] = useState<RentalVehicle | null>(null);
   const [favoriteRestaurantIds, setFavoriteRestaurantIds] = useState<string[]>(() =>
@@ -243,6 +245,10 @@ export default function RestaurantList({
       setSelectedRentalVehicle(null);
     }
   }, [selectedService]);
+
+  useEffect(() => {
+    setSelectedService(initialService);
+  }, [initialService]);
 
   const handleSelectService = (service: CampusService) => {
     setSelectedService(service);
