@@ -1,15 +1,28 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowUpRight,
+  BatteryFull,
+  Bell,
   Briefcase,
   Check,
+  ChevronRight,
+  Clock3,
   Globe2,
+  Home,
   Instagram,
   Mail,
+  MessageCircle,
   Menu,
   MapPin,
   Package,
+  Search,
   ShieldCheck,
+  SignalHigh,
+  Sparkles,
+  Store,
+  Users,
+  UserCircle2,
+  Wifi,
   X,
   Zap,
   type LucideIcon,
@@ -17,7 +30,6 @@ import {
 import { supabase } from '../lib/supabase';
 import { applyDefaultSeo } from '../lib/seo';
 
-const HOME_TITLE = 'Drone Delivery Platform | The Vajra';
 const SUPPORT_EMAIL = 'support@vajracognixia.in';
 const COMPANY_WEBSITE_URL = 'https://www.vajracognixia.in/';
 const COMPANY_INSTAGRAM_URL = 'https://www.instagram.com/vajracognixia.in/';
@@ -213,16 +225,24 @@ const showcasePhoneHighlights = [
 
 const showcaseCommunityPosts = [
   {
+    author: 'Aarav Jain',
+    avatar: '/founder.png',
     title: 'Campus creators meetup',
     time: '2m ago',
     body: 'See founder notes, seller stories, and launch updates shared in one active community stream.',
     metric: '184 joined',
+    replies: '26 replies',
+    image: '/area/podium.png',
   },
   {
+    author: 'Neha Verma',
+    avatar: '/founder.png',
     title: 'Marketplace buzz',
     time: '11m ago',
     body: 'Trending listings, local demand, and quick buyer activity keep the platform feeling alive.',
     metric: '92 posts',
+    replies: '14 comments',
+    image: '/area/vajra-hero-drone.jpg',
   },
 ] as const;
 
@@ -243,6 +263,29 @@ const showcaseSupportItems = [
     tone: 'soft',
   },
 ] as const;
+
+const showcaseQuickActions = [
+  { label: 'Food', icon: Package },
+  { label: 'Sell', icon: Store },
+  { label: 'Ride', icon: MapPin },
+  { label: 'Help', icon: MessageCircle },
+] as const;
+
+const showcaseHomeStats = [
+  { label: 'Active orders', value: '24' },
+  { label: 'Sellers live', value: '108' },
+  { label: 'Avg ETA', value: '14m' },
+] as const;
+
+const showcaseOrderTimeline = [
+  { title: 'Order placed', body: 'Paneer wrap combo confirmed for Sector 14.' },
+  { title: 'Kitchen preparing', body: 'Estimated dispatch in 6 minutes.' },
+  { title: 'Rider assigned', body: 'Arjun is heading to pickup now.' },
+] as const;
+
+const showcaseSupportReplies = ['Track order', 'Refund update', 'Talk to support'] as const;
+
+type ShowcaseTab = 'home' | 'community' | 'support';
 
 function GoogleIcon() {
   return (
@@ -268,7 +311,7 @@ function GoogleIcon() {
 }
 
 export default function Login() {
-  const [activeShowcaseTab, setActiveShowcaseTab] = useState<'home' | 'community' | 'support'>('home');
+  const [activeShowcaseTab, setActiveShowcaseTab] = useState<ShowcaseTab>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -282,7 +325,18 @@ export default function Login() {
   const [mockPhoneTime, setMockPhoneTime] = useState(getMockPhoneTime);
   const benefitsVideoRef = useRef<HTMLVideoElement | null>(null);
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
+  const showcaseScrollRef = useRef<HTMLDivElement | null>(null);
   const redirectTo = `${window.location.origin}/auth/callback`;
+
+  const handleShowcaseTabChange = (tab: ShowcaseTab) => {
+    setActiveShowcaseTab(tab);
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    showcaseScrollRef.current?.scrollTo({
+      top: 0,
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+    });
+  };
 
   useEffect(() => {
     applyDefaultSeo();
@@ -1396,6 +1450,20 @@ export default function Login() {
           box-shadow:
             0 28px 60px rgba(17, 17, 17, 0.22),
             inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+          overflow: hidden;
+        }
+
+        .area-showcase-device::before {
+          content: '';
+          position: absolute;
+          inset: 10px 12px auto auto;
+          width: 38%;
+          height: 22%;
+          border-radius: 999px;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
+          filter: blur(8px);
+          opacity: 0.6;
+          pointer-events: none;
         }
 
         .area-showcase-device-screen {
@@ -1409,9 +1477,25 @@ export default function Login() {
           overflow: hidden;
         }
 
+        .area-showcase-device-screen::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at 20% 12%, rgba(111, 78, 246, 0.09), transparent 28%),
+            radial-gradient(circle at 82% 18%, rgba(164, 198, 73, 0.14), transparent 20%);
+          pointer-events: none;
+        }
+
+        .area-showcase-device-body {
+          position: relative;
+          height: calc(100% - 92px);
+          padding-bottom: 66px;
+        }
+
         .area-showcase-device-scroll {
-          height: calc(100% - 84px);
-          padding-bottom: 12px;
+          height: 100%;
+          padding: 2px 2px 18px;
           overflow-y: auto;
           overscroll-behavior: contain;
           scrollbar-width: none;
@@ -1419,6 +1503,43 @@ export default function Login() {
 
         .area-showcase-device-scroll::-webkit-scrollbar {
           display: none;
+        }
+
+        .area-showcase-device-panel {
+          display: grid;
+          gap: 14px;
+          animation: areaShowcasePanelIn 220ms ease;
+        }
+
+        .area-showcase-scroll-fade {
+          position: absolute;
+          left: 0;
+          right: 0;
+          height: 26px;
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        .area-showcase-scroll-fade.is-top {
+          top: 0;
+          background: linear-gradient(180deg, rgba(249, 247, 241, 0.96), rgba(249, 247, 241, 0));
+        }
+
+        .area-showcase-scroll-fade.is-bottom {
+          bottom: 64px;
+          background: linear-gradient(0deg, rgba(249, 247, 241, 0.98), rgba(249, 247, 241, 0));
+        }
+
+        @keyframes areaShowcasePanelIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .area-showcase-notch {
@@ -1438,37 +1559,52 @@ export default function Login() {
           align-items: center;
           justify-content: space-between;
           margin-top: 10px;
-          margin-bottom: 18px;
+          margin-bottom: 14px;
           color: #111111;
           font-size: 15px;
           font-weight: 700;
         }
 
-        .area-showcase-status-dots {
+        .area-showcase-status-right {
           display: inline-flex;
-          gap: 6px;
+          align-items: center;
+          gap: 8px;
         }
 
-        .area-showcase-status-dots span {
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          background: #111111;
-          opacity: 0.75;
+        .area-showcase-status-battery {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 7px;
+          border-radius: 999px;
+          background: rgba(17, 17, 17, 0.06);
+          font-size: 11px;
+          font-weight: 700;
         }
 
         .area-showcase-appbar {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
+        }
+
+        .area-showcase-appbar-copy {
+          display: grid;
+          gap: 4px;
         }
 
         .area-showcase-wordmark {
           color: #6f4ef6;
-          font-size: 1.85rem;
+          font-size: 1.72rem;
           font-weight: 800;
           letter-spacing: -0.06em;
+        }
+
+        .area-showcase-subtitle {
+          color: #77736d;
+          font-size: 12px;
+          font-weight: 600;
         }
 
         .area-showcase-appicons {
@@ -1477,12 +1613,29 @@ export default function Login() {
           gap: 10px;
         }
 
-        .area-showcase-appicons span {
+        .area-showcase-appicon {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           width: 36px;
           height: 36px;
           border: 1px solid rgba(17, 17, 17, 0.08);
           border-radius: 50%;
-          background: #ffffff;
+          color: #252525;
+          background: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 6px 14px rgba(17, 17, 17, 0.06);
+        }
+
+        .area-showcase-appicon-badge {
+          position: absolute;
+          top: 1px;
+          right: 1px;
+          width: 9px;
+          height: 9px;
+          border: 2px solid #ffffff;
+          border-radius: 50%;
+          background: #6f4ef6;
         }
 
         .area-showcase-feed-card {
@@ -1532,7 +1685,7 @@ export default function Login() {
         .area-showcase-feed-image {
           display: block;
           width: calc(100% - 28px);
-          height: 258px;
+          height: 206px;
           margin: 0 auto;
           border-radius: 20px;
           object-fit: cover;
@@ -1559,9 +1712,167 @@ export default function Login() {
           background: rgba(255, 255, 255, 0.94);
         }
 
+        .area-showcase-quick-actions {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .area-showcase-quick-action {
+          display: grid;
+          justify-items: center;
+          gap: 8px;
+          padding: 12px 8px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 20px;
+          color: #36352f;
+          font-size: 12px;
+          font-weight: 700;
+          background: rgba(255, 255, 255, 0.82);
+          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.04);
+          transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .area-showcase-quick-action:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 14px 28px rgba(17, 17, 17, 0.08);
+        }
+
+        .area-showcase-quick-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 14px;
+          color: #6f4ef6;
+          background: rgba(111, 78, 246, 0.08);
+        }
+
+        .area-showcase-order-card {
+          padding: 18px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 24px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 240, 233, 0.94));
+          box-shadow: 0 12px 28px rgba(17, 17, 17, 0.06);
+        }
+
+        .area-showcase-order-head {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 14px;
+        }
+
+        .area-showcase-order-eyebrow {
+          color: #77736d;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+        }
+
+        .area-showcase-order-head h3 {
+          margin-top: 6px;
+          color: #171717;
+          font-size: 1.05rem;
+          font-weight: 700;
+        }
+
+        .area-showcase-order-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 10px;
+          border-radius: 999px;
+          color: #6f4ef6;
+          font-size: 12px;
+          font-weight: 700;
+          background: rgba(111, 78, 246, 0.1);
+        }
+
+        .area-showcase-stats {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 16px;
+        }
+
+        .area-showcase-stat {
+          padding: 12px 10px;
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.82);
+        }
+
+        .area-showcase-stat-value {
+          color: #111111;
+          font-size: 1rem;
+          font-weight: 800;
+        }
+
+        .area-showcase-stat-label {
+          margin-top: 4px;
+          color: #7b7771;
+          font-size: 11px;
+          line-height: 1.35;
+        }
+
+        .area-showcase-order-timeline {
+          display: grid;
+          gap: 12px;
+        }
+
+        .area-showcase-order-step {
+          display: grid;
+          grid-template-columns: 22px minmax(0, 1fr);
+          gap: 10px;
+          align-items: start;
+        }
+
+        .area-showcase-order-step-dot {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          color: #6f4ef6;
+          background: rgba(111, 78, 246, 0.1);
+        }
+
+        .area-showcase-order-step-dot::after {
+          content: '';
+          position: absolute;
+          top: 22px;
+          left: 50%;
+          width: 1px;
+          height: calc(100% + 14px);
+          background: rgba(111, 78, 246, 0.18);
+          transform: translateX(-50%);
+        }
+
+        .area-showcase-order-step:last-child .area-showcase-order-step-dot::after {
+          display: none;
+        }
+
+        .area-showcase-order-step-title {
+          color: #161616;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .area-showcase-order-step-body {
+          margin-top: 3px;
+          color: #6f6b64;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
         .area-showcase-highlight {
           position: relative;
-          margin-top: 14px;
+          margin-top: 0;
           padding: 16px 16px 18px;
           border-radius: 24px;
           background: linear-gradient(135deg, #6f4ef6, #8b6fff);
@@ -1630,6 +1941,11 @@ export default function Login() {
         }
 
         .area-showcase-bottom-nav button {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 2px;
           height: 38px;
           border: 1px solid rgba(17, 17, 17, 0.08);
           border-radius: 999px;
@@ -1640,6 +1956,10 @@ export default function Login() {
           background: rgba(255, 255, 255, 0.9);
           transition: all 180ms ease;
           cursor: pointer;
+        }
+
+        .area-showcase-bottom-nav button:hover {
+          transform: translateY(-1px);
         }
 
         .area-showcase-bottom-nav button.is-active {
@@ -1655,11 +1975,17 @@ export default function Login() {
         }
 
         .area-showcase-community-card {
-          padding: 18px;
+          overflow: hidden;
           border: 1px solid rgba(17, 17, 17, 0.08);
           border-radius: 24px;
           background: rgba(255, 255, 255, 0.92);
           box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
+        }
+
+        .area-showcase-community-thumb {
+          width: 100%;
+          height: 118px;
+          object-fit: cover;
         }
 
         .area-showcase-community-meta {
@@ -1667,12 +1993,25 @@ export default function Login() {
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          margin-bottom: 10px;
+          padding: 16px 18px 10px;
+        }
+
+        .area-showcase-community-author {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .area-showcase-community-author img {
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          object-fit: cover;
         }
 
         .area-showcase-community-title {
           color: #151515;
-          font-size: 0.98rem;
+          font-size: 0.94rem;
           font-weight: 700;
         }
 
@@ -1682,24 +2021,38 @@ export default function Login() {
         }
 
         .area-showcase-community-body {
+          padding: 0 18px;
           color: #45453f;
           font-size: 13px;
           line-height: 1.6;
         }
 
+        .area-showcase-community-stats {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 14px 18px 18px;
+        }
+
         .area-showcase-community-metric {
           display: inline-flex;
-          margin-top: 14px;
+          align-items: center;
+          gap: 6px;
           padding: 8px 12px;
           border-radius: 999px;
-          color: #6f4ef6;
+          color: #4b4741;
           font-size: 12px;
           font-weight: 700;
+          background: rgba(17, 17, 17, 0.05);
+        }
+
+        .area-showcase-community-metric.is-accent {
+          color: #6f4ef6;
           background: rgba(111, 78, 246, 0.09);
         }
 
         .area-showcase-support-card {
-          padding: 18px;
+          padding: 16px 18px;
           border: 1px solid rgba(17, 17, 17, 0.08);
           border-radius: 24px;
           background: rgba(255, 255, 255, 0.94);
@@ -1732,6 +2085,128 @@ export default function Login() {
           font-size: 13px;
           line-height: 1.6;
           color: inherit;
+        }
+
+        .area-showcase-support-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 16px 18px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.94);
+          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
+        }
+
+        .area-showcase-support-presence {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .area-showcase-support-presence-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #6dbd45;
+          box-shadow: 0 0 0 6px rgba(109, 189, 69, 0.12);
+        }
+
+        .area-showcase-support-presence h3 {
+          color: #181818;
+          font-size: 0.98rem;
+          font-weight: 700;
+        }
+
+        .area-showcase-support-presence p {
+          color: #7c786f;
+          font-size: 12px;
+        }
+
+        .area-showcase-support-chat {
+          display: grid;
+          gap: 10px;
+        }
+
+        .area-showcase-chat-bubble {
+          max-width: 86%;
+          padding: 12px 14px;
+          border-radius: 18px;
+          font-size: 13px;
+          line-height: 1.55;
+          box-shadow: 0 8px 20px rgba(17, 17, 17, 0.05);
+        }
+
+        .area-showcase-chat-bubble.is-user {
+          margin-left: auto;
+          border-bottom-right-radius: 6px;
+          color: #ffffff;
+          background: linear-gradient(135deg, #6f4ef6, #8b6fff);
+        }
+
+        .area-showcase-chat-bubble.is-assistant {
+          border-bottom-left-radius: 6px;
+          color: #2f2e29;
+          background: rgba(255, 255, 255, 0.98);
+        }
+
+        .area-showcase-support-replies {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .area-showcase-support-reply {
+          display: inline-flex;
+          align-items: center;
+          height: 34px;
+          padding: 0 12px;
+          border: 1px solid rgba(111, 78, 246, 0.16);
+          border-radius: 999px;
+          color: #6f4ef6;
+          font-size: 12px;
+          font-weight: 700;
+          background: rgba(111, 78, 246, 0.06);
+        }
+
+        .area-showcase-support-typing {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          color: #7b776f;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .area-showcase-support-typing span {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #6f4ef6;
+          animation: areaTypingPulse 1.2s infinite ease-in-out;
+        }
+
+        .area-showcase-support-typing span:nth-child(2) {
+          animation-delay: 120ms;
+        }
+
+        .area-showcase-support-typing span:nth-child(3) {
+          animation-delay: 240ms;
+        }
+
+        @keyframes areaTypingPulse {
+          0%,
+          80%,
+          100% {
+            opacity: 0.35;
+            transform: scale(0.9);
+          }
+
+          40% {
+            opacity: 1;
+            transform: scale(1);
+          }
         }
 
         .area-testimonial {
@@ -2466,10 +2941,6 @@ export default function Login() {
             border-radius: 28px;
           }
 
-          .area-showcase-device-scroll {
-            height: calc(100% - 78px);
-          }
-
           .area-showcase-notch {
             width: 104px;
             height: 24px;
@@ -2477,6 +2948,30 @@ export default function Login() {
 
           .area-showcase-wordmark {
             font-size: 1.55rem;
+          }
+
+          .area-showcase-subtitle {
+            font-size: 11px;
+          }
+
+          .area-showcase-appicons {
+            gap: 8px;
+          }
+
+          .area-showcase-appicon {
+            width: 32px;
+            height: 32px;
+          }
+
+          .area-showcase-quick-actions,
+          .area-showcase-stats {
+            gap: 8px;
+          }
+
+          .area-showcase-quick-action,
+          .area-showcase-stat {
+            padding-left: 8px;
+            padding-right: 8px;
           }
 
           .area-showcase-feed-image {
@@ -2487,6 +2982,11 @@ export default function Login() {
 
           .area-showcase-highlight h3 {
             font-size: 1.55rem;
+          }
+
+          .area-showcase-community-stats,
+          .area-showcase-support-replies {
+            flex-wrap: wrap;
           }
 
           .area-table-heading {
@@ -2552,8 +3052,13 @@ export default function Login() {
 
           .area-button,
           .area-hero-visual,
-          .area-benefits-audio-toggle {
+          .area-benefits-audio-toggle,
+          .area-showcase-device-panel,
+          .area-showcase-quick-action,
+          .area-showcase-bottom-nav button,
+          .area-showcase-support-typing span {
             transition: none;
+            animation: none;
           }
 
           .area-button:hover {
@@ -2867,25 +3372,89 @@ export default function Login() {
 
                       <div className="area-showcase-status">
                         <span>{mockPhoneTime}</span>
-                        <div className="area-showcase-status-dots" aria-hidden="true">
-                          <span />
-                          <span />
-                          <span />
+                        <div className="area-showcase-status-right" aria-hidden="true">
+                          <SignalHigh size={14} strokeWidth={2.1} />
+                          <Wifi size={14} strokeWidth={2.1} />
+                          <span className="area-showcase-status-battery">
+                            <BatteryFull size={14} strokeWidth={2} />
+                            92%
+                          </span>
                         </div>
                       </div>
 
                       <div className="area-showcase-appbar">
-                        <div className="area-showcase-wordmark">The Vajra.</div>
+                        <div className="area-showcase-appbar-copy">
+                          <div className="area-showcase-wordmark">The Vajra.</div>
+                          <p className="area-showcase-subtitle">Your daily delivery layer</p>
+                        </div>
                         <div className="area-showcase-appicons" aria-hidden="true">
-                          <span />
-                          <span />
-                          <span />
+                          <span className="area-showcase-appicon">
+                            <Search size={16} strokeWidth={2.2} />
+                          </span>
+                          <span className="area-showcase-appicon">
+                            <Bell size={16} strokeWidth={2.2} />
+                            <span className="area-showcase-appicon-badge" />
+                          </span>
+                          <span className="area-showcase-appicon">
+                            <UserCircle2 size={17} strokeWidth={2} />
+                          </span>
                         </div>
                       </div>
 
-                      <div className="area-showcase-device-scroll">
+                      <div className="area-showcase-device-body">
+                        <div className="area-showcase-scroll-fade is-top" aria-hidden="true" />
+                        <div className="area-showcase-scroll-fade is-bottom" aria-hidden="true" />
+
+                        <div className="area-showcase-device-scroll" ref={showcaseScrollRef}>
                         {activeShowcaseTab === 'home' ? (
-                          <>
+                          <div className="area-showcase-device-panel">
+                            <div className="area-showcase-quick-actions">
+                              {showcaseQuickActions.map(({ label, icon: Icon }) => (
+                                <div key={label} className="area-showcase-quick-action">
+                                  <span className="area-showcase-quick-icon">
+                                    <Icon size={16} strokeWidth={2.1} />
+                                  </span>
+                                  <span>{label}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            <section className="area-showcase-order-card">
+                              <div className="area-showcase-order-head">
+                                <div>
+                                  <span className="area-showcase-order-eyebrow">Live dispatch</span>
+                                  <h3>Dinner order is moving</h3>
+                                </div>
+                                <span className="area-showcase-order-chip">
+                                  <Clock3 size={13} strokeWidth={2.1} />
+                                  14 min
+                                </span>
+                              </div>
+
+                              <div className="area-showcase-stats">
+                                {showcaseHomeStats.map((item) => (
+                                  <div key={item.label} className="area-showcase-stat">
+                                    <div className="area-showcase-stat-value">{item.value}</div>
+                                    <div className="area-showcase-stat-label">{item.label}</div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="area-showcase-order-timeline">
+                                {showcaseOrderTimeline.map((item) => (
+                                  <div key={item.title} className="area-showcase-order-step">
+                                    <span className="area-showcase-order-step-dot">
+                                      <Check size={12} strokeWidth={2.4} />
+                                    </span>
+                                    <div>
+                                      <p className="area-showcase-order-step-title">{item.title}</p>
+                                      <p className="area-showcase-order-step-body">{item.body}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </section>
+
                             <article className="area-showcase-feed-card">
                               <div className="area-showcase-feed-head">
                                 <img
@@ -2924,26 +3493,62 @@ export default function Login() {
                                 ))}
                               </div>
                             </div>
-                          </>
+                          </div>
                         ) : null}
 
                         {activeShowcaseTab === 'community' ? (
-                          <div className="area-showcase-panel-stack">
+                          <div className="area-showcase-device-panel">
                             {showcaseCommunityPosts.map((post) => (
                               <article key={post.title} className="area-showcase-community-card">
+                                <img src={post.image} alt={post.title} className="area-showcase-community-thumb" />
                                 <div className="area-showcase-community-meta">
-                                  <p className="area-showcase-community-title">{post.title}</p>
-                                  <span className="area-showcase-community-time">{post.time}</span>
+                                  <div className="area-showcase-community-author">
+                                    <img src={post.avatar} alt={post.author} />
+                                    <div>
+                                      <p className="area-showcase-community-title">{post.title}</p>
+                                      <span className="area-showcase-community-time">{post.author} - {post.time}</span>
+                                    </div>
+                                  </div>
+                                  <ChevronRight size={16} strokeWidth={2.1} color="#9b9791" />
                                 </div>
                                 <p className="area-showcase-community-body">{post.body}</p>
-                                <span className="area-showcase-community-metric">{post.metric}</span>
+                                <div className="area-showcase-community-stats">
+                                  <span className="area-showcase-community-metric is-accent">
+                                    <Users size={13} strokeWidth={2.1} />
+                                    {post.metric}
+                                  </span>
+                                  <span className="area-showcase-community-metric">
+                                    <MessageCircle size={13} strokeWidth={2.1} />
+                                    {post.replies}
+                                  </span>
+                                </div>
                               </article>
                             ))}
                           </div>
                         ) : null}
 
                         {activeShowcaseTab === 'support' ? (
-                          <div className="area-showcase-panel-stack">
+                          <div className="area-showcase-device-panel">
+                            <section className="area-showcase-support-header">
+                              <div className="area-showcase-support-presence">
+                                <span className="area-showcase-support-presence-dot" />
+                                <div>
+                                  <h3>Vajra Support AI</h3>
+                                  <p>Instant help, order updates, seller guidance</p>
+                                </div>
+                              </div>
+                              <Sparkles size={18} strokeWidth={2.1} color="#6f4ef6" />
+                            </section>
+
+                            <div className="area-showcase-support-chat">
+                              <div className="area-showcase-chat-bubble is-user">
+                                My order is late. Can you check the live status?
+                              </div>
+                              <div className="area-showcase-chat-bubble is-assistant">
+                                Your rider has reached the restaurant and pickup is being packed now. Updated arrival is 14 minutes.
+                              </div>
+                            </div>
+
                             {showcaseSupportItems.map((item) => (
                               <article
                                 key={item.title}
@@ -2954,6 +3559,21 @@ export default function Login() {
                                 <p>{item.body}</p>
                               </article>
                             ))}
+
+                            <div className="area-showcase-support-replies">
+                              {showcaseSupportReplies.map((reply) => (
+                                <span key={reply} className="area-showcase-support-reply">
+                                  {reply}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="area-showcase-support-typing" aria-hidden="true">
+                              <span />
+                              <span />
+                              <span />
+                              Support is typing...
+                            </div>
                           </div>
                         ) : null}
 
@@ -2961,25 +3581,32 @@ export default function Login() {
                           <button
                             type="button"
                             className={activeShowcaseTab === 'home' ? 'is-active' : ''}
-                            onClick={() => setActiveShowcaseTab('home')}
+                            onClick={() => handleShowcaseTabChange('home')}
+                            aria-selected={activeShowcaseTab === 'home'}
                           >
-                            Home
+                            <Home size={14} strokeWidth={2.15} />
+                            <span>Home</span>
                           </button>
                           <button
                             type="button"
                             className={activeShowcaseTab === 'community' ? 'is-active' : ''}
-                            onClick={() => setActiveShowcaseTab('community')}
+                            onClick={() => handleShowcaseTabChange('community')}
+                            aria-selected={activeShowcaseTab === 'community'}
                           >
-                            Community
+                            <Users size={14} strokeWidth={2.15} />
+                            <span>Community</span>
                           </button>
                           <button
                             type="button"
                             className={activeShowcaseTab === 'support' ? 'is-active' : ''}
-                            onClick={() => setActiveShowcaseTab('support')}
+                            onClick={() => handleShowcaseTabChange('support')}
+                            aria-selected={activeShowcaseTab === 'support'}
                           >
-                            Support
+                            <MessageCircle size={14} strokeWidth={2.15} />
+                            <span>Support</span>
                           </button>
                         </div>
+                      </div>
                       </div>
                     </div>
                   </div>
