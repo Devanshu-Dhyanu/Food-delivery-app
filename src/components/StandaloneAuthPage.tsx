@@ -212,8 +212,8 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
         </div>
       </header>
 
-      <div className="relative z-10 px-4 pb-6 pt-24 sm:px-6 md:px-8 lg:px-10 lg:pb-8 lg:pt-28">
-        <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-[1280px] items-center justify-center">
+      <div className="relative z-10 px-4 pb-6 pt-28 sm:px-6 md:px-8 lg:px-10 lg:pb-8 lg:pt-32">
+        <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-[1280px] items-center justify-center">
           <div className="grid min-h-[590px] w-full max-w-[1040px] overflow-hidden rounded-[30px] border border-white/14 bg-[rgba(255,255,255,0.94)] shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-sm lg:grid-cols-[0.9fr_1.1fr]">
             <section className="flex items-center justify-center px-8 py-10 sm:px-12 lg:px-14">
               <div className="w-full max-w-[350px]">

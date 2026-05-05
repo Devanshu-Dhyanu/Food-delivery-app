@@ -63,23 +63,18 @@ const navLinks = [
 
 const benefits = [
   {
-    title: 'Drone-First Dispatch',
-    body: 'The Vajra is being built around drone-led delivery to reduce delays between pickup and drop-off.',
+    title: 'Online Food Delivery',
+    body: 'Order food online with a smooth delivery experience built for speed, convenience, and real-time access. The Vajra helps users discover meals, place orders quickly, and enjoy a smarter way to get food delivered.',
     icon: Zap,
   },
   {
-    title: 'Smarter Route Visibility',
-    body: 'Live order visibility and coordinated routing help customers and operators know where every delivery stands.',
+    title: 'Buy and Sell Marketplace',
+    body: 'Buy and sell products easily through a trusted online marketplace designed for everyday needs. The Vajra helps people list items, discover local deals, and connect buyers and sellers in one simple platform.',
     icon: MapPin,
   },
   {
-    title: 'Safer Delivery Control',
-    body: 'Tracked movement, clearer handoff flow, and controlled operations are central to the product design.',
-    icon: ShieldCheck,
-  },
-  {
-    title: 'Built Beyond One Use Case',
-    body: 'The same logistics foundation can support food, essentials, parcels, and future local commerce services.',
+    title: 'Everyday Services Platform',
+    body: 'Access everyday services from one connected platform designed for convenience and future-ready delivery. The Vajra brings together transport, support, and smart service access in a way that saves time and improves daily life.',
     icon: Package,
   },
 ] as const;
@@ -173,8 +168,8 @@ const showcaseSideCards: ShowcaseSideCard[] = [
     tone: 'soft',
   },
   {
-    title: 'Campus updates',
-    subtitle: 'Announcements, launch notes, and important platform signals in one place.',
+    title: 'Food delivery',
+    subtitle: 'Show restaurant menus, delivery tracking, and fast ordering in one clean flow.',
     image: '/founder.png',
   },
   {
@@ -184,28 +179,28 @@ const showcaseSideCards: ShowcaseSideCard[] = [
     tone: 'accent',
   },
   {
-    title: 'Open roles',
-    subtitle: 'Discover current positions across tech, support, growth, and research.',
+    title: 'Marketplace',
+    subtitle: 'Highlight product listings, buyer-seller discovery, and trusted commerce signals.',
     icon: Briefcase,
     tone: 'soft',
   },
   {
-    title: 'Founder vision',
-    subtitle: 'See how the platform is being designed beyond everyday food delivery.',
+    title: 'Everyday services',
+    subtitle: 'Present transport, support, and connected service access in one ecosystem.',
     image: '/area/podium.png',
   },
   {
     title: 'Launch access',
-    subtitle: 'Join early and stay close to the roadmap as The Vajra goes live.',
+    subtitle: 'Join early and stay close to a smarter platform for delivery, marketplace, and daily services.',
     icon: Zap,
     tone: 'accent',
   },
 ] as const;
 
 const showcasePhoneHighlights = [
-  'Today: drone-ready routing overview',
+  'Food delivery, marketplace, and services in one app',
   'Support assistant available now',
-  'Careers, founder story, and launch info in one flow',
+  'Smart delivery and everyday convenience in one flow',
 ] as const;
 
 function GoogleIcon() {
@@ -2490,7 +2485,10 @@ export default function Login() {
 
           <main id="top">
             <section className="area-hero">
-              <h1 className="area-title area-hero-title">Delivering the future.</h1>
+              <h1 className="area-title area-hero-title">Delivering The Future</h1>
+              <p className="area-copy">
+                Order food online, buy and sell products, and access everyday services with The Vajra, a fast and future-ready platform built for modern delivery and convenience.
+              </p>
 
               <div className="area-launch-card" aria-live="polite">
                 <div className="area-launch-copy">
@@ -2579,8 +2577,8 @@ export default function Login() {
                     </button>
                   </div>
                 </div>
-                <h2 className="area-title">Drone delivery, built for real life.</h2>
-                <p className="area-copy">The Vajra is creating a faster and smarter delivery layer for everyday orders.</p>
+                <h2 className="area-title">One platform for food, products, and everyday access.</h2>
+                <p className="area-copy">The Vajra combines delivery, marketplace discovery, and service access in one smarter digital experience.</p>
               </div>
 
               <div className="area-benefits-grid">
@@ -2602,9 +2600,9 @@ export default function Login() {
               <div className="area-feature-grid">
                 <div className="area-feature-copy">
                   <div className="area-divider" />
-                  <h2 className="area-title">A logistics layer, not just another app.</h2>
+                  <h2 className="area-title">A connected platform, not just another app.</h2>
                   <p className="area-copy">
-                    The Vajra is being shaped as a technology-led delivery system that can coordinate dispatch, visibility, and drone-powered fulfilment in one product.
+                    The Vajra is being shaped as a technology-led platform that brings delivery, commerce, and everyday service access together in one product.
                   </p>
 
                   <div className="area-feature-list">
@@ -2634,7 +2632,7 @@ export default function Login() {
                 <p className="area-section-label">Why Vajra</p>
                 <h2 className="area-title">Why Choose The Vajra?</h2>
                 <p className="area-copy">
-                  The future of delivery needs more than another marketplace app. The Vajra is being built to combine drone-led speed, smarter coordination, and a stronger logistics foundation.
+                  The future of convenience needs more than a single-purpose app. The Vajra is being built to combine smarter delivery, online marketplace access, and everyday services in one connected platform.
                 </p>
                 <a href="#how-to" className="area-button area-button-soft area-specs-cta">
                   See the rollout
@@ -2729,7 +2727,7 @@ export default function Login() {
                           </div>
                         </div>
                         <p className="area-showcase-feed-text">
-                          Building a campus-first platform where support, ordering, and future logistics feel like one clean system.
+                          Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
                         </p>
                         <img
                           src="/area/vajra-hero-drone.jpg"
@@ -2796,7 +2794,7 @@ export default function Login() {
 
                 <div>
                   <blockquote className="area-testimonial-quote">
-                    "We are building The Vajra to make delivery faster, smarter, and ready for a future where drones are part of everyday logistics."
+                    "The Vajra is building a smarter, faster, and more connected future for everyday life."
                   </blockquote>
 
                   <div className="area-testimonial-meta">
@@ -2901,7 +2899,7 @@ export default function Login() {
                     </a>
                   </div>
                   <p className="area-footer-copy">
-                    Get updates from The Vajra on launch news, careers, and product announcements.
+                    The Vajra powers smart delivery, online marketplace access, and everyday services in one modern platform.
                   </p>
                   <form className="area-footer-newsletter" onSubmit={handleFooterNewsletterSubmit}>
                     <input
