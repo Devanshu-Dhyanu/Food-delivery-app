@@ -52,6 +52,14 @@ const getLaunchCountdown = () => {
   };
 };
 
+const getMockPhoneTime = () =>
+  new Intl.DateTimeFormat('en-IN', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Kolkata',
+  }).format(new Date());
+
 const navLinks = [
   { label: 'Why Vajra', href: '#benefits' },
   { label: 'Delivery Model', href: '#specifications' },
@@ -203,6 +211,39 @@ const showcasePhoneHighlights = [
   'Smart delivery and everyday convenience in one flow',
 ] as const;
 
+const showcaseCommunityPosts = [
+  {
+    title: 'Campus creators meetup',
+    time: '2m ago',
+    body: 'See founder notes, seller stories, and launch updates shared in one active community stream.',
+    metric: '184 joined',
+  },
+  {
+    title: 'Marketplace buzz',
+    time: '11m ago',
+    body: 'Trending listings, local demand, and quick buyer activity keep the platform feeling alive.',
+    metric: '92 posts',
+  },
+] as const;
+
+const showcaseSupportItems = [
+  {
+    title: 'Track my order',
+    body: 'Live ETA, rider visibility, and issue updates in a single help thread.',
+    tone: 'primary',
+  },
+  {
+    title: 'Payments and refunds',
+    body: 'Quick answers for failed payments, refund status, and wallet credits.',
+    tone: 'soft',
+  },
+  {
+    title: 'Seller and service help',
+    body: 'Listing support, account review, and service onboarding from one place.',
+    tone: 'soft',
+  },
+] as const;
+
 function GoogleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" style={{ flexShrink: 0 }} aria-hidden="true">
@@ -227,6 +268,7 @@ function GoogleIcon() {
 }
 
 export default function Login() {
+  const [activeShowcaseTab, setActiveShowcaseTab] = useState<'home' | 'community' | 'support'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -237,6 +279,7 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const [benefitsAudioEnabled, setBenefitsAudioEnabled] = useState(false);
   const [launchCountdown, setLaunchCountdown] = useState(getLaunchCountdown);
+  const [mockPhoneTime, setMockPhoneTime] = useState(getMockPhoneTime);
   const benefitsVideoRef = useRef<HTMLVideoElement | null>(null);
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
   const redirectTo = `${window.location.origin}/auth/callback`;
@@ -252,6 +295,19 @@ export default function Login() {
 
     syncCountdown();
     const timer = window.setInterval(syncCountdown, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncMockPhoneTime = () => {
+      setMockPhoneTime(getMockPhoneTime());
+    };
+
+    syncMockPhoneTime();
+    const timer = window.setInterval(syncMockPhoneTime, 60_000);
 
     return () => {
       window.clearInterval(timer);
@@ -1571,14 +1627,111 @@ export default function Login() {
           gap: 12px;
           margin-top: 14px;
           padding: 14px 8px 2px;
-          color: #aaa7b1;
-          font-size: 12px;
-          text-align: center;
         }
 
-        .area-showcase-bottom-nav span:first-child {
+        .area-showcase-bottom-nav button {
+          height: 38px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 999px;
+          color: #8d8d88;
+          font-size: 12px;
+          font-weight: 600;
+          text-align: center;
+          background: rgba(255, 255, 255, 0.9);
+          transition: all 180ms ease;
+          cursor: pointer;
+        }
+
+        .area-showcase-bottom-nav button.is-active {
           color: #6f4ef6;
+          border-color: rgba(111, 78, 246, 0.18);
+          background: rgba(111, 78, 246, 0.08);
+          box-shadow: inset 0 0 0 1px rgba(111, 78, 246, 0.08);
+        }
+
+        .area-showcase-panel-stack {
+          display: grid;
+          gap: 14px;
+        }
+
+        .area-showcase-community-card {
+          padding: 18px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.92);
+          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
+        }
+
+        .area-showcase-community-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 10px;
+        }
+
+        .area-showcase-community-title {
+          color: #151515;
+          font-size: 0.98rem;
           font-weight: 700;
+        }
+
+        .area-showcase-community-time {
+          color: #8d8d88;
+          font-size: 12px;
+        }
+
+        .area-showcase-community-body {
+          color: #45453f;
+          font-size: 13px;
+          line-height: 1.6;
+        }
+
+        .area-showcase-community-metric {
+          display: inline-flex;
+          margin-top: 14px;
+          padding: 8px 12px;
+          border-radius: 999px;
+          color: #6f4ef6;
+          font-size: 12px;
+          font-weight: 700;
+          background: rgba(111, 78, 246, 0.09);
+        }
+
+        .area-showcase-support-card {
+          padding: 18px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 24px;
+          background: rgba(255, 255, 255, 0.94);
+          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
+        }
+
+        .area-showcase-support-card.is-primary {
+          color: #ffffff;
+          border-color: transparent;
+          background: linear-gradient(135deg, #6f4ef6, #8b6fff);
+        }
+
+        .area-showcase-support-label {
+          display: inline-flex;
+          margin-bottom: 10px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          opacity: 0.78;
+        }
+
+        .area-showcase-support-card h3 {
+          margin-bottom: 10px;
+          font-size: 1rem;
+          font-weight: 700;
+        }
+
+        .area-showcase-support-card p {
+          font-size: 13px;
+          line-height: 1.6;
+          color: inherit;
         }
 
         .area-testimonial {
@@ -2713,7 +2866,7 @@ export default function Login() {
                       <div className="area-showcase-notch" aria-hidden="true" />
 
                       <div className="area-showcase-status">
-                        <span>9:41</span>
+                        <span>{mockPhoneTime}</span>
                         <div className="area-showcase-status-dots" aria-hidden="true">
                           <span />
                           <span />
@@ -2731,49 +2884,101 @@ export default function Login() {
                       </div>
 
                       <div className="area-showcase-device-scroll">
-                        <article className="area-showcase-feed-card">
-                          <div className="area-showcase-feed-head">
-                            <img
-                              src="/founder.png"
-                              alt="Founder profile"
-                              className="area-showcase-avatar"
-                            />
-                            <div>
-                              <p className="area-showcase-feed-name">Founder Signal</p>
-                              <p className="area-showcase-feed-time">12m ago</p>
-                            </div>
-                          </div>
-                          <p className="area-showcase-feed-text">
-                            Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
-                          </p>
-                          <img
-                            src="/area/vajra-hero-drone.jpg"
-                            alt="Drone showcase preview"
-                            className="area-showcase-feed-image"
-                          />
-                          <div className="area-showcase-feed-actions">
-                            <span className="area-showcase-pill">12k</span>
-                            <span className="area-showcase-pill">48</span>
-                            <span className="area-showcase-pill">Share</span>
-                          </div>
-                        </article>
-
-                        <div className="area-showcase-highlight">
-                          <span className="area-showcase-highlight-label">Live inside Vajra</span>
-                          <h3>Support, updates, and launch signals in one flow.</h3>
-                          <div className="area-showcase-highlight-list">
-                            {showcasePhoneHighlights.map((item) => (
-                              <div key={item} className="area-showcase-highlight-item">
-                                {item}
+                        {activeShowcaseTab === 'home' ? (
+                          <>
+                            <article className="area-showcase-feed-card">
+                              <div className="area-showcase-feed-head">
+                                <img
+                                  src="/founder.png"
+                                  alt="Founder profile"
+                                  className="area-showcase-avatar"
+                                />
+                                <div>
+                                  <p className="area-showcase-feed-name">Founder Signal</p>
+                                  <p className="area-showcase-feed-time">12m ago</p>
+                                </div>
                               </div>
+                              <p className="area-showcase-feed-text">
+                                Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
+                              </p>
+                              <img
+                                src="/area/vajra-hero-drone.jpg"
+                                alt="Drone showcase preview"
+                                className="area-showcase-feed-image"
+                              />
+                              <div className="area-showcase-feed-actions">
+                                <span className="area-showcase-pill">12k</span>
+                                <span className="area-showcase-pill">48</span>
+                                <span className="area-showcase-pill">Share</span>
+                              </div>
+                            </article>
+
+                            <div className="area-showcase-highlight">
+                              <span className="area-showcase-highlight-label">Live inside Vajra</span>
+                              <h3>Support, updates, and launch signals in one flow.</h3>
+                              <div className="area-showcase-highlight-list">
+                                {showcasePhoneHighlights.map((item) => (
+                                  <div key={item} className="area-showcase-highlight-item">
+                                    {item}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        ) : null}
+
+                        {activeShowcaseTab === 'community' ? (
+                          <div className="area-showcase-panel-stack">
+                            {showcaseCommunityPosts.map((post) => (
+                              <article key={post.title} className="area-showcase-community-card">
+                                <div className="area-showcase-community-meta">
+                                  <p className="area-showcase-community-title">{post.title}</p>
+                                  <span className="area-showcase-community-time">{post.time}</span>
+                                </div>
+                                <p className="area-showcase-community-body">{post.body}</p>
+                                <span className="area-showcase-community-metric">{post.metric}</span>
+                              </article>
                             ))}
                           </div>
-                        </div>
+                        ) : null}
 
-                        <div className="area-showcase-bottom-nav" aria-hidden="true">
-                          <span>Home</span>
-                          <span>Community</span>
-                          <span>Support</span>
+                        {activeShowcaseTab === 'support' ? (
+                          <div className="area-showcase-panel-stack">
+                            {showcaseSupportItems.map((item) => (
+                              <article
+                                key={item.title}
+                                className={`area-showcase-support-card ${item.tone === 'primary' ? 'is-primary' : ''}`}
+                              >
+                                <span className="area-showcase-support-label">Quick help</span>
+                                <h3>{item.title}</h3>
+                                <p>{item.body}</p>
+                              </article>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <div className="area-showcase-bottom-nav" role="tablist" aria-label="Phone preview tabs">
+                          <button
+                            type="button"
+                            className={activeShowcaseTab === 'home' ? 'is-active' : ''}
+                            onClick={() => setActiveShowcaseTab('home')}
+                          >
+                            Home
+                          </button>
+                          <button
+                            type="button"
+                            className={activeShowcaseTab === 'community' ? 'is-active' : ''}
+                            onClick={() => setActiveShowcaseTab('community')}
+                          >
+                            Community
+                          </button>
+                          <button
+                            type="button"
+                            className={activeShowcaseTab === 'support' ? 'is-active' : ''}
+                            onClick={() => setActiveShowcaseTab('support')}
+                          >
+                            Support
+                          </button>
                         </div>
                       </div>
                     </div>
