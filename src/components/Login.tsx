@@ -284,6 +284,7 @@ const showcaseOrderTimeline = [
 ] as const;
 
 const showcaseSupportReplies = ['Track order', 'Refund update', 'Talk to support'] as const;
+const showcaseTopNavLinks = ['Search meals', 'Notifications', 'Profile', 'Saved places'] as const;
 
 type ShowcaseTab = 'home' | 'community' | 'support';
 
@@ -312,6 +313,7 @@ function GoogleIcon() {
 
 export default function Login() {
   const [activeShowcaseTab, setActiveShowcaseTab] = useState<ShowcaseTab>('home');
+  const [showcaseTopPanelOpen, setShowcaseTopPanelOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -330,6 +332,7 @@ export default function Login() {
 
   const handleShowcaseTabChange = (tab: ShowcaseTab) => {
     setActiveShowcaseTab(tab);
+    setShowcaseTopPanelOpen(false);
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     showcaseScrollRef.current?.scrollTo({
@@ -1625,6 +1628,15 @@ export default function Login() {
           color: #252525;
           background: rgba(255, 255, 255, 0.92);
           box-shadow: 0 6px 14px rgba(17, 17, 17, 0.06);
+          cursor: pointer;
+          transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+        }
+
+        .area-showcase-appicon:hover,
+        .area-showcase-appicon.is-active {
+          transform: translateY(-1px);
+          background: rgba(111, 78, 246, 0.08);
+          box-shadow: 0 10px 20px rgba(17, 17, 17, 0.08);
         }
 
         .area-showcase-appicon-badge {
@@ -1636,6 +1648,53 @@ export default function Login() {
           border: 2px solid #ffffff;
           border-radius: 50%;
           background: #6f4ef6;
+        }
+
+        .area-showcase-top-panel {
+          margin-bottom: 12px;
+          padding: 14px;
+          border: 1px solid rgba(17, 17, 17, 0.08);
+          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.96);
+          box-shadow: 0 12px 28px rgba(17, 17, 17, 0.07);
+          animation: areaShowcasePanelIn 220ms ease;
+        }
+
+        .area-showcase-top-panel-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          margin-bottom: 12px;
+        }
+
+        .area-showcase-top-panel-head h3 {
+          color: #171717;
+          font-size: 0.96rem;
+          font-weight: 700;
+        }
+
+        .area-showcase-top-panel-head p {
+          color: #7d7971;
+          font-size: 12px;
+        }
+
+        .area-showcase-top-links {
+          display: grid;
+          gap: 8px;
+        }
+
+        .area-showcase-top-link {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 16px;
+          color: #34322d;
+          font-size: 13px;
+          font-weight: 600;
+          background: rgba(17, 17, 17, 0.04);
         }
 
         .area-showcase-feed-card {
@@ -3387,17 +3446,35 @@ export default function Login() {
                           <div className="area-showcase-wordmark">The Vajra.</div>
                           <p className="area-showcase-subtitle">Your daily delivery layer</p>
                         </div>
-                        <div className="area-showcase-appicons" aria-hidden="true">
-                          <span className="area-showcase-appicon">
+                        <div className="area-showcase-appicons">
+                          <button
+                            type="button"
+                            className={`area-showcase-appicon ${showcaseTopPanelOpen ? 'is-active' : ''}`}
+                            onClick={() => setShowcaseTopPanelOpen((current) => !current)}
+                            aria-label="Open top navigation panel"
+                            aria-expanded={showcaseTopPanelOpen}
+                          >
                             <Search size={16} strokeWidth={2.2} />
-                          </span>
-                          <span className="area-showcase-appicon">
+                          </button>
+                          <button
+                            type="button"
+                            className={`area-showcase-appicon ${showcaseTopPanelOpen ? 'is-active' : ''}`}
+                            onClick={() => setShowcaseTopPanelOpen((current) => !current)}
+                            aria-label="Open notifications and shortcuts"
+                            aria-expanded={showcaseTopPanelOpen}
+                          >
                             <Bell size={16} strokeWidth={2.2} />
                             <span className="area-showcase-appicon-badge" />
-                          </span>
-                          <span className="area-showcase-appicon">
+                          </button>
+                          <button
+                            type="button"
+                            className={`area-showcase-appicon ${showcaseTopPanelOpen ? 'is-active' : ''}`}
+                            onClick={() => setShowcaseTopPanelOpen((current) => !current)}
+                            aria-label="Open profile shortcuts"
+                            aria-expanded={showcaseTopPanelOpen}
+                          >
                             <UserCircle2 size={17} strokeWidth={2} />
-                          </span>
+                          </button>
                         </div>
                       </div>
 
@@ -3406,6 +3483,26 @@ export default function Login() {
                         <div className="area-showcase-scroll-fade is-bottom" aria-hidden="true" />
 
                         <div className="area-showcase-device-scroll" ref={showcaseScrollRef}>
+                        {showcaseTopPanelOpen ? (
+                          <div className="area-showcase-top-panel">
+                            <div className="area-showcase-top-panel-head">
+                              <div>
+                                <h3>Quick navigation</h3>
+                                <p>Jump into key parts of the experience.</p>
+                              </div>
+                              <Sparkles size={16} strokeWidth={2.1} color="#6f4ef6" />
+                            </div>
+                            <div className="area-showcase-top-links">
+                              {showcaseTopNavLinks.map((item) => (
+                                <div key={item} className="area-showcase-top-link">
+                                  <span>{item}</span>
+                                  <ChevronRight size={14} strokeWidth={2.1} color="#8f8a83" />
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+
                         {activeShowcaseTab === 'home' ? (
                           <div className="area-showcase-device-panel">
                             <div className="area-showcase-quick-actions">
