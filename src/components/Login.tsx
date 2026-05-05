@@ -1333,9 +1333,9 @@ export default function Login() {
 
         .area-showcase-device {
           position: relative;
-          width: min(100%, 388px);
-          padding: 14px;
-          border-radius: 48px;
+          width: min(100%, 356px);
+          padding: 12px;
+          border-radius: 42px;
           background: linear-gradient(180deg, #1f1f1d 0%, #050505 100%);
           box-shadow:
             0 28px 60px rgba(17, 17, 17, 0.22),
@@ -1344,13 +1344,25 @@ export default function Login() {
 
         .area-showcase-device-screen {
           position: relative;
-          min-height: 720px;
-          padding: 22px 18px 18px;
-          border-radius: 38px;
+          height: 660px;
+          padding: 20px 16px 14px;
+          border-radius: 34px;
           background:
             linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 244, 236, 0.98)),
             #ffffff;
           overflow: hidden;
+        }
+
+        .area-showcase-device-scroll {
+          height: calc(100% - 84px);
+          padding-bottom: 12px;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          scrollbar-width: none;
+        }
+
+        .area-showcase-device-scroll::-webkit-scrollbar {
+          display: none;
         }
 
         .area-showcase-notch {
@@ -1393,7 +1405,7 @@ export default function Login() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-bottom: 18px;
+          margin-bottom: 14px;
         }
 
         .area-showcase-wordmark {
@@ -1419,7 +1431,7 @@ export default function Login() {
 
         .area-showcase-feed-card {
           border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 28px;
+          border-radius: 24px;
           background: rgba(255, 255, 255, 0.92);
           box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
           overflow: hidden;
@@ -1457,16 +1469,16 @@ export default function Login() {
         .area-showcase-feed-text {
           padding: 0 18px 14px;
           color: #373731;
-          font-size: 14px;
-          line-height: 1.65;
+          font-size: 13px;
+          line-height: 1.6;
         }
 
         .area-showcase-feed-image {
           display: block;
           width: calc(100% - 28px);
-          height: 294px;
+          height: 258px;
           margin: 0 auto;
-          border-radius: 24px;
+          border-radius: 20px;
           object-fit: cover;
         }
 
@@ -1493,9 +1505,9 @@ export default function Login() {
 
         .area-showcase-highlight {
           position: relative;
-          margin-top: 16px;
-          padding: 18px 18px 20px;
-          border-radius: 28px;
+          margin-top: 14px;
+          padding: 16px 16px 18px;
+          border-radius: 24px;
           background: linear-gradient(135deg, #6f4ef6, #8b6fff);
           color: #ffffff;
           overflow: hidden;
@@ -1557,7 +1569,7 @@ export default function Login() {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 12px;
-          margin-top: 16px;
+          margin-top: 14px;
           padding: 14px 8px 2px;
           color: #aaa7b1;
           font-size: 12px;
@@ -2109,11 +2121,11 @@ export default function Login() {
           }
 
           .area-showcase-device {
-            width: min(100%, 370px);
+            width: min(100%, 340px);
           }
 
           .area-showcase-device-screen {
-            min-height: 680px;
+            height: 620px;
           }
 
           .area-howto-head {
@@ -2290,15 +2302,19 @@ export default function Login() {
           }
 
           .area-showcase-device {
-            width: min(100%, 320px);
-            border-radius: 38px;
-            padding: 11px;
+            width: min(100%, 296px);
+            border-radius: 34px;
+            padding: 10px;
           }
 
           .area-showcase-device-screen {
-            min-height: 594px;
-            padding: 20px 14px 14px;
-            border-radius: 30px;
+            height: 560px;
+            padding: 18px 14px 12px;
+            border-radius: 28px;
+          }
+
+          .area-showcase-device-scroll {
+            height: calc(100% - 78px);
           }
 
           .area-showcase-notch {
@@ -2312,7 +2328,7 @@ export default function Login() {
 
           .area-showcase-feed-image {
             width: calc(100% - 20px);
-            height: 220px;
+            height: 190px;
             border-radius: 20px;
           }
 
@@ -2714,49 +2730,51 @@ export default function Login() {
                         </div>
                       </div>
 
-                      <article className="area-showcase-feed-card">
-                        <div className="area-showcase-feed-head">
+                      <div className="area-showcase-device-scroll">
+                        <article className="area-showcase-feed-card">
+                          <div className="area-showcase-feed-head">
+                            <img
+                              src="/founder.png"
+                              alt="Founder profile"
+                              className="area-showcase-avatar"
+                            />
+                            <div>
+                              <p className="area-showcase-feed-name">Founder Signal</p>
+                              <p className="area-showcase-feed-time">12m ago</p>
+                            </div>
+                          </div>
+                          <p className="area-showcase-feed-text">
+                            Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
+                          </p>
                           <img
-                            src="/founder.png"
-                            alt="Founder profile"
-                            className="area-showcase-avatar"
+                            src="/area/vajra-hero-drone.jpg"
+                            alt="Drone showcase preview"
+                            className="area-showcase-feed-image"
                           />
-                          <div>
-                            <p className="area-showcase-feed-name">Founder Signal</p>
-                            <p className="area-showcase-feed-time">12m ago</p>
+                          <div className="area-showcase-feed-actions">
+                            <span className="area-showcase-pill">12k</span>
+                            <span className="area-showcase-pill">48</span>
+                            <span className="area-showcase-pill">Share</span>
+                          </div>
+                        </article>
+
+                        <div className="area-showcase-highlight">
+                          <span className="area-showcase-highlight-label">Live inside Vajra</span>
+                          <h3>Support, updates, and launch signals in one flow.</h3>
+                          <div className="area-showcase-highlight-list">
+                            {showcasePhoneHighlights.map((item) => (
+                              <div key={item} className="area-showcase-highlight-item">
+                                {item}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <p className="area-showcase-feed-text">
-                          Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
-                        </p>
-                        <img
-                          src="/area/vajra-hero-drone.jpg"
-                          alt="Drone showcase preview"
-                          className="area-showcase-feed-image"
-                        />
-                        <div className="area-showcase-feed-actions">
-                          <span className="area-showcase-pill">12k</span>
-                          <span className="area-showcase-pill">48</span>
-                          <span className="area-showcase-pill">Share</span>
-                        </div>
-                      </article>
 
-                      <div className="area-showcase-highlight">
-                        <span className="area-showcase-highlight-label">Live inside Vajra</span>
-                        <h3>Support, updates, and launch signals in one flow.</h3>
-                        <div className="area-showcase-highlight-list">
-                          {showcasePhoneHighlights.map((item) => (
-                            <div key={item} className="area-showcase-highlight-item">
-                              {item}
-                            </div>
-                          ))}
+                        <div className="area-showcase-bottom-nav" aria-hidden="true">
+                          <span>Home</span>
+                          <span>Community</span>
+                          <span>Support</span>
                         </div>
-                      </div>
-
-                      <div className="area-showcase-bottom-nav" aria-hidden="true">
-                        <span>Home</span>
-                        <span>Community</span>
-                        <span>Support</span>
                       </div>
                     </div>
                   </div>
