@@ -1,4 +1,20 @@
+import { useEffect } from 'react';
+import { applyDefaultSeo, applySeo } from '../lib/seo';
+
 export default function ShippingPolicy() {
+  useEffect(() => {
+    applySeo({
+      title: 'Shipping Policy | The Vajra',
+      description:
+        'Read The Vajra shipping and delivery policy covering delivery timelines, service areas, tracking, and support.',
+      canonical: 'https://www.vajracognixia.in/shipping-policy',
+    });
+
+    return () => {
+      applyDefaultSeo();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 px-4 py-12">
       <div className="mx-auto max-w-3xl">

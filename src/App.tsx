@@ -26,6 +26,7 @@ import SupportChatPage from './components/SupportChatPage';
 import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
 import PostLoginServiceHub from './components/PostLoginServiceHub';
+import StandaloneAuthPage from './components/StandaloneAuthPage';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import { logAdminSignInEvent } from './lib/adminActivity';
 import {
@@ -68,6 +69,8 @@ const PRIVACY_PATHS = ['/privacy', '/privacy-policy'] as const;
 const REFUND_PATHS = ['/refund-cancellation', '/refund-cancellation-policy'] as const;
 const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
 const SUPPORT_PATHS = ['/support', '/get-support'] as const;
+const LOGIN_PATHS = ['/login', '/sign-in'] as const;
+const SIGNUP_PATHS = ['/signup', '/sign-up', '/register'] as const;
 
 const getInitialPageFromPath = (): Page => {
   const pathname = window.location.pathname.toLowerCase();
@@ -618,6 +621,12 @@ function App() {
   const isSupportPath = SUPPORT_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof SUPPORT_PATHS)[number]
   );
+  const isLoginPath = LOGIN_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof LOGIN_PATHS)[number]
+  );
+  const isSignupPath = SIGNUP_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof SIGNUP_PATHS)[number]
+  );
 
   useEffect(() => {
     if (window.location.pathname === '/auth/callback') {
@@ -661,6 +670,12 @@ function App() {
   }
   if (isSupportPath) {
     return <SupportChatPage />;
+  }
+  if (isLoginPath) {
+    return <StandaloneAuthPage mode="signin" />;
+  }
+  if (isSignupPath) {
+    return <StandaloneAuthPage mode="signup" />;
   }
   if (isCareersPath) {
     return <JobApplication />;

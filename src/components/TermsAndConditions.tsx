@@ -1,4 +1,20 @@
+import { useEffect } from 'react';
+import { applyDefaultSeo, applySeo } from '../lib/seo';
+
 export default function TermsAndConditions() {
+  useEffect(() => {
+    applySeo({
+      title: 'Terms and Conditions | The Vajra',
+      description:
+        'Read the Terms and Conditions for using The Vajra platform, delivery services, and account features.',
+      canonical: 'https://www.vajracognixia.in/terms-conditions',
+    });
+
+    return () => {
+      applyDefaultSeo();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 px-4 py-12">
       <div className="mx-auto max-w-3xl">

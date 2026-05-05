@@ -19,6 +19,7 @@ import {
   UserRound,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { DEFAULT_SEO } from '../lib/seo';
 
 interface FounderPageProps {
   onNavigate?: (page: string) => void;
@@ -30,12 +31,10 @@ const FOUNDER_ROLE = 'Founder, The Vajra Campus Delivery';
 const FOUNDER_EMAIL = 'founder-thevajra@vajracognixia.in';
 const FOUNDER_INSTAGRAM_URL = 'https://www.instagram.com/devanshu_dhyanu/';
 const COMPANY_INSTAGRAM_URL = 'https://www.instagram.com/vajracognixia.in/';
-const DEFAULT_TITLE =
-  'The Vajra Campus Delivery | The VajraCognixia Technologies Private Limited';
-const DEFAULT_DESCRIPTION =
-  'The Vajra Campus Delivery is the campus ordering platform by The VajraCognixia Technologies Private Limited for food delivery, student marketplace access, and campus services.';
-const DEFAULT_CANONICAL = 'https://www.vajracognixia.in/';
-const DEFAULT_IMAGE = 'https://www.vajracognixia.in/the-vajra-mark.svg';
+const DEFAULT_TITLE = DEFAULT_SEO.title;
+const DEFAULT_DESCRIPTION = DEFAULT_SEO.description;
+const DEFAULT_CANONICAL = DEFAULT_SEO.canonical;
+const DEFAULT_IMAGE = DEFAULT_SEO.image;
 
 const FOUNDER_TITLE = `${FOUNDER_NAME} | Founder of The Vajra Campus Delivery`;
 const FOUNDER_DESCRIPTION =

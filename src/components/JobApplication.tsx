@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { applyDefaultSeo, applySeo } from '../lib/seo';
 
 const experienceOptions = ['Fresher', '1-2', '3-5', '5-10', '10+'] as const;
 const statusOptions = ['Student', 'Employed', 'Freelancer', 'Open to Work'] as const;
@@ -276,6 +277,19 @@ export default function JobApplication() {
       form.coverNote ||
       skills.length
   );
+
+  useEffect(() => {
+    applySeo({
+      title: 'Careers at The Vajra',
+      description:
+        'Explore careers at The Vajra across operations, support, research, and technology for the future of smart delivery.',
+      canonical: 'https://www.vajracognixia.in/careers',
+    });
+
+    return () => {
+      applyDefaultSeo();
+    };
+  }, []);
 
   useEffect(() => {
     try {

@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /auth/callback
+Disallow: /payment/callback
+Disallow: /api/
 
 Sitemap: https://www.vajracognixia.in/sitemap.xml

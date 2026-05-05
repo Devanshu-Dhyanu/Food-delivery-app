@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, Bot, Loader2, Send, Sparkles, UserRound } from 'lucide-react';
+import { applyDefaultSeo, applySeo } from '../lib/seo';
 
 type ChatMessage = {
   id: string;
@@ -32,7 +33,16 @@ export default function SupportChatPage() {
   const scrollAnchorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    document.title = 'Get Support | The Vajra';
+    applySeo({
+      title: 'Support | The Vajra',
+      description:
+        'Get support from The Vajra for delivery, platform, careers, founder, and general questions.',
+      canonical: 'https://www.vajracognixia.in/support',
+    });
+
+    return () => {
+      applyDefaultSeo();
+    };
   }, []);
 
   useEffect(() => {

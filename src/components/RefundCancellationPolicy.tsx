@@ -1,4 +1,20 @@
+import { useEffect } from 'react';
+import { applyDefaultSeo, applySeo } from '../lib/seo';
+
 export default function RefundCancellationPolicy() {
+  useEffect(() => {
+    applySeo({
+      title: 'Refund Policy | The Vajra',
+      description:
+        'Read The Vajra refund and cancellation policy for orders, delivery issues, late delivery, and payment refunds.',
+      canonical: 'https://www.vajracognixia.in/refund-cancellation',
+    });
+
+    return () => {
+      applyDefaultSeo();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 px-4 py-12">
       <div className="mx-auto max-w-3xl">

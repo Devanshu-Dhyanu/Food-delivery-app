@@ -15,8 +15,9 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { applyDefaultSeo } from '../lib/seo';
 
-const HOME_TITLE = 'The Vajra';
+const HOME_TITLE = 'Drone Delivery Platform | The Vajra';
 const SUPPORT_EMAIL = 'support@vajracognixia.in';
 const COMPANY_WEBSITE_URL = 'https://www.vajracognixia.in/';
 const COMPANY_INSTAGRAM_URL = 'https://www.instagram.com/vajracognixia.in/';
@@ -246,7 +247,7 @@ export default function Login() {
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   useEffect(() => {
-    document.title = HOME_TITLE;
+    applyDefaultSeo();
   }, []);
 
   useEffect(() => {
@@ -2443,7 +2444,7 @@ export default function Login() {
                   <Briefcase size={16} />
                 </a>
 
-                <button type="button" className="area-button area-button-primary area-nav-cta" onClick={() => openModal('signup')}>
+                <button type="button" className="area-button area-button-primary area-nav-cta" onClick={() => (window.location.href = '/login')}>
                   Get Started
                   <ArrowUpRight size={16} />
                 </button>
@@ -2479,7 +2480,7 @@ export default function Login() {
                   <Briefcase size={16} />
                 </a>
 
-                <button type="button" className="area-button area-button-primary" onClick={() => openModal('signup')}>
+                <button type="button" className="area-button area-button-primary" onClick={() => (window.location.href = '/login')}>
                   Get Started
                   <ArrowUpRight size={16} />
                 </button>
@@ -2973,7 +2974,7 @@ export default function Login() {
             )}
 
             <p className="login-modal-footer">
-              By continuing, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+              By continuing, you agree to our <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>. You can also use the dedicated <a href="/login">Login</a> or <a href="/signup">Sign Up</a> pages.
             </p>
 
             <div className="login-switch-row">

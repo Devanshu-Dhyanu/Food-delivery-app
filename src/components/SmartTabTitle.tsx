@@ -25,7 +25,7 @@ type SmartTabTitleProps = {
   hasProfile: boolean | null;
 };
 
-const HOME_TITLE = 'The Vajra Campus Delivery | The VajraCognixia Technologies Private Limited';
+const HOME_TITLE = 'Drone Delivery Platform | The Vajra';
 
 const getCartTitle = (totalItems: number, suffix: string) => {
   const itemLabel = totalItems === 1 ? 'item' : 'items';
@@ -102,7 +102,7 @@ export default function SmartTabTitle({
         document.title = 'Your profile | The Vajra';
         break;
       case 'founder':
-        document.title = 'Devanshu Dhyanu | Founder of The Vajra Campus Delivery';
+        document.title = 'Devanshu Dhyanu | Founder of The Vajra';
         break;
       case 'careers':
         document.title = 'Careers | The Vajra';
@@ -114,7 +114,7 @@ export default function SmartTabTitle({
         document.title = 'Get Support | The Vajra';
         break;
       case 'privacy-policy':
-        document.title = 'Privacy Policy | The Vajra Campus Delivery';
+        document.title = 'Privacy Policy | The Vajra';
         break;
       default:
         document.title = HOME_TITLE;

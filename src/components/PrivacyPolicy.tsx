@@ -1,4 +1,20 @@
+import { useEffect } from 'react';
+import { applyDefaultSeo, applySeo } from '../lib/seo';
+
 export default function PrivacyPolicy() {
+  useEffect(() => {
+    applySeo({
+      title: 'Privacy Policy | The Vajra',
+      description:
+        'Read the Privacy Policy for The Vajra and learn how platform, delivery, and account data is handled.',
+      canonical: 'https://www.vajracognixia.in/privacy-policy',
+    });
+
+    return () => {
+      applyDefaultSeo();
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 px-4 py-12">
       <div className="mx-auto max-w-3xl">
