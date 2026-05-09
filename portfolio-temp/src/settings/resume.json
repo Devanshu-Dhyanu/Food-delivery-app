@@ -1,0 +1,139 @@
+{
+    "basics": {
+        "name": "Devanshu Dhyanu",
+        "label": "Founder at Vajracognixia and Product Builder",
+        "email": "founder-thevajra@vajracognixia.in",
+        "phone": "",
+        "picture": "founder.png",
+        "x_title": "Hello, I'm",
+        "job1": "Founder",
+        "job2": "Builder",
+        "description": "Founder at Vajracognixia, product builder, and national handball athlete creating polished digital products, startup identities, and modern web experiences.",
+        "summary": "based in Phagwara, Punjab, India.",
+        "keywords": "Devanshu Dhyanu, founder, Vajracognixia, startup builder, product builder, portfolio, web experiences, React, Firebase, brand identity, national handball athlete",
+        "url": "https://portfolio.vajracognixia.in",
+        "location": {
+            "address": "",
+            "postalCode": "",
+            "city": "Phagwara",
+            "country": "India",
+            "countryCode": "IN",
+            "region": "Punjab"
+        },
+        "profiles": [
+            {
+                "network": "Email",
+                "username": "founder-thevajra@vajracognixia.in",
+                "url": "mailto:founder-thevajra@vajracognixia.in",
+                "x_icon": "fas fa-envelope"
+            },
+            {
+                "network": "LinkedIn",
+                "username": "devanshudhyanu",
+                "url": "https://www.linkedin.com/in/devanshudhyanu",
+                "x_icon": "fab fa-linkedin-in"
+            },
+            {
+                "network": "GitHub",
+                "username": "Devanshu-Dhyanu",
+                "url": "https://github.com/Devanshu-Dhyanu",
+                "x_icon": "fab fa-github"
+            },
+            {
+                "network": "LeetCode",
+                "username": "devanshu_dhyanu13",
+                "url": "https://leetcode.com/devanshu_dhyanu13",
+                "x_icon": "fas fa-code"
+            }
+        ]
+    },
+    "work": [
+        {
+            "company": "Portfolio and Product Development",
+            "position": "Founder and Product Builder",
+            "website": "https://portfolio.vajracognixia.in",
+            "startDate": "",
+            "endDate": "",
+            "summary": "Building Vajracognixia through product experiments, brand assets, polished web experiences, and founder-led execution.",
+            "highlights": [
+                "Turned ideas into launch-ready digital experiences with strong presentation and usability",
+                "Worked across product thinking, frontend systems, branding direction, and technical execution",
+                "Open to startup collaborations, product builds, and founder conversations"
+            ]
+        },
+        {
+            "company": "National Handball",
+            "position": "Athlete",
+            "website": "",
+            "startDate": "",
+            "endDate": "",
+            "summary": "National handball athlete with a strong discipline, teamwork, and performance mindset.",
+            "highlights": [
+                "Balanced sports discipline with computer science learning",
+                "Built teamwork, consistency, and competitive focus through athletics"
+            ]
+        }
+    ],
+    "volunteer": [],
+    "education": [
+        {
+            "institution": "Lovely Professional University",
+            "area": "Computer Science",
+            "studyType": "B.Tech",
+            "startDate": "2024",
+            "endDate": "2028",
+            "gpa": "",
+            "courses": [
+                "Data Structures and Algorithms",
+                "Web Development",
+                "Algorithms",
+                "Database Systems"
+            ]
+        }
+    ],
+    "awards": [],
+    "publications": [],
+    "skills": [
+        {
+            "name": "Frontend",
+            "level": "",
+            "keywords": ["HTML", "CSS", "JavaScript", "React"]
+        },
+        {
+            "name": "Backend and Realtime",
+            "level": "",
+            "keywords": ["Firebase", "SQL", "Backend Integration"]
+        },
+        {
+            "name": "Programming",
+            "level": "",
+            "keywords": ["Python", "JavaScript", "Algorithms"]
+        },
+        {
+            "name": "Tools",
+            "level": "",
+            "keywords": ["Git", "GitHub", "VS Code", "LeetCode"]
+        },
+        {
+            "name": "Core Concepts",
+            "level": "",
+            "keywords": ["Full Stack Development", "Data Structures", "Problem Solving", "Web Development"]
+        }
+    ],
+    "languages": [],
+    "interests": [
+        {
+            "name": "LeetCode",
+            "keywords": ["DSA Practice", "Algorithms", "Problem Solving"]
+        },
+        {
+            "name": "Sports",
+            "keywords": ["National Handball", "Discipline", "Teamwork"]
+        },
+        {
+            "name": "Career Focus",
+            "keywords": ["Startup Building", "Founder Journey", "Collaboration", "Real Products"]
+        }
+    ],
+    "references": []
+}

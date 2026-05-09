@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useState } from 'react';
+import { VAJRA_INTERNAL_PATH_CHANGE_EVENT } from './lib/vajraNavigationEvents';
 import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
 import RestaurantList from './components/RestaurantList';
@@ -124,6 +125,21 @@ const sortAnnouncements = (items: Announcement[]) =>
   });
 
 function App() {
+  /** Re-read path-based gates (e.g. leave /founder → /) without full reload */
+  const [, syncPathToReact] = useReducer((v: number) => v + 1, 0);
+
+  useEffect(() => {
+    const bump = () => {
+      syncPathToReact();
+    };
+    window.addEventListener('popstate', bump);
+    window.addEventListener(VAJRA_INTERNAL_PATH_CHANGE_EVENT, bump);
+    return () => {
+      window.removeEventListener('popstate', bump);
+      window.removeEventListener(VAJRA_INTERNAL_PATH_CHANGE_EVENT, bump);
+    };
+  }, []);
+
   const [currentPage, setCurrentPage] = useState<Page>(() => getInitialPageFromPath());
   const [appMode, setAppMode] = useState<AppMode>(() => {
     try {
@@ -681,7 +697,16 @@ function App() {
     return <JobApplication />;
   }
   if (isFounderPath && !user) {
-    return <FounderPage publicView />;
+    return (
+      <FounderPage
+        publicView
+        onNavigate={(page) => {
+          if (page !== 'home' && page !== 'service-hub') return;
+          window.history.pushState({}, '', '/');
+          window.dispatchEvent(new CustomEvent(VAJRA_INTERNAL_PATH_CHANGE_EVENT));
+        }}
+      />
+    );
   }
   if (loading) {
     return <BrandedLoader fullScreen message="Loading The Vajra..." />;

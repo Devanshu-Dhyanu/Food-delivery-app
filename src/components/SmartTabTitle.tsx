@@ -4,6 +4,9 @@ import { useCart } from '../context/CartContext';
 type SmartTabTitleProps = {
   currentPage:
     | 'home'
+    | 'car-rent'
+    | 'second-hand-market'
+    | 'taxi'
     | 'menu'
     | 'cart'
     | 'checkout'

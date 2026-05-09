@@ -1,0 +1,43 @@
+.site-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+}
+
+.site-nav-link {
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  transition: background-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.site-nav-link:hover,
+.site-nav-link:focus-visible {
+  opacity: 0.8;
+}
+
+.site-nav-link-active {
+  background: #111;
+  color: #f7f4ee;
+}
+
+@media (max-width: 640px) {
+  .site-nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .site-nav-link {
+    flex: 1;
+    text-align: center;
+    padding: 0.65rem 0.7rem;
+    font-size: 0.88rem;
+  }
+}
