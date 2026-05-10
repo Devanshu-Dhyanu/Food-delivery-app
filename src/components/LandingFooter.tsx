@@ -11,6 +11,7 @@ const COMPANY_INSTAGRAM_URL = 'https://www.instagram.com/vajracognixia.in/';
  */
 export default function LandingFooter() {
   const [footerNewsletterEmail, setFooterNewsletterEmail] = useState('');
+  const currentYear = new Date().getFullYear();
 
   const handleFooterNewsletterSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,6 +23,12 @@ export default function LandingFooter() {
         : 'Please add me to The Vajra updates list.'
     );
     window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+  };
+
+  const handleBackToTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -39,7 +46,26 @@ export default function LandingFooter() {
         .area-footer-inner {
           width: min(1180px, calc(100% - 64px));
           margin: 0 auto;
-          padding: 48px 0 28px;
+          padding: 38px 0 28px;
+        }
+
+        .area-footer-top {
+          display: flex;
+          justify-content: space-between;
+          gap: 14px;
+          flex-wrap: wrap;
+          margin-bottom: 18px;
+          padding-bottom: 14px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+          font-family: 'Space Mono', monospace;
+          font-size: 11px;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.78);
+        }
+
+        .area-footer-top strong {
+          color: #ffffff;
+          font-weight: 600;
         }
 
         .area-footer-grid {
@@ -158,6 +184,50 @@ export default function LandingFooter() {
           gap: 18px;
         }
 
+        .area-footer-badges {
+          margin-top: 18px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .area-footer-badges span {
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.04);
+          padding: 6px 10px;
+          border-radius: 999px;
+          font-family: 'Space Mono', monospace;
+          font-size: 10px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.85);
+        }
+
+        .footer-utility {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .footer-partner-btn,
+        .footer-top-btn {
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 999px;
+          padding: 6px 12px;
+          font-family: 'Space Mono', monospace;
+          font-size: 10px;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.92);
+          background: transparent;
+          cursor: pointer;
+        }
+
+        .footer-top-btn {
+          color: #ffe9d9;
+        }
+
         @media (max-width: 960px) {
           .area-footer-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -185,6 +255,12 @@ export default function LandingFooter() {
 
       <footer className="area-footer">
         <div className="area-footer-inner">
+          <div className="area-footer-top">
+            <span><strong>Support:</strong> {SUPPORT_EMAIL}</span>
+            <span><strong>Response:</strong> Within 24 hours</span>
+            <span><strong>Hours:</strong> Mon-Sat, 10:00 AM - 7:00 PM IST</span>
+          </div>
+
           <div className="area-footer-grid">
             <div>
               <h3 className="area-footer-heading">Help & Information</h3>
@@ -203,6 +279,7 @@ export default function LandingFooter() {
                 <a href="/#top">Home</a>
                 <a href="/#benefits">Why Vajra</a>
                 <a href="/#specifications">Delivery Model</a>
+                <a href="/team">Team</a>
                 <a href="/founder">Founder</a>
                 <a href="/careers">Careers</a>
               </nav>
@@ -251,13 +328,29 @@ export default function LandingFooter() {
             </div>
           </div>
 
+          <div className="area-footer-badges" aria-label="Trust signals">
+            <span>Privacy-first</span>
+            <span>Secure workflows</span>
+            <span>Fast support</span>
+            <span>Founder-led execution</span>
+          </div>
+
           <div className="area-footer-bottom">
             <div className="area-footer-legal">
               <a href="/privacy">Privacy</a>
               <a href="/terms">Terms</a>
+              <a href="/team">Team</a>
               <a href="/careers">Careers</a>
             </div>
-            <div>Copyright {new Date().getFullYear()} The VajraCognixia Technologies Private Limited</div>
+            <div className="footer-utility">
+              <a className="footer-partner-btn" href="/support">
+                Partner with us
+              </a>
+              <button type="button" className="footer-top-btn" onClick={handleBackToTop}>
+                Back to top
+              </button>
+              <span>Copyright {currentYear} The VajraCognixia Technologies Private Limited</span>
+            </div>
           </div>
         </div>
       </footer>

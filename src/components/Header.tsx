@@ -202,6 +202,11 @@ export default function Header({
     setDesktopQuickMenuOpen(false);
     onNavigate(page);
   };
+  const navigateToTeamPage = () => {
+    setMobileMenuOpen(false);
+    setDesktopQuickMenuOpen(false);
+    window.location.assign('/team');
+  };
 
   useEffect(() => {
     setDesktopQuickMenuOpen(false);
@@ -768,6 +773,16 @@ export default function Header({
             )}
             {showNavigation && (
               <button
+                type="button"
+                onClick={navigateToTeamPage}
+                className={getNavButtonClasses(false)}
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>Team</span>
+              </button>
+            )}
+            {showNavigation && (
+              <button
                 onClick={() => handleNavigate('announcements')}
                 className={`${getNavButtonClasses(currentPage === 'announcements')} relative`}
               >
@@ -1085,6 +1100,15 @@ export default function Header({
                 >
                   <Sparkles className="h-4 w-4" />
                   <span>Founder</span>
+                </button>
+              )}
+              {showNavigation && (
+                <button
+                  onClick={navigateToTeamPage}
+                  className={`w-full justify-start ${getNavButtonClasses(false)}`}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Team</span>
                 </button>
               )}
               {showNavigation && (

@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meet the Team | The VajraCognixia</title>
+  <meta
+    name="description"
+    content="Founders and core team building The Vajra delivery platform."
+  />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --neon-cyan: #00f5ff;
+      --neon-magenta: #ff006e;
+      --neon-lime: #b5ff00;
+      --dark-bg: #030308;
+      --glass: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--dark-bg);
+      color: #fff;
+      font-family: "DM Sans", sans-serif;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(3, 3, 8, 0.9);
+      border-bottom: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo {
+      font-family: "Bebas Neue", sans-serif;
+      letter-spacing: 3px;
+      font-size: 28px;
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav {
+      display: flex;
+      gap: 18px;
+      font-family: "Space Mono", monospace;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.78);
+    }
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 64px 20px 36px;
+      text-align: center;
+    }
+    .hero small {
+      font-family: "Space Mono", monospace;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--neon-magenta);
+    }
+    .hero h1 {
+      margin-top: 12px;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(44px, 9vw, 120px);
+      letter-spacing: 4px;
+      line-height: 0.92;
+    }
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta), var(--neon-lime));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      max-width: 760px;
+      margin: 12px auto 0;
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.7;
+    }
+    .stats {
+      margin-top: 24px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .stat-num { font-family: "Bebas Neue", sans-serif; font-size: 42px; color: var(--neon-cyan); }
+    .stat-label {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 26px 20px 68px;
+    }
+    .section h2 {
+      text-align: center;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(36px, 6vw, 74px);
+      letter-spacing: 3px;
+      margin-bottom: 18px;
+      line-height: 0.95;
+    }
+    .office-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1fr 1fr;
+      gap: 12px;
+    }
+    .office-grid img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+    }
+    .structure-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .structure-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .structure-card h3 {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 28px;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .structure-card p {
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .card.featured { grid-column: span 2; }
+    .profile-image {
+      width: 100%;
+      height: 220px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      margin-bottom: 14px;
+    }
+    .badge {
+      display: inline-block;
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+      border: 1px solid rgba(181, 255, 0, 0.35);
+      color: var(--neon-lime);
+      padding: 5px 10px;
+      margin-bottom: 10px;
+    }
+    .name {
+      font-family: "Bebas Neue", sans-serif;
+      letter-spacing: 1.5px;
+      font-size: clamp(32px, 5vw, 42px);
+      line-height: 0.95;
+    }
+    .role {
+      margin-top: 5px;
+      font-family: "Space Mono", monospace;
+      color: var(--neon-cyan);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .bio {
+      margin-top: 12px;
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.65;
+      font-size: 14px;
+    }
+    .skills {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .skills span {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: rgba(255, 255, 255, 0.78);
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      padding: 4px 8px;
+    }
+    .socials {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .socials a {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 999px;
+      padding: 6px 10px;
+      color: rgba(255, 255, 255, 0.84);
+    }
+    .socials a:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .perks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .perk {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 18px;
+    }
+    .perk h3 {
+      font-family: "Bebas Neue", sans-serif;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-size: 23px;
+    }
+    .perk p {
+      color: rgba(255, 255, 255, 0.72);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .proof {
+      margin-top: 10px;
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--neon-lime);
+    }
+    .cta {
+      text-align: center;
+      padding: 18px 20px 80px;
+    }
+    .cta h2 {
+      font-family: "Bebas Neue", sans-serif;
+      letter-spacing: 3px;
+      font-size: clamp(38px, 8vw, 86px);
+      line-height: 0.92;
+    }
+    .cta h2 span {
+      background: linear-gradient(90deg, var(--neon-magenta), #ff6b00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .cta-buttons {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .cta-btn {
+      display: inline-block;
+      padding: 12px 24px;
+      font-family: "Space Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+    .cta-btn-primary {
+      background: linear-gradient(135deg, var(--neon-magenta), #ff6b00);
+      border-color: transparent;
+    }
+    .area-footer {
+      margin-top: 10px;
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      padding: 0;
+      background: #5c5c5a;
+      color: rgba(255, 255, 255, 0.82);
+    }
+    .area-footer-inner {
+      width: min(1180px, calc(100% - 64px));
+      margin: 0 auto;
+      padding: 38px 0 28px;
+    }
+    .area-footer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: rgba(255, 255, 255, 0.78);
+    }
+    .area-footer-top strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .area-footer-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.9fr 0.85fr 1.15fr;
+      gap: 40px;
+    }
+    .area-footer-heading {
+      margin-bottom: 14px;
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .area-footer-list {
+      display: grid;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.84);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .area-footer-list a,
+    .area-footer-legal a {
+      text-decoration: underline;
+      text-decoration-thickness: 1px;
+      text-underline-offset: 2px;
+      transition: color 180ms ease;
+    }
+    .area-footer-list a:hover,
+    .area-footer-legal a:hover {
+      color: #ffffff;
+    }
+    .area-footer-social {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .area-footer-social a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .area-footer-social a svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .area-footer-newsletter {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+    .area-footer-newsletter input {
+      min-width: 0;
+      flex: 1;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 4px;
+      padding: 0 12px;
+      color: #1f1f1f;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .area-footer-newsletter button {
+      height: 40px;
+      padding: 0 14px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: transparent;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-family: "Space Mono", monospace;
+    }
+    .area-footer-badges {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .area-footer-badges span {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .area-footer-copy {
+      max-width: 300px;
+      color: rgba(255, 255, 255, 0.66);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .area-footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 38px;
+      padding-top: 22px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.42);
+      font-size: 11px;
+    }
+    .area-footer-legal {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .footer-utility {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .footer-partner-btn,
+    .footer-top-btn {
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.92);
+    }
+    .footer-top-btn {
+      color: #ffe9d9;
+    }
+    @media (max-width: 900px) {
+      .nav { display: none; }
+      .card.featured { grid-column: span 1; }
+      .office-grid,
+      .structure-grid,
+      .area-footer-grid {
+        grid-template-columns: 1fr;
+      }
+      .office-grid img {
+        height: 220px;
+      }
+      .hero {
+        padding-top: 54px;
+      }
+      .hero h1 {
+        letter-spacing: 2px;
+      }
+      .area-footer-inner {
+        width: min(100%, calc(100% - 32px));
+      }
+      .area-footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .footer-utility {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="top"></div>
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="/">The VajraCognixia</a>
+      <nav class="nav">
+        <a href="/">Home</a>
+        <a href="/founder">Founder</a>
+        <a href="/careers">Careers</a>
+        <a href="/team">Team</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <small>Meet The People Behind The Platform</small>
+    <h1>THE TEAM <span>POWERING VAJRA</span></h1>
+    <p>
+      Founders and core operators building The Vajra delivery platform with product clarity,
+      faster execution, and strong trust signals for users and partners.
+    </p>
+    <div class="stats">
+      <div><div class="stat-num">3</div><div class="stat-label">Core Members</div></div>
+      <div><div class="stat-num">2+</div><div class="stat-label">Years Together</div></div>
+      <div><div class="stat-num">9+</div><div class="stat-label">Projects Shipped</div></div>
+      <div><div class="stat-num">78%</div><div class="stat-label">Client Retention</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Inside Our Workplace</h2>
+    <div class="office-grid">
+      <img src="/office/team-collage-1.png" alt="The VajraCognixia collaboration workspace" />
+      <img src="/office/team-collage-2.png" alt="The VajraCognixia design and strategy floor" />
+      <img src="/office/team-collage-3.png" alt="The VajraCognixia creative studio environment" />
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Team Structure</h2>
+    <div class="structure-grid">
+      <article class="structure-card">
+        <h3>Leadership</h3>
+        <p>Vision, product direction, partnerships, and launch strategy decisions.</p>
+      </article>
+      <article class="structure-card">
+        <h3>Engineering</h3>
+        <p>Frontend systems, backend workflows, integrations, and release quality.</p>
+      </article>
+      <article class="structure-card">
+        <h3>Growth</h3>
+        <p>Brand narrative, marketing experiments, user adoption, and community trust.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Core Team</h2>
+    <div class="grid">
+      <article class="card featured">
+        <div class="badge">Founder & CEO</div>
+        <h3 class="name">Devanshu Dhyanu</h3>
+        <p class="role">Founder & CEO</p>
+        <p class="bio">
+          Devanshu leads The VajraCognixia with a founder-first mindset focused on product quality,
+          execution speed, and building trusted experiences for delivery and commerce.
+        </p>
+        <div class="skills">
+          <span>Vision & Leadership</span><span>Product Strategy</span><span>Execution Discipline</span>
+          <span>Fundraising Basics</span><span>Hiring & Team Building</span><span>Go-To-Market</span>
+          <span>Partnerships</span><span>Business Development</span>
+        </div>
+        <div class="socials">
+          <a href="https://www.linkedin.com/in/devanshudhyanu" target="_blank" rel="noreferrer">LinkedIn</a>
+          <a href="mailto:founder-thevajra@vajracognixia.in">Email</a>
+          <a href="https://github.com/Devanshu-Dhyanu" target="_blank" rel="noreferrer">GitHub</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3 class="name">Ritika Goel</h3>
+        <p class="role">Marketing Director & HR</p>
+        <p class="bio">
+          Ayush drives growth campaigns and people operations to keep execution aligned with
+          brand goals, hiring quality, and long-term team culture.
+        </p>
+        <div class="skills">
+          <span>Marketing</span><span>Team Management</span><span>Branding</span>
+        </div>
+        <div class="socials">
+          <a href="https://www.instagram.com/vajracognixia.in/" target="_blank" rel="noreferrer">Instagram</a>
+          <a href="mailto:info@vajracognixia.in">Email</a>
+          <a href="https://www.vajracognixia.in/" target="_blank" rel="noreferrer">Portfolio</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>The Perks</h2>
+    <div class="perks">
+      <article class="perk">
+        <h3>Real Product Ownership</h3>
+        <p>From idea to release, you own meaningful modules and ship work that reaches actual users.</p>
+        <div class="proof">Proof: Avg 2 production releases per month</div>
+      </article>
+      <article class="perk">
+        <h3>Remote First</h3>
+        <p>Collaborate from anywhere with async-friendly workflows focused on quality and speed.</p>
+        <div class="proof">Proof: 90% workflows async-ready by default</div>
+      </article>
+      <article class="perk">
+        <h3>Mentorship & Feedback</h3>
+        <p>Get direct founder and peer feedback loops that accelerate your technical and product judgment.</p>
+        <div class="proof">Proof: Weekly 1:1 founder review slots</div>
+      </article>
+      <article class="perk">
+        <h3>Supportive Team</h3>
+        <p>Grow in a collaborative team where ownership, trust, and experimentation are encouraged.</p>
+        <div class="proof">Proof: Structured peer review on all key tasks</div>
+      </article>
+      <article class="perk">
+        <h3>Fast Growth Track</h3>
+        <p>High performers get chances to lead features, mentor juniors, and step into larger roles quickly.</p>
+        <div class="proof">Proof: Lead-role opportunities in 3-6 months</div>
+      </article>
+      <article class="perk">
+        <h3>Career Assets</h3>
+        <p>Build portfolio-grade case studies, public proof of work, and recommendation-ready project impact.</p>
+        <div class="proof">Proof: Work artifacts for portfolio and referrals</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2>BUILD WITH <span>THE TEAM</span></h2>
+    <div class="cta-buttons">
+      <a class="cta-btn cta-btn-primary" href="/careers">Join Team</a>
+      <a class="cta-btn" href="/support">Partner With Us</a>
+    </div>
+  </section>
+
+  <footer class="area-footer">
+    <div class="area-footer-inner">
+      <div class="area-footer-top">
+        <span><strong>Support:</strong> support@vajracognixia.in</span>
+        <span><strong>Response:</strong> Within 24 hours</span>
+        <span><strong>Hours:</strong> Mon-Sat, 10:00 AM - 7:00 PM IST</span>
+      </div>
+      <div class="area-footer-grid">
+        <div>
+          <h3 class="area-footer-heading">Help & Information</h3>
+          <nav class="area-footer-list" aria-label="Help and information">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms & Conditions</a>
+            <a href="/refund-cancellation">Refund & Cancellation</a>
+            <a href="/shipping-policy">Shipping Policy</a>
+            <a href="mailto:support@vajracognixia.in">Contact Support</a>
+          </nav>
+        </div>
+        <div>
+          <h3 class="area-footer-heading">Explore</h3>
+          <nav class="area-footer-list" aria-label="Footer navigation">
+            <a href="/#top">Home</a>
+            <a href="/founder">Founder</a>
+            <a href="/team">Team</a>
+            <a href="/careers">Careers</a>
+          </nav>
+        </div>
+        <div>
+          <h3 class="area-footer-heading">Company</h3>
+          <nav class="area-footer-list" aria-label="Company links">
+            <a href="https://www.vajracognixia.in/" target="_blank" rel="noreferrer">VajraCognixia</a>
+            <a href="/support">Partnerships</a>
+            <a href="/careers">Apply for Job</a>
+            <a href="mailto:support@vajracognixia.in">Support</a>
+          </nav>
+        </div>
+        <div>
+          <h3 class="area-footer-heading">Social Media</h3>
+          <div class="area-footer-social">
+            <a href="https://www.instagram.com/vajracognixia.in/" target="_blank" rel="noreferrer" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect>
+                <circle cx="12" cy="12" r="4.5"></circle>
+                <circle cx="17.5" cy="6.5" r="1"></circle>
+              </svg>
+            </a>
+            <a href="mailto:support@vajracognixia.in" aria-label="Email">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 6.5h18v11H3z"></path>
+                <path d="m4 7 8 6 8-6"></path>
+              </svg>
+            </a>
+            <a href="https://www.vajracognixia.in/" target="_blank" rel="noreferrer" aria-label="Website">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M3 12h18"></path>
+                <path d="M12 3a14.5 14.5 0 0 1 0 18"></path>
+                <path d="M12 3a14.5 14.5 0 0 0 0 18"></path>
+              </svg>
+            </a>
+          </div>
+          <p class="area-footer-copy">
+            The VajraCognixia powers smart delivery, online marketplace access, and everyday
+            services in one modern platform.
+          </p>
+          <form class="area-footer-newsletter" action="mailto:support@vajracognixia.in" method="post" enctype="text/plain">
+            <input type="email" name="email" placeholder="E-Mail Address" aria-label="Email address" required />
+            <button type="submit">Updates</button>
+          </form>
+        </div>
+      </div>
+      <div class="area-footer-badges" aria-label="Trust signals">
+        <span>Privacy-first</span>
+        <span>Secure workflows</span>
+        <span>Fast support</span>
+        <span>Founder-led execution</span>
+      </div>
+      <div class="area-footer-bottom">
+        <div class="area-footer-legal">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/team">Team</a>
+          <a href="/careers">Careers</a>
+        </div>
+        <div class="footer-utility">
+          <a class="footer-partner-btn" href="/support">Partner with us</a>
+          <a class="footer-top-btn" href="#top">Back to top</a>
+          <span>Copyright <span id="y"></span> The VajraCognixia Technologies Private Limited</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+  <script>
+    document.getElementById("y").textContent = String(new Date().getFullYear());
+  </script>
+</body>
+</html>

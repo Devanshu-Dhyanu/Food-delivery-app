@@ -3,361 +3,157 @@ interface BrandedLoaderProps {
   fullScreen?: boolean;
 }
 
-export default function BrandedLoader({
-  message = 'Loading...',
-  fullScreen = false,
-}: BrandedLoaderProps) {
+export default function BrandedLoader({ message = 'Loading...', fullScreen = false }: BrandedLoaderProps) {
   return (
     <>
       <style>{`
-        @keyframes vajraSpeeder {
-          0% {
-            transform: translate(2px, 1px) rotate(0deg);
-          }
-
-          10% {
-            transform: translate(-1px, -3px) rotate(-1deg);
-          }
-
-          20% {
-            transform: translate(-2px, 0) rotate(1deg);
-          }
-
-          30% {
-            transform: translate(1px, 2px) rotate(0deg);
-          }
-
-          40% {
-            transform: translate(1px, -1px) rotate(1deg);
-          }
-
-          50% {
-            transform: translate(-1px, 3px) rotate(-1deg);
-          }
-
-          60% {
-            transform: translate(-1px, 1px) rotate(0deg);
-          }
-
-          70% {
-            transform: translate(3px, 1px) rotate(-1deg);
-          }
-
-          80% {
-            transform: translate(-2px, -1px) rotate(1deg);
-          }
-
-          90% {
-            transform: translate(2px, 1px) rotate(0deg);
-          }
-
-          100% {
-            transform: translate(1px, -2px) rotate(-1deg);
-          }
-        }
-
-        @keyframes vajraFazer1 {
-          0% {
-            left: 0;
-          }
-
-          100% {
-            left: -80px;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraFazer2 {
-          0% {
-            left: 0;
-          }
-
-          100% {
-            left: -100px;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraFazer3 {
-          0% {
-            left: 0;
-          }
-
-          100% {
-            left: -50px;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraFazer4 {
-          0% {
-            left: 0;
-          }
-
-          100% {
-            left: -150px;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraLf1 {
-          0% {
-            left: 200%;
-          }
-
-          100% {
-            left: -200%;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraLf2 {
-          0% {
-            left: 200%;
-          }
-
-          100% {
-            left: -200%;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraLf3 {
-          0% {
-            left: 200%;
-          }
-
-          100% {
-            left: -100%;
-            opacity: 0;
-          }
-        }
-
-        @keyframes vajraLf4 {
-          0% {
-            left: 200%;
-          }
-
-          100% {
-            left: -100%;
-            opacity: 0;
-          }
-        }
-
-        .vajra-speed-loader-card {
-          background:
-            radial-gradient(circle at top, rgba(249, 115, 22, 0.14), transparent 48%),
-            linear-gradient(135deg, rgba(17, 24, 39, 0.96), rgba(15, 23, 42, 0.98));
-        }
-
-        .vajra-speed-loader-scene {
-          --vajra-loader-color: #f8fafc;
+        .vajra-loader-wrap {
           position: relative;
-          min-height: 180px;
+          width: 230px;
+          height: 300px;
+        }
+        .vajra-loader-boxshadow {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          border: 1px solid #fb923c;
+          transform: scale(0.84);
+          box-shadow: rgba(249, 115, 22, 0.45) 0px 30px 70px 0px;
+          transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+        }
+        .vajra-loader-main {
+          width: 100%;
+          height: 100%;
           overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px;
-          background:
-            radial-gradient(circle at 18% 30%, rgba(249, 115, 22, 0.16), transparent 28%),
-            linear-gradient(180deg, rgba(3, 7, 18, 0.95), rgba(17, 24, 39, 0.92));
-        }
-
-        .vajra-speed-loader {
+          background: linear-gradient(0deg, rgb(62, 0, 0) 0%, rgb(255, 72, 0) 60%, rgb(62, 0, 0) 100%);
           position: absolute;
-          top: 50%;
+          clip-path: polygon(0 0, 100% 0, 100% 40px, 100% calc(100% - 40px), calc(100% - 40px) 100%, 40px 100%, 0 calc(100% - 40px));
+          box-shadow: rgba(255, 95, 31, 0.45) 0px 7px 29px 0px;
+          transition: all 0.3s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+        }
+        .vajra-loader-top {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 0;
+          height: 0;
+          z-index: 2;
+          border-top: 115px solid #0b0b0b;
+          border-left: 115px solid transparent;
+          border-right: 115px solid transparent;
+          transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+        }
+        .vajra-loader-side {
+          position: absolute;
+          width: 100%;
+          top: 0;
+          transform: translateX(-50%);
+          height: 101%;
+          background: #0b0b0b;
+          clip-path: polygon(0% 0%, 50% 0, 95% 45%, 100% 100%, 0% 100%);
+          transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86) 1s;
+        }
+        .vajra-loader-left { left: 0; }
+        .vajra-loader-right {
+          right: 0;
+          transform: translateX(50%) scale(-1, 1);
+        }
+        .vajra-loader-title {
+          position: absolute;
           left: 50%;
-          margin-left: -50px;
-          color: var(--vajra-loader-color);
-          animation: vajraSpeeder 0.4s linear infinite;
+          transform: translateX(-50%);
+          top: 84px;
+          font-weight: 700;
+          font-size: 25px;
+          color: #fff7ed;
+          letter-spacing: 0.04em;
+          opacity: 0;
+          z-index: 3;
+          transition: all 0.2s ease-out 0s;
+          white-space: nowrap;
         }
-
-        .vajra-speed-loader > span {
+        .vajra-loader-button-container {
           position: absolute;
-          top: -19px;
-          left: 60px;
-          width: 35px;
-          height: 5px;
-          background: currentColor;
-          border-radius: 2px 10px 1px 0;
+          bottom: 12px;
+          left: 50%;
+          transform: translateX(-50%);
         }
-
-        .vajra-speed-loader-base span {
+        .vajra-loader-button {
           position: absolute;
-          width: 0;
-          height: 0;
-          border-top: 6px solid transparent;
-          border-right: 100px solid currentColor;
-          border-bottom: 6px solid transparent;
+          transform: translateX(-50%);
+          width: 48px;
+          height: 36px;
+          clip-path: polygon(0 0, 100% 0, 81% 100%, 21% 100%);
+          background: #0b0b0b;
+          border: none;
+          color: #fb923c;
+          display: grid;
+          place-content: center;
+          transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86);
         }
-
-        .vajra-speed-loader-base span::before {
-          content: "";
-          position: absolute;
-          top: -16px;
-          right: -110px;
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          background: currentColor;
+        .vajra-loader-button svg {
+          width: 16px;
+          height: 16px;
+          transition: transform 0.2s cubic-bezier(0.785, 0.135, 0.15, 0.86);
         }
-
-        .vajra-speed-loader-base span::after {
-          content: "";
-          position: absolute;
-          top: -16px;
-          right: -98px;
-          width: 0;
-          height: 0;
-          border-top: 0 solid transparent;
-          border-right: 55px solid currentColor;
-          border-bottom: 16px solid transparent;
+        .vajra-loader-button:nth-child(1) { bottom: 300px; transition-delay: 0.4s; }
+        .vajra-loader-button:nth-child(2) { bottom: 300px; transition-delay: 0.6s; }
+        .vajra-loader-button:nth-child(3) { bottom: 300px; transition-delay: 0.8s; }
+        .vajra-loader-wrap:hover .vajra-loader-main { transform: scale(1.06); }
+        .vajra-loader-wrap:hover .vajra-loader-top { top: -50px; }
+        .vajra-loader-wrap:hover .vajra-loader-left {
+          left: -50px;
+          transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86) 0.1s;
         }
-
-        .vajra-speed-loader-face {
-          position: absolute;
-          top: -15px;
-          right: -125px;
-          width: 20px;
-          height: 12px;
-          background: currentColor;
-          border-radius: 20px 20px 0 0;
-          transform: rotate(-40deg);
+        .vajra-loader-wrap:hover .vajra-loader-right {
+          right: -50px;
+          transition: all 0.5s cubic-bezier(0.785, 0.135, 0.15, 0.86) 0.1s;
         }
-
-        .vajra-speed-loader-face::after {
-          content: "";
-          position: absolute;
-          top: 7px;
-          right: 4px;
-          width: 12px;
-          height: 12px;
-          background: currentColor;
-          border-radius: 0 0 0 2px;
-          transform: rotate(40deg);
-          transform-origin: 50% 50%;
+        .vajra-loader-wrap:hover .vajra-loader-title {
+          opacity: 1;
+          transition: all 0.2s ease-out 1.2s;
         }
-
-        .vajra-speed-loader > span > span:nth-child(1),
-        .vajra-speed-loader > span > span:nth-child(2),
-        .vajra-speed-loader > span > span:nth-child(3),
-        .vajra-speed-loader > span > span:nth-child(4) {
-          position: absolute;
-          width: 30px;
-          height: 1px;
-          background: currentColor;
-        }
-
-        .vajra-speed-loader > span > span:nth-child(1) {
-          animation: vajraFazer1 0.2s linear infinite;
-        }
-
-        .vajra-speed-loader > span > span:nth-child(2) {
-          top: 3px;
-          animation: vajraFazer2 0.4s linear infinite;
-        }
-
-        .vajra-speed-loader > span > span:nth-child(3) {
-          top: 1px;
-          animation: vajraFazer3 0.4s linear infinite;
-          animation-delay: -1s;
-        }
-
-        .vajra-speed-loader > span > span:nth-child(4) {
-          top: 4px;
-          animation: vajraFazer4 1s linear infinite;
-          animation-delay: -1s;
-        }
-
-        .vajra-speed-loader-longfazers {
-          position: absolute;
-          inset: 0;
-          color: var(--vajra-loader-color);
-        }
-
-        .vajra-speed-loader-longfazers span {
-          position: absolute;
-          height: 2px;
-          width: 20%;
-          background: currentColor;
-          opacity: 0.82;
-        }
-
-        .vajra-speed-loader-longfazers span:nth-child(1) {
-          top: 20%;
-          animation: vajraLf1 0.6s linear infinite;
-          animation-delay: -5s;
-        }
-
-        .vajra-speed-loader-longfazers span:nth-child(2) {
-          top: 40%;
-          animation: vajraLf2 0.8s linear infinite;
-          animation-delay: -1s;
-        }
-
-        .vajra-speed-loader-longfazers span:nth-child(3) {
-          top: 60%;
-          animation: vajraLf3 0.6s linear infinite;
-        }
-
-        .vajra-speed-loader-longfazers span:nth-child(4) {
-          top: 80%;
-          animation: vajraLf4 0.5s linear infinite;
-          animation-delay: -3s;
-        }
-
+        .vajra-loader-wrap:hover .vajra-loader-button:nth-child(1) { bottom: 84px; transition-delay: 0.8s; }
+        .vajra-loader-wrap:hover .vajra-loader-button:nth-child(2) { bottom: 44px; transition-delay: 0.6s; }
+        .vajra-loader-wrap:hover .vajra-loader-button:nth-child(3) { bottom: 4px; transition-delay: 0.4s; }
+        .vajra-loader-wrap:hover .vajra-loader-button svg { transform: scale(1.13); }
         @media (max-width: 640px) {
-          .vajra-speed-loader-scene {
-            min-height: 160px;
-          }
-
-          .vajra-speed-loader-card {
-            padding-left: 20px !important;
-            padding-right: 20px !important;
-          }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .vajra-speed-loader,
-          .vajra-speed-loader > span > span,
-          .vajra-speed-loader-longfazers span {
-            animation: none !important;
-          }
+          .vajra-loader-wrap { transform: scale(0.92); }
+          .vajra-loader-title { font-size: 22px; }
         }
       `}</style>
 
-      <div
-        className={`flex items-center justify-center px-4 py-10 ${
-          fullScreen ? 'min-h-screen bg-gray-900' : 'min-h-[60vh]'
-        }`}
-      >
-        <div className="vajra-speed-loader-card w-full max-w-xl rounded-[28px] border border-white/5 px-6 py-6 shadow-2xl shadow-black/30 sm:px-8 sm:py-8">
-          <div className="vajra-speed-loader-scene flex items-center justify-center px-4">
-            <div className="vajra-speed-loader" role="status" aria-label={message}>
-              <span aria-hidden="true">
-                <span />
-                <span />
-                <span />
-                <span />
-              </span>
-
-              <div className="vajra-speed-loader-base" aria-hidden="true">
-                <span />
-                <div className="vajra-speed-loader-face" />
-              </div>
-            </div>
-
-            <div className="vajra-speed-loader-longfazers" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
+      <div className={`flex flex-col items-center justify-center gap-5 px-4 py-10 ${fullScreen ? 'min-h-screen bg-gray-900' : 'min-h-[60vh]'}`}>
+        <div className="vajra-loader-wrap" role="status" aria-label={message}>
+          <div className="vajra-loader-boxshadow" />
+          <div className="vajra-loader-main">
+            <div className="vajra-loader-top" />
+            <div className="vajra-loader-left vajra-loader-side" />
+            <div className="vajra-loader-right vajra-loader-side" />
+            <div className="vajra-loader-title">VAJRA</div>
+            <div className="vajra-loader-button-container" aria-hidden="true">
+              <button className="vajra-loader-button" type="button" tabIndex={-1}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="4" />
+                  <circle cx="12" cy="12" r="4" />
+                  <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" />
+                </svg>
+              </button>
+              <button className="vajra-loader-button" type="button" tabIndex={-1}>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.9 2H22l-6.8 7.7L23 22h-6.1l-4.8-6.3L6.4 22H3.2l7.1-8.1L2 2h6.2l4.5 5.9L18.9 2z" />
+                </svg>
+              </button>
+              <button className="vajra-loader-button" type="button" tabIndex={-1}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 19c-4.3 1.4-5-1.2-7-1.2" />
+                  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.4c3 0 6-1.9 6-5.4.08-1.3-.3-2.5-1-3.5.3-1.1.3-2.3 0-3.5 0 0-1 0-3 1.5a10.2 10.2 0 0 0-8 0C6 2 5 2 5 2c-.3 1.2-.3 2.4 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.4 6 5.4-.9 1.1-1.2 2.5-1 3.9v3.7" />
+                </svg>
+              </button>
             </div>
           </div>
-
-          <p className="mt-5 text-center text-sm font-medium tracking-[0.08em] text-gray-200" aria-live="polite">
-            {message}
-          </p>
         </div>
+        <p className="text-center text-sm font-medium tracking-[0.08em] text-gray-200" aria-live="polite">{message}</p>
       </div>
     </>
   );

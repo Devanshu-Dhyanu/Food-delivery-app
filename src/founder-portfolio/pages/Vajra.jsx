@@ -226,6 +226,21 @@ const launchRoadmap = [
   },
 ];
 
+const officeGallery = [
+  {
+    src: "/office/team-collage-1.png",
+    alt: "The VajraCognixia workspace gallery view",
+  },
+  {
+    src: "/office/team-collage-2.png",
+    alt: "The VajraCognixia team floor and dashboard setup",
+  },
+  {
+    src: "/office/team-collage-3.png",
+    alt: "The VajraCognixia studio and creative environment",
+  },
+];
+
 export const Vajra = () => {
   return (
     <main className="vajra-page">
@@ -274,6 +289,17 @@ export const Vajra = () => {
               daily actions feel more connected, more trustworthy, and easier to
               complete.
             </p>
+          </div>
+        </section>
+
+        <section className="vajra-panel vajra-photo-gallery">
+          <h3>Inside The VajraCognixia Workspace</h3>
+          <div className="vajra-photo-grid">
+            {officeGallery.map((photo) => (
+              <figure className="vajra-photo-card" key={photo.src}>
+                <img src={photo.src} alt={photo.alt} loading="lazy" />
+              </figure>
+            ))}
           </div>
         </section>
 
@@ -372,6 +398,17 @@ export const Vajra = () => {
                 <strong>{flow.title}</strong>
                 <p>{flow.text}</p>
               </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="vajra-panel vajra-photo-gallery">
+          <h3>Operating Environment</h3>
+          <div className="vajra-photo-grid">
+            {officeGallery.map((photo) => (
+              <figure className="vajra-photo-card" key={`${photo.src}-secondary`}>
+                <img src={photo.src} alt={photo.alt} loading="lazy" />
+              </figure>
             ))}
           </div>
         </section>

@@ -7,6 +7,7 @@ const links = [
   { label: "Home", to: "/" },
   { label: "Vajra", to: "/vajra" },
   { label: "Contact", to: "/contact" },
+  { label: "Team", href: "/team" },
   { label: "Contribute GIHUB", to: "/contact" },
 ];
 
@@ -16,6 +17,18 @@ export const SiteNav = () => {
   return (
     <nav className="site-nav" aria-label="Primary">
       {links.map((link) => {
+        if (link.href) {
+          return (
+            <a
+              key={`${link.label}-${link.href}`}
+              href={link.href}
+              className="site-nav-link"
+            >
+              {link.label}
+            </a>
+          );
+        }
+
         const isActive =
           link.to === "/"
             ? pathname === "/"

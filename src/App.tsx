@@ -70,6 +70,7 @@ const PRIVACY_PATHS = ['/privacy', '/privacy-policy'] as const;
 const REFUND_PATHS = ['/refund-cancellation', '/refund-cancellation-policy'] as const;
 const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
 const SUPPORT_PATHS = ['/support', '/get-support'] as const;
+const TEAM_PATHS = ['/team', '/our-team'] as const;
 const LOGIN_PATHS = ['/login', '/sign-in'] as const;
 const SIGNUP_PATHS = ['/signup', '/sign-up', '/register'] as const;
 
@@ -637,6 +638,9 @@ function App() {
   const isSupportPath = SUPPORT_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof SUPPORT_PATHS)[number]
   );
+  const isTeamPath = TEAM_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof TEAM_PATHS)[number]
+  );
   const isLoginPath = LOGIN_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof LOGIN_PATHS)[number]
   );
@@ -686,6 +690,10 @@ function App() {
   }
   if (isSupportPath) {
     return <SupportChatPage />;
+  }
+  if (isTeamPath) {
+    window.location.replace('/team-page.html');
+    return null;
   }
   if (isLoginPath) {
     return <StandaloneAuthPage mode="signin" />;
