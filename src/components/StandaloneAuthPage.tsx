@@ -81,14 +81,13 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   };
 
   const handleGoogleLogin = async () => {
-    
     if (!captchaToken) {
-  setMessage({
-    type: 'error',
-    text: 'Please verify captcha first.',
-  });
-  return;
-}
+      setMessage({
+        type: 'error',
+        text: 'Please verify captcha first.',
+      });
+      return;
+    }
     setLoading(true);
     setMessage(null);
 
@@ -264,8 +263,8 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                   {message && (
                     <div
                       className={`mt-5 rounded-[14px] px-4 py-3 text-sm ${message.type === 'success'
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-red-50 text-red-600'
+                        ? 'bg-green-50 text-green-700'
+                        : 'bg-red-50 text-red-600'
                         }`}
                     >
                       {message.text}
@@ -292,7 +291,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                     </div>
                   )}
 
-                  <div className="mt-5">
+                  <div className="mt-5 flex justify-center">
                     <Turnstile
                       siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
                       onSuccess={(token) => {
