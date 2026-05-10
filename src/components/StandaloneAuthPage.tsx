@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { Turnstile } from "@marsidev/react-turnstile";
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applySeo } from '../lib/seo';
@@ -38,6 +39,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [captchaToken, setCaptchaToken] = useState('');
 
   useEffect(() => {
     applySeo({
@@ -132,6 +134,14 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
     if (!trimmedEmail) {
       setMessage({ type: 'error', text: 'Please enter your email address.' });
+      return;
+    }
+
+    if (!captchaToken) {
+      setMessage({
+        type: 'error',
+        text: 'Please verify captcha first.',
+      });
       return;
     }
 
@@ -245,11 +255,10 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
                   {message && (
                     <div
-                      className={`mt-5 rounded-[14px] px-4 py-3 text-sm ${
-                        message.type === 'success'
+                      className={`mt-5 rounded-[14px] px-4 py-3 text-sm ${message.type === 'success'
                           ? 'bg-green-50 text-green-700'
                           : 'bg-red-50 text-red-600'
-                      }`}
+                        }`}
                     >
                       {message.text}
                     </div>
@@ -274,6 +283,16 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                       </button>
                     </div>
                   )}
+
+                  <div className="mt-5">
+                    <Turnstile
+                      siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                      onSuccess={(token) => {
+                        setCaptchaToken(token);
+                      }}
+                    />
+                  </div>
+
 
                   <button
                     type="submit"
