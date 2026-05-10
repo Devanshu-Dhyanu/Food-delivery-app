@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applySeo } from '../lib/seo';
@@ -80,37 +81,65 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
     }
   };
 
+  const captchaContainerRef = useRef<HTMLDivElement | null>(null);
+  const hasRenderedTurnstileRef = useRef(false);
+
   useEffect(() => {
     if (!import.meta.env.VITE_TURNSTILE_SITE_KEY) return;
 
+    // Ensure the global callback updates our local React state.
     const w = window as any;
     w.onTurnstileSuccess = (token: string) => {
       setCaptchaToken(token);
+    };
+
+    const renderTurnstile = () => {
+      if (hasRenderedTurnstileRef.current) return;
+      if (!captchaContainerRef.current) return;
+
+      const turnstile = (window as any).turnstile;
+      if (!turnstile || typeof turnstile.render !== 'function') return;
+
+      hasRenderedTurnstileRef.current = true;
+
+      turnstile.render(captchaContainerRef.current, {
+        sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+        callback: (token: string) => {
+          setCaptchaToken(token);
+        },
+      });
     };
 
     const existingScript = document.querySelector<HTMLScriptElement>(
       'script[data-turnstile-script="true"]'
     );
 
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-      script.async = true;
-      script.defer = true;
-      script.setAttribute('data-turnstile-script', 'true');
-      document.head.appendChild(script);
-
-      return () => {
-        // Only remove if we injected it in this render.
-        // Prevents duplicate script tags across route changes.
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      };
+    // If the script is already present, render immediately.
+    if (existingScript) {
+      // Give the script a tick to fully attach `window.turnstile`.
+      window.setTimeout(renderTurnstile, 0);
+      return;
     }
 
-    return;
+    // Otherwise load the official Cloudflare Turnstile script.
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    script.setAttribute('data-turnstile-script', 'true');
+
+    script.onload = () => {
+      renderTurnstile();
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Avoid tearing down the widget globally.
+      // Cleanup is intentionally minimal to prevent production re-mount issues.
+    };
   }, []);
+
 
   const handleGoogleLogin = async () => {
     if (!captchaToken) {
@@ -325,8 +354,9 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                   )}
 
                   <div className="mt-5 flex justify-center">
-                    <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY} />
+                    <div ref={captchaContainerRef} />
                   </div>
+
 
                   <button
                     type="submit"
