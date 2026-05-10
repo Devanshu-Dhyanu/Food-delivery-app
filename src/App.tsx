@@ -958,11 +958,9 @@ function App() {
           )}
           <main className="flex-1">{renderPage()}</main>
           {appMode === 'customer' && currentPage !== 'service-hub' && (
-            <>
-              <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
-              <Footer onNavigate={handleNavigate} />
-            </>
+            <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
           )}
+          {appMode === 'customer' && <Footer onNavigate={handleNavigate} />}
         </div>
       </DeliveryVoiceCallProvider>
     </CartProvider>
