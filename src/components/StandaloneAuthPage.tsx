@@ -1,10 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Turnstile } from "@marsidev/react-turnstile";
-import "@marsidev/react-turnstile/styles.css";
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applySeo } from '../lib/seo';
 import LandingFooter from './LandingFooter';
+
 
 type StandaloneAuthPageProps = {
   mode: 'signin' | 'signup';
@@ -81,6 +80,38 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
     }
   };
 
+  useEffect(() => {
+    if (!import.meta.env.VITE_TURNSTILE_SITE_KEY) return;
+
+    const w = window as any;
+    w.onTurnstileSuccess = (token: string) => {
+      setCaptchaToken(token);
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-turnstile-script="true"]'
+    );
+
+    if (!existingScript) {
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+      script.async = true;
+      script.defer = true;
+      script.setAttribute('data-turnstile-script', 'true');
+      document.head.appendChild(script);
+
+      return () => {
+        // Only remove if we injected it in this render.
+        // Prevents duplicate script tags across route changes.
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      };
+    }
+
+    return;
+  }, []);
+
   const handleGoogleLogin = async () => {
     if (!captchaToken) {
       setMessage({
@@ -91,6 +122,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
     }
     setLoading(true);
     setMessage(null);
+
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -293,14 +325,8 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                   )}
 
                   <div className="mt-5 flex justify-center">
-                    <Turnstile
-                      siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                      onSuccess={(token) => {
-                        setCaptchaToken(token);
-                      }}
-                    />
+                    <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY} />
                   </div>
-
 
                   <button
                     type="submit"
