@@ -960,7 +960,7 @@ function App() {
           {appMode === 'customer' && currentPage !== 'service-hub' && (
             <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
           )}
-          {appMode === 'customer' && <Footer onNavigate={handleNavigate} />}
+          {appMode === 'customer' && <Footer />}
         </div>
       </DeliveryVoiceCallProvider>
     </CartProvider>

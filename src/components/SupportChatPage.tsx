@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowLeft, Bot, Loader2, Send, Sparkles, UserRound } from 'lucide-react';
 import { applyDefaultSeo, applySeo } from '../lib/seo';
+import LandingFooter from './LandingFooter';
 
 type ChatMessage = {
   id: string;
@@ -115,6 +116,7 @@ export default function SupportChatPage() {
   };
 
   return (
+    <>
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#2745b6_0%,_#10246f_35%,_#08153d_100%)] px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[32px] border border-white/10 bg-white/8 shadow-[0_30px_120px_rgba(2,8,23,0.55)] backdrop-blur">
         <div className="flex flex-col gap-6 border-b border-white/10 px-5 py-5 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
@@ -245,5 +247,7 @@ export default function SupportChatPage() {
         </div>
       </div>
     </div>
+    <LandingFooter />
+    </>
   );
 }

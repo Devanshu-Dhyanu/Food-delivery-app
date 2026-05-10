@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { applyDefaultSeo, applySeo } from '../lib/seo';
+import LandingFooter from './LandingFooter';
 
 export default function RefundCancellationPolicy() {
   useEffect(() => {
@@ -16,8 +17,9 @@ export default function RefundCancellationPolicy() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 px-4 py-12">
-      <div className="mx-auto max-w-3xl">
+    <div className="flex min-h-screen flex-col bg-gray-900">
+      <div className="flex-1 px-4 py-12">
+        <div className="mx-auto max-w-3xl">
         <h1 className="text-4xl font-bold text-white mb-2">Refund & Cancellation Policy</h1>
         <p className="text-gray-400 mb-8">Last updated: April 2026</p>
 
@@ -130,7 +132,9 @@ export default function RefundCancellationPolicy() {
             </p>
           </section>
         </div>
+        </div>
       </div>
+      <LandingFooter />
     </div>
   );
 }

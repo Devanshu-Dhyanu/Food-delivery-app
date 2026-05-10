@@ -4,12 +4,9 @@ import {
   Briefcase,
   CheckCircle2,
   FileText,
-  Globe2,
-  Instagram,
   Link as LinkIcon,
   Loader2,
   MapPin,
-  Mail,
   Plus,
   Search,
   Send,
@@ -18,6 +15,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applyDefaultSeo, applySeo } from '../lib/seo';
+import LandingFooter from './LandingFooter';
 
 const experienceOptions = ['Fresher', '1-2', '3-5', '5-10', '10+'] as const;
 const statusOptions = ['Student', 'Employed', 'Freelancer', 'Open to Work'] as const;
@@ -28,8 +26,6 @@ const maxResumeSizeBytes = 5 * 1024 * 1024;
 const applicationStorageKey = 'vajra_job_applications_submitted';
 const draftStorageKey = 'vajra_job_application_draft';
 const supportEmail = 'support@vajracognixia.in';
-const companyWebsiteUrl = 'https://www.vajracognixia.in/';
-const companyInstagramUrl = 'https://www.instagram.com/vajracognixia.in/';
 const openRoles = [
   {
     title: 'Operations Associate',
@@ -214,7 +210,6 @@ export default function JobApplication() {
   const [jobSearch, setJobSearch] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState<DepartmentFilter>('All');
   const [selectedRole, setSelectedRole] = useState<OpenRole | null>(null);
-  const [footerNewsletterEmail, setFooterNewsletterEmail] = useState('');
   const [submittedApplication, setSubmittedApplication] = useState<{ email: string; role: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -420,19 +415,6 @@ export default function JobApplication() {
 
     updateField('positionApplyingFor', typedRole);
     scrollToApplication();
-  };
-
-  const handleFooterNewsletterSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const cleanEmail = footerNewsletterEmail.trim();
-    const subject = encodeURIComponent('The Vajra careers updates signup');
-    const body = encodeURIComponent(
-      cleanEmail
-        ? `Please add ${cleanEmail} to The Vajra careers and product updates list.`
-        : 'Please add me to The Vajra careers and product updates list.'
-    );
-
-    window.location.href = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
   };
 
   const resetForm = () => {
@@ -1160,92 +1142,7 @@ export default function JobApplication() {
         </section>
       </main>
 
-      <footer className="bg-[#5c5c5a] text-white/80">
-        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
-          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.16em] text-white/45">
-                Help & Information
-              </h3>
-              <nav className="grid gap-2 text-sm leading-5" aria-label="Career footer help links">
-                <a className="underline underline-offset-2 hover:text-white" href="/privacy">Privacy Policy</a>
-                <a className="underline underline-offset-2 hover:text-white" href="/terms">Terms & Conditions</a>
-                <a className="underline underline-offset-2 hover:text-white" href="/refund-cancellation">Refund & Cancellation</a>
-                <a className="underline underline-offset-2 hover:text-white" href="/shipping-policy">Shipping Policy</a>
-                <a className="underline underline-offset-2 hover:text-white" href={`mailto:${supportEmail}`}>Contact Support</a>
-              </nav>
-            </div>
-
-            <div>
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.16em] text-white/45">
-                Explore
-              </h3>
-              <nav className="grid gap-2 text-sm leading-5" aria-label="Career footer navigation">
-                <a className="underline underline-offset-2 hover:text-white" href="/">Home</a>
-                <a className="underline underline-offset-2 hover:text-white" href="/founder">Founder</a>
-                <a className="underline underline-offset-2 hover:text-white" href="/careers">Careers</a>
-                <a className="underline underline-offset-2 hover:text-white" href="#apply">Apply Now</a>
-              </nav>
-            </div>
-
-            <div>
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.16em] text-white/45">
-                Careers
-              </h3>
-              <nav className="grid gap-2 text-sm leading-5" aria-label="Career areas">
-                <button type="button" onClick={() => selectRole('Operations Associate')} className="text-left underline underline-offset-2 hover:text-white">Operations</button>
-                <button type="button" onClick={() => selectRole('Frontend Developer')} className="text-left underline underline-offset-2 hover:text-white">Technology</button>
-                <button type="button" onClick={() => selectRole('Growth & Partnerships')} className="text-left underline underline-offset-2 hover:text-white">Growth</button>
-                <button type="button" onClick={() => selectRole('Research Associate')} className="text-left underline underline-offset-2 hover:text-white">Research</button>
-                <button type="button" onClick={() => selectRole('Customer Support Executive')} className="text-left underline underline-offset-2 hover:text-white">Support</button>
-              </nav>
-            </div>
-
-            <div>
-              <h3 className="mb-4 text-[11px] font-extrabold uppercase tracking-[0.16em] text-white/45">
-                Social Media
-              </h3>
-              <div className="mb-5 flex items-center gap-3">
-                <a className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 hover:text-white" href={companyInstagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram">
-                  <Instagram size={17} />
-                </a>
-                <a className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 hover:text-white" href={`mailto:${supportEmail}`} aria-label="Email">
-                  <Mail size={17} />
-                </a>
-                <a className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-white/10 hover:text-white" href={companyWebsiteUrl} target="_blank" rel="noreferrer" aria-label="Website">
-                  <Globe2 size={17} />
-                </a>
-              </div>
-              <p className="max-w-xs text-xs leading-6 text-white/65">
-                Get updates from The Vajra on hiring, launch news, and product announcements.
-              </p>
-              <form className="mt-4 flex gap-2" onSubmit={handleFooterNewsletterSubmit}>
-                <input
-                  className="h-11 min-w-0 flex-1 bg-white px-3 text-xs text-slate-900 outline-none"
-                  type="email"
-                  placeholder="E-Mail Address"
-                  aria-label="Email address"
-                  value={footerNewsletterEmail}
-                  onChange={(event) => setFooterNewsletterEmail(event.target.value)}
-                  required
-                />
-                <button className="h-11 w-20 border border-white/40 text-[11px] font-extrabold uppercase tracking-[0.12em] text-white" type="submit">
-                  Send
-                </button>
-              </form>
-            </div>
-          </div>
-
-          <div className="mt-11 flex flex-col gap-4 border-t border-white/10 pt-6 text-[11px] text-white/45 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap gap-4">
-              <a className="underline underline-offset-2 hover:text-white" href="/privacy">Privacy</a>
-              <a className="underline underline-offset-2 hover:text-white" href="/terms">Terms</a>
-              <a className="underline underline-offset-2 hover:text-white" href="/careers">Careers</a>
-            </div>
-            <div>Copyright {new Date().getFullYear()} The VajraCognixia Technologies Private Limited</div>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
 
       {selectedRole && (
         <div
