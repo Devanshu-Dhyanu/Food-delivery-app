@@ -81,6 +81,14 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   };
 
   const handleGoogleLogin = async () => {
+    
+    if (!captchaToken) {
+  setMessage({
+    type: 'error',
+    text: 'Please verify captcha first.',
+  });
+  return;
+}
     setLoading(true);
     setMessage(null);
 
