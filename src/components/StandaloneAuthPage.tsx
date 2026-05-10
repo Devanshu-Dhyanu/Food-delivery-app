@@ -83,6 +83,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
   const captchaContainerRef = useRef<HTMLDivElement | null>(null);
   const hasRenderedTurnstileRef = useRef(false);
+  const [captchaBlocked, setCaptchaBlocked] = useState(false);
 
   useEffect(() => {
     const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
@@ -147,6 +148,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
           renderTurnstile();
         } else if (++attempts > 50) {
           clearInterval(poll);
+          setCaptchaBlocked(true);
         }
       }, 100);
     };
@@ -159,6 +161,42 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
       }
     };
   }, []);
+
+  const retryTurnstile = () => {
+    setCaptchaBlocked(false);
+    setCaptchaToken('');
+    hasRenderedTurnstileRef.current = false;
+
+    // Remove any existing script so we can load a fresh one.
+    const existing = document.querySelector<HTMLScriptElement>('script[data-turnstile-script="true"]');
+    if (existing) existing.remove();
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    script.setAttribute('data-turnstile-script', 'true');
+    script.onload = () => {
+      // small timeout to allow global to attach
+      window.setTimeout(() => {
+        const turnstile = (window as any).turnstile;
+        if (turnstile && typeof turnstile.render === 'function' && captchaContainerRef.current) {
+          try {
+            turnstile.render(captchaContainerRef.current, {
+              sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+              callback: (token: string) => setCaptchaToken(token),
+            });
+            hasRenderedTurnstileRef.current = true;
+          } catch {
+            setCaptchaBlocked(true);
+          }
+        } else {
+          setCaptchaBlocked(true);
+        }
+      }, 50);
+    };
+    document.head.appendChild(script);
+  };
 
 
   const handleGoogleLogin = async () => {
@@ -376,6 +414,28 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                   <div className="mt-5 flex justify-center">
                     <div ref={captchaContainerRef} />
                   </div>
+
+                  {captchaBlocked && (
+                    <div className="mt-4 rounded-[12px] bg-red-50 px-4 py-3 text-sm text-red-700">
+                      <div>Please allow cookies or disable tracking prevention to show the captcha.</div>
+                      <div className="mt-3 flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => retryTurnstile()}
+                          className="rounded-[10px] bg-[#f0444a] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#e53b42]"
+                        >
+                          Retry captcha
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => window.location.reload()}
+                          className="rounded-[10px] border border-[#d7dce3] px-4 py-2 text-sm font-medium text-[#111111] transition hover:bg-[#fafafa]"
+                        >
+                          Reload page
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
 
                   <button
