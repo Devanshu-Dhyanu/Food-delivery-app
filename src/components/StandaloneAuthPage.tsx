@@ -85,9 +85,9 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   const hasRenderedTurnstileRef = useRef(false);
 
   useEffect(() => {
-    if (!import.meta.env.VITE_TURNSTILE_SITE_KEY) return;
+    const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
+    if (!siteKey) return;
 
-    // Ensure the global callback updates our local React state.
     const w = window as any;
     w.onTurnstileSuccess = (token: string) => {
       setCaptchaToken(token);
@@ -102,41 +102,61 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
       hasRenderedTurnstileRef.current = true;
 
-      turnstile.render(captchaContainerRef.current, {
-        sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
-        callback: (token: string) => {
-          setCaptchaToken(token);
-        },
-      });
+      try {
+        turnstile.render(captchaContainerRef.current, {
+          sitekey: siteKey,
+          callback: (token: string) => {
+            setCaptchaToken(token);
+          },
+        });
+      } catch (err) {
+        // swallow render errors; we'll rely on polling fallback
+      }
     };
 
     const existingScript = document.querySelector<HTMLScriptElement>(
       'script[data-turnstile-script="true"]'
     );
 
-    // If the script is already present, render immediately.
-    if (existingScript) {
-      // Give the script a tick to fully attach `window.turnstile`.
-      window.setTimeout(renderTurnstile, 0);
-      return;
-    }
+    const attachAndRender = () => {
+      // If turnstile is already available, render immediately.
+      if ((window as any).turnstile && typeof (window as any).turnstile.render === 'function') {
+        window.setTimeout(renderTurnstile, 0);
+        return;
+      }
 
-    // Otherwise load the official Cloudflare Turnstile script.
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    script.setAttribute('data-turnstile-script', 'true');
+      // If the script element exists, attach a load listener.
+      if (existingScript) {
+        existingScript.addEventListener('load', renderTurnstile);
+      } else {
+        // Otherwise create and insert the script tag.
+        const script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+        script.async = true;
+        script.defer = true;
+        script.setAttribute('data-turnstile-script', 'true');
+        script.onload = () => renderTurnstile();
+        document.head.appendChild(script);
+      }
 
-    script.onload = () => {
-      renderTurnstile();
+      // Polling fallback in case the script attaches `turnstile` late.
+      let attempts = 0;
+      const poll = window.setInterval(() => {
+        if ((window as any).turnstile && typeof (window as any).turnstile.render === 'function') {
+          clearInterval(poll);
+          renderTurnstile();
+        } else if (++attempts > 50) {
+          clearInterval(poll);
+        }
+      }, 100);
     };
 
-    document.head.appendChild(script);
+    attachAndRender();
 
     return () => {
-      // Avoid tearing down the widget globally.
-      // Cleanup is intentionally minimal to prevent production re-mount issues.
+      if (existingScript) {
+        existingScript.removeEventListener('load', renderTurnstile);
+      }
     };
   }, []);
 
