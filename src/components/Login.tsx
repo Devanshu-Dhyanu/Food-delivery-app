@@ -160,7 +160,7 @@ const comparisonColumns = [
       'Lower flexibility for hardware integration',
       'Less control over delivery innovation',
       'Harder to stand out on speed and operations',
-  ],
+    ],
   },
 ] as const;
 
@@ -3189,7 +3189,7 @@ export default function Login() {
                 </div>
 
                 <div className="area-feature-visual">
-                  <img src="/area/podium.png" alt="Elevated platform representing precise drone delivery operations" className="area-feature-image" />
+                  <img src="/area/vajra-building.jpg  " alt="Elevated platform representing precise drone delivery operations" className="area-feature-image" />
                 </div>
               </div>
             </section>
@@ -3319,227 +3319,227 @@ export default function Login() {
                         <div className="area-showcase-scroll-fade is-bottom" aria-hidden="true" />
 
                         <div className="area-showcase-device-scroll" ref={showcaseScrollRef}>
-                        {showcaseTopPanelOpen ? (
-                          <div className="area-showcase-top-panel">
-                            <div className="area-showcase-top-panel-head">
-                              <div>
-                                <h3>Quick navigation</h3>
-                                <p>Jump into key parts of the experience.</p>
-                              </div>
-                              <Sparkles size={16} strokeWidth={2.1} color="#6f4ef6" />
-                            </div>
-                            <div className="area-showcase-top-links">
-                              {showcaseTopNavLinks.map((item) => (
-                                <div key={item} className="area-showcase-top-link">
-                                  <span>{item}</span>
-                                  <ChevronRight size={14} strokeWidth={2.1} color="#8f8a83" />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {activeShowcaseTab === 'home' ? (
-                          <div className="area-showcase-device-panel">
-                            <div className="area-showcase-quick-actions">
-                              {showcaseQuickActions.map(({ label, icon: Icon }) => (
-                                <div key={label} className="area-showcase-quick-action">
-                                  <span className="area-showcase-quick-icon">
-                                    <Icon size={16} strokeWidth={2.1} />
-                                  </span>
-                                  <span>{label}</span>
-                                </div>
-                              ))}
-                            </div>
-
-                            <section className="area-showcase-order-card">
-                              <div className="area-showcase-order-head">
+                          {showcaseTopPanelOpen ? (
+                            <div className="area-showcase-top-panel">
+                              <div className="area-showcase-top-panel-head">
                                 <div>
-                                  <span className="area-showcase-order-eyebrow">Live dispatch</span>
-                                  <h3>Dinner order is moving</h3>
+                                  <h3>Quick navigation</h3>
+                                  <p>Jump into key parts of the experience.</p>
                                 </div>
-                                <span className="area-showcase-order-chip">
-                                  <Clock3 size={13} strokeWidth={2.1} />
-                                  14 min
-                                </span>
+                                <Sparkles size={16} strokeWidth={2.1} color="#6f4ef6" />
                               </div>
-
-                              <div className="area-showcase-stats">
-                                {showcaseHomeStats.map((item) => (
-                                  <div key={item.label} className="area-showcase-stat">
-                                    <div className="area-showcase-stat-value">{item.value}</div>
-                                    <div className="area-showcase-stat-label">{item.label}</div>
+                              <div className="area-showcase-top-links">
+                                {showcaseTopNavLinks.map((item) => (
+                                  <div key={item} className="area-showcase-top-link">
+                                    <span>{item}</span>
+                                    <ChevronRight size={14} strokeWidth={2.1} color="#8f8a83" />
                                   </div>
                                 ))}
                               </div>
+                            </div>
+                          ) : null}
 
-                              <div className="area-showcase-order-timeline">
-                                {showcaseOrderTimeline.map((item) => (
-                                  <div key={item.title} className="area-showcase-order-step">
-                                    <span className="area-showcase-order-step-dot">
-                                      <Check size={12} strokeWidth={2.4} />
+                          {activeShowcaseTab === 'home' ? (
+                            <div className="area-showcase-device-panel">
+                              <div className="area-showcase-quick-actions">
+                                {showcaseQuickActions.map(({ label, icon: Icon }) => (
+                                  <div key={label} className="area-showcase-quick-action">
+                                    <span className="area-showcase-quick-icon">
+                                      <Icon size={16} strokeWidth={2.1} />
                                     </span>
-                                    <div>
-                                      <p className="area-showcase-order-step-title">{item.title}</p>
-                                      <p className="area-showcase-order-step-body">{item.body}</p>
-                                    </div>
+                                    <span>{label}</span>
                                   </div>
                                 ))}
                               </div>
-                            </section>
 
-                            <article className="area-showcase-feed-card">
-                              <div className="area-showcase-feed-head">
+                              <section className="area-showcase-order-card">
+                                <div className="area-showcase-order-head">
+                                  <div>
+                                    <span className="area-showcase-order-eyebrow">Live dispatch</span>
+                                    <h3>Dinner order is moving</h3>
+                                  </div>
+                                  <span className="area-showcase-order-chip">
+                                    <Clock3 size={13} strokeWidth={2.1} />
+                                    14 min
+                                  </span>
+                                </div>
+
+                                <div className="area-showcase-stats">
+                                  {showcaseHomeStats.map((item) => (
+                                    <div key={item.label} className="area-showcase-stat">
+                                      <div className="area-showcase-stat-value">{item.value}</div>
+                                      <div className="area-showcase-stat-label">{item.label}</div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="area-showcase-order-timeline">
+                                  {showcaseOrderTimeline.map((item) => (
+                                    <div key={item.title} className="area-showcase-order-step">
+                                      <span className="area-showcase-order-step-dot">
+                                        <Check size={12} strokeWidth={2.4} />
+                                      </span>
+                                      <div>
+                                        <p className="area-showcase-order-step-title">{item.title}</p>
+                                        <p className="area-showcase-order-step-body">{item.body}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </section>
+
+                              <article className="area-showcase-feed-card">
+                                <div className="area-showcase-feed-head">
+                                  <img
+                                    src="/founder.png"
+                                    alt="Founder profile"
+                                    className="area-showcase-avatar"
+                                  />
+                                  <div>
+                                    <p className="area-showcase-feed-name">Founder Signal</p>
+                                    <p className="area-showcase-feed-time">12m ago</p>
+                                  </div>
+                                </div>
+                                <p className="area-showcase-feed-text">
+                                  Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
+                                </p>
                                 <img
-                                  src="/founder.png"
-                                  alt="Founder profile"
-                                  className="area-showcase-avatar"
+                                  src="/area/vajra-hero-drone.jpg"
+                                  alt="Drone showcase preview"
+                                  className="area-showcase-feed-image"
                                 />
-                                <div>
-                                  <p className="area-showcase-feed-name">Founder Signal</p>
-                                  <p className="area-showcase-feed-time">12m ago</p>
+                                <div className="area-showcase-feed-actions">
+                                  <span className="area-showcase-pill">12k</span>
+                                  <span className="area-showcase-pill">48</span>
+                                  <span className="area-showcase-pill">Share</span>
                                 </div>
-                              </div>
-                              <p className="area-showcase-feed-text">
-                                Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
-                              </p>
-                              <img
-                                src="/area/vajra-hero-drone.jpg"
-                                alt="Drone showcase preview"
-                                className="area-showcase-feed-image"
-                              />
-                              <div className="area-showcase-feed-actions">
-                                <span className="area-showcase-pill">12k</span>
-                                <span className="area-showcase-pill">48</span>
-                                <span className="area-showcase-pill">Share</span>
-                              </div>
-                            </article>
+                              </article>
 
-                            <div className="area-showcase-highlight">
-                              <span className="area-showcase-highlight-label">Live inside Vajra</span>
-                              <h3>Support, updates, and launch signals in one flow.</h3>
-                              <div className="area-showcase-highlight-list">
-                                {showcasePhoneHighlights.map((item) => (
-                                  <div key={item} className="area-showcase-highlight-item">
-                                    {item}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        ) : null}
-
-                        {activeShowcaseTab === 'community' ? (
-                          <div className="area-showcase-device-panel">
-                            {showcaseCommunityPosts.map((post) => (
-                              <article key={post.title} className="area-showcase-community-card">
-                                <img src={post.image} alt={post.title} className="area-showcase-community-thumb" />
-                                <div className="area-showcase-community-meta">
-                                  <div className="area-showcase-community-author">
-                                    <img src={post.avatar} alt={post.author} />
-                                    <div>
-                                      <p className="area-showcase-community-title">{post.title}</p>
-                                      <span className="area-showcase-community-time">{post.author} - {post.time}</span>
+                              <div className="area-showcase-highlight">
+                                <span className="area-showcase-highlight-label">Live inside Vajra</span>
+                                <h3>Support, updates, and launch signals in one flow.</h3>
+                                <div className="area-showcase-highlight-list">
+                                  {showcasePhoneHighlights.map((item) => (
+                                    <div key={item} className="area-showcase-highlight-item">
+                                      {item}
                                     </div>
-                                  </div>
-                                  <ChevronRight size={16} strokeWidth={2.1} color="#9b9791" />
+                                  ))}
                                 </div>
-                                <p className="area-showcase-community-body">{post.body}</p>
-                                <div className="area-showcase-community-stats">
-                                  <span className="area-showcase-community-metric is-accent">
-                                    <Users size={13} strokeWidth={2.1} />
-                                    {post.metric}
-                                  </span>
-                                  <span className="area-showcase-community-metric">
-                                    <MessageCircle size={13} strokeWidth={2.1} />
-                                    {post.replies}
-                                  </span>
-                                </div>
-                              </article>
-                            ))}
-                          </div>
-                        ) : null}
-
-                        {activeShowcaseTab === 'support' ? (
-                          <div className="area-showcase-device-panel">
-                            <section className="area-showcase-support-header">
-                              <div className="area-showcase-support-presence">
-                                <span className="area-showcase-support-presence-dot" />
-                                <div>
-                                  <h3>Vajra Support AI</h3>
-                                  <p>Instant help, order updates, seller guidance</p>
-                                </div>
-                              </div>
-                              <Sparkles size={18} strokeWidth={2.1} color="#6f4ef6" />
-                            </section>
-
-                            <div className="area-showcase-support-chat">
-                              <div className="area-showcase-chat-bubble is-user">
-                                My order is late. Can you check the live status?
-                              </div>
-                              <div className="area-showcase-chat-bubble is-assistant">
-                                Your rider has reached the restaurant and pickup is being packed now. Updated arrival is 14 minutes.
                               </div>
                             </div>
+                          ) : null}
 
-                            {showcaseSupportItems.map((item) => (
-                              <article
-                                key={item.title}
-                                className={`area-showcase-support-card ${item.tone === 'primary' ? 'is-primary' : ''}`}
-                              >
-                                <span className="area-showcase-support-label">Quick help</span>
-                                <h3>{item.title}</h3>
-                                <p>{item.body}</p>
-                              </article>
-                            ))}
-
-                            <div className="area-showcase-support-replies">
-                              {showcaseSupportReplies.map((reply) => (
-                                <span key={reply} className="area-showcase-support-reply">
-                                  {reply}
-                                </span>
+                          {activeShowcaseTab === 'community' ? (
+                            <div className="area-showcase-device-panel">
+                              {showcaseCommunityPosts.map((post) => (
+                                <article key={post.title} className="area-showcase-community-card">
+                                  <img src={post.image} alt={post.title} className="area-showcase-community-thumb" />
+                                  <div className="area-showcase-community-meta">
+                                    <div className="area-showcase-community-author">
+                                      <img src={post.avatar} alt={post.author} />
+                                      <div>
+                                        <p className="area-showcase-community-title">{post.title}</p>
+                                        <span className="area-showcase-community-time">{post.author} - {post.time}</span>
+                                      </div>
+                                    </div>
+                                    <ChevronRight size={16} strokeWidth={2.1} color="#9b9791" />
+                                  </div>
+                                  <p className="area-showcase-community-body">{post.body}</p>
+                                  <div className="area-showcase-community-stats">
+                                    <span className="area-showcase-community-metric is-accent">
+                                      <Users size={13} strokeWidth={2.1} />
+                                      {post.metric}
+                                    </span>
+                                    <span className="area-showcase-community-metric">
+                                      <MessageCircle size={13} strokeWidth={2.1} />
+                                      {post.replies}
+                                    </span>
+                                  </div>
+                                </article>
                               ))}
                             </div>
+                          ) : null}
 
-                            <div className="area-showcase-support-typing" aria-hidden="true">
-                              <span />
-                              <span />
-                              <span />
-                              Support is typing...
+                          {activeShowcaseTab === 'support' ? (
+                            <div className="area-showcase-device-panel">
+                              <section className="area-showcase-support-header">
+                                <div className="area-showcase-support-presence">
+                                  <span className="area-showcase-support-presence-dot" />
+                                  <div>
+                                    <h3>Vajra Support AI</h3>
+                                    <p>Instant help, order updates, seller guidance</p>
+                                  </div>
+                                </div>
+                                <Sparkles size={18} strokeWidth={2.1} color="#6f4ef6" />
+                              </section>
+
+                              <div className="area-showcase-support-chat">
+                                <div className="area-showcase-chat-bubble is-user">
+                                  My order is late. Can you check the live status?
+                                </div>
+                                <div className="area-showcase-chat-bubble is-assistant">
+                                  Your rider has reached the restaurant and pickup is being packed now. Updated arrival is 14 minutes.
+                                </div>
+                              </div>
+
+                              {showcaseSupportItems.map((item) => (
+                                <article
+                                  key={item.title}
+                                  className={`area-showcase-support-card ${item.tone === 'primary' ? 'is-primary' : ''}`}
+                                >
+                                  <span className="area-showcase-support-label">Quick help</span>
+                                  <h3>{item.title}</h3>
+                                  <p>{item.body}</p>
+                                </article>
+                              ))}
+
+                              <div className="area-showcase-support-replies">
+                                {showcaseSupportReplies.map((reply) => (
+                                  <span key={reply} className="area-showcase-support-reply">
+                                    {reply}
+                                  </span>
+                                ))}
+                              </div>
+
+                              <div className="area-showcase-support-typing" aria-hidden="true">
+                                <span />
+                                <span />
+                                <span />
+                                Support is typing...
+                              </div>
                             </div>
-                          </div>
-                        ) : null}
+                          ) : null}
 
-                        <div className="area-showcase-bottom-nav" role="tablist" aria-label="Phone preview tabs">
-                          <button
-                            type="button"
-                            className={activeShowcaseTab === 'home' ? 'is-active' : ''}
-                            onClick={() => handleShowcaseTabChange('home')}
-                            aria-selected={activeShowcaseTab === 'home'}
-                          >
-                            <Home size={14} strokeWidth={2.15} />
-                            <span>Home</span>
-                          </button>
-                          <button
-                            type="button"
-                            className={activeShowcaseTab === 'community' ? 'is-active' : ''}
-                            onClick={() => handleShowcaseTabChange('community')}
-                            aria-selected={activeShowcaseTab === 'community'}
-                          >
-                            <Users size={14} strokeWidth={2.15} />
-                            <span>Community</span>
-                          </button>
-                          <button
-                            type="button"
-                            className={activeShowcaseTab === 'support' ? 'is-active' : ''}
-                            onClick={() => handleShowcaseTabChange('support')}
-                            aria-selected={activeShowcaseTab === 'support'}
-                          >
-                            <MessageCircle size={14} strokeWidth={2.15} />
-                            <span>Support</span>
-                          </button>
+                          <div className="area-showcase-bottom-nav" role="tablist" aria-label="Phone preview tabs">
+                            <button
+                              type="button"
+                              className={activeShowcaseTab === 'home' ? 'is-active' : ''}
+                              onClick={() => handleShowcaseTabChange('home')}
+                              aria-selected={activeShowcaseTab === 'home'}
+                            >
+                              <Home size={14} strokeWidth={2.15} />
+                              <span>Home</span>
+                            </button>
+                            <button
+                              type="button"
+                              className={activeShowcaseTab === 'community' ? 'is-active' : ''}
+                              onClick={() => handleShowcaseTabChange('community')}
+                              aria-selected={activeShowcaseTab === 'community'}
+                            >
+                              <Users size={14} strokeWidth={2.15} />
+                              <span>Community</span>
+                            </button>
+                            <button
+                              type="button"
+                              className={activeShowcaseTab === 'support' ? 'is-active' : ''}
+                              onClick={() => handleShowcaseTabChange('support')}
+                              aria-selected={activeShowcaseTab === 'support'}
+                            >
+                              <MessageCircle size={14} strokeWidth={2.15} />
+                              <span>Support</span>
+                            </button>
+                          </div>
                         </div>
-                      </div>
                       </div>
                     </div>
                   </div>
@@ -3573,7 +3573,7 @@ export default function Login() {
 
             <section className="area-testimonial">
               <div className="area-testimonial-grid">
-                <img src="/area/balance.png" alt="Abstract balance sculpture representing precision and control in delivery operations" className="area-testimonial-image" />
+                <img src="/area/drone-parcel.jpg" alt="Abstract balance sculpture representing precision and control in delivery operations" className="area-testimonial-image" />
 
                 <div>
                   <blockquote className="area-testimonial-quote">
