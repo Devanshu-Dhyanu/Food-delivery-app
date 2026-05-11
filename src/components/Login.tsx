@@ -3083,7 +3083,7 @@ export default function Login() {
 
               <div className="area-hero-visual-wrap">
                 <img
-                  src="/area/vajra-hero-drone.jpg"
+                  src="/area/Hero2.png"
                   alt="Vajra drone front view with glowing red lights"
                   className="area-hero-visual area-hero-desktop-visual"
                 />
