@@ -1,142 +1,16 @@
 import { MessageCircleMore } from 'lucide-react';
-import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
+import { useRef } from 'react';
 
 type FloatingContactTabProps = {
   href?: string;
   label?: string;
 };
 
-type FloatingContactPosition = {
-  x: number;
-  y: number;
-};
-
-const STORAGE_KEY = 'vajra_floating_contact_position';
-
 export default function FloatingContactTab({
   href = '/contact-us',
   label = 'Contact Us',
 }: FloatingContactTabProps) {
-  const [dragMode, setDragMode] = useState(false);
-  const [position, setPosition] = useState<FloatingContactPosition | null>(null);
-  const dragStateRef = useRef<{
-    active: boolean;
-    pointerOffsetX: number;
-    pointerOffsetY: number;
-    moved: boolean;
-  }>({
-    active: false,
-    pointerOffsetX: 0,
-    pointerOffsetY: 0,
-    moved: false,
-  });
   const rootRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        return;
-      }
-
-      const parsed = JSON.parse(stored) as FloatingContactPosition;
-      if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') {
-        setPosition(parsed);
-      }
-    } catch {
-      // Ignore storage issues.
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!position) {
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
-    } catch {
-      // Ignore storage issues.
-    }
-  }, [position]);
-
-  useEffect(() => {
-    if (!dragMode) {
-      dragStateRef.current.active = false;
-    }
-  }, [dragMode]);
-
-  const clampPosition = (nextX: number, nextY: number) => {
-    const cardWidth = rootRef.current?.offsetWidth ?? 220;
-    const cardHeight = rootRef.current?.offsetHeight ?? 76;
-    const maxX = Math.max(12, window.innerWidth - cardWidth - 12);
-    const maxY = Math.max(12, window.innerHeight - cardHeight - 12);
-
-    return {
-      x: Math.min(Math.max(12, nextX), maxX),
-      y: Math.min(Math.max(12, nextY), maxY),
-    };
-  };
-
-  const handlePointerDown = (event: PointerEvent<HTMLAnchorElement>) => {
-    if (!dragMode) {
-      return;
-    }
-
-    const rect = rootRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    dragStateRef.current = {
-      active: true,
-      pointerOffsetX: event.clientX - rect.left,
-      pointerOffsetY: event.clientY - rect.top,
-      moved: false,
-    };
-
-    event.currentTarget.setPointerCapture(event.pointerId);
-  };
-
-  const handlePointerMove = (event: PointerEvent<HTMLAnchorElement>) => {
-    if (!dragMode || !dragStateRef.current.active) {
-      return;
-    }
-
-    dragStateRef.current.moved = true;
-    setPosition(
-      clampPosition(
-        event.clientX - dragStateRef.current.pointerOffsetX,
-        event.clientY - dragStateRef.current.pointerOffsetY
-      )
-    );
-  };
-
-  const handlePointerUp = (event: PointerEvent<HTMLAnchorElement>) => {
-    if (!dragMode) {
-      return;
-    }
-
-    dragStateRef.current.active = false;
-    event.currentTarget.releasePointerCapture(event.pointerId);
-  };
-
-  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (dragMode || dragStateRef.current.moved) {
-      event.preventDefault();
-      dragStateRef.current.moved = false;
-    }
-  };
-
-  const floatingStyle = position
-    ? {
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-        right: 'auto',
-        bottom: 'auto',
-        transform: 'none',
-      }
-    : undefined;
 
   return (
     <>
@@ -155,21 +29,12 @@ export default function FloatingContactTab({
           transform: translate3d(0, -50%, 0);
         }
 
-        .vajra-floating-contact.is-drag-mode,
-        .vajra-floating-contact.is-custom {
-          transform: none;
-        }
-
-        .vajra-floating-contact.is-drag-mode {
-          transition: none;
-        }
-
         .vajra-floating-contact-link {
           display: inline-flex;
           align-items: center;
           gap: 14px;
           min-height: 76px;
-          padding: 0 22px 0 18px;
+          padding: 0 22px 0 20px;
           border-radius: 22px 0 0 22px;
           background: linear-gradient(135deg, #2f79d8 0%, #2867c0 100%);
           color: #ffffff;
@@ -178,14 +43,6 @@ export default function FloatingContactTab({
           border: 1px solid rgba(255, 255, 255, 0.14);
           border-right: 0;
           user-select: none;
-        }
-
-        .vajra-floating-contact.is-drag-mode .vajra-floating-contact-link {
-          cursor: grab;
-        }
-
-        .vajra-floating-contact.is-drag-mode .vajra-floating-contact-link:active {
-          cursor: grabbing;
         }
 
         .vajra-floating-contact-icon {
@@ -237,23 +94,13 @@ export default function FloatingContactTab({
 
       <div
         ref={rootRef}
-        className={`vajra-floating-contact${dragMode ? ' is-drag-mode' : ''}${position ? ' is-custom' : ''}`}
-        style={floatingStyle}
+        className="vajra-floating-contact"
         aria-label="Quick contact access"
       >
         <a
           href={href}
           className="vajra-floating-contact-link"
-          onDoubleClick={(event) => {
-            event.preventDefault();
-            setDragMode((current) => !current);
-          }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          onClick={handleClick}
-          title={dragMode ? 'Drag to move. Double-click again to lock.' : 'Double-click to move this tab.'}
+          title="Contact The Vajra"
         >
           <span className="vajra-floating-contact-icon">
             <MessageCircleMore size={22} strokeWidth={2} />

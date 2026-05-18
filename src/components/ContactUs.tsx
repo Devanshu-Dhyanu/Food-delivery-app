@@ -80,7 +80,6 @@ const navDropdownItems: Record<TopNavLabel, readonly { label: string; href: stri
     { label: 'Careers', href: '/careers' },
   ],
   Insights: [
-    { label: 'Vision', href: '/#specifications' },
     { label: 'Campus Experience', href: '/#benefits' },
     { label: 'Phone Showcase', href: '/#vajra-showcase-title' },
     { label: 'Support Chat', href: '/support' },

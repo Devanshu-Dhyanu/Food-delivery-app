@@ -51,7 +51,6 @@ const getLaunchCountdown = () => {
 const navLinks = [
   { label: 'Why Vajra', href: '#benefits' },
   { label: 'Delivery Model', href: '#specifications' },
-  { label: 'Vision', href: '#how-to' },
   { label: 'Contact', href: '/contact-us' },
   { label: 'Founder', href: '/founder' },
   { label: 'Careers', href: '/careers' },

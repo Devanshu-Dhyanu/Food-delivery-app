@@ -30,6 +30,7 @@ import PostLoginServiceHub from './components/PostLoginServiceHub';
 import StandaloneAuthPage from './components/StandaloneAuthPage';
 import FeelItPage from './components/FeelItPage';
 import RequestForServicesPage from './components/RequestForServicesPage';
+import VisionPage from './components/VisionPage';
 import WebsiteFeedbackPage from './components/WebsiteFeedbackPage';
 import FloatingContactTab from './components/FloatingContactTab';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
@@ -78,6 +79,7 @@ const CONTACT_US_PATHS = ['/contact-us', '/contact'] as const;
 const REQUEST_SERVICES_PATHS = ['/request-services'] as const;
 const WEBSITE_FEEDBACK_PATHS = ['/website-feedback'] as const;
 const FEEL_IT_PATHS = ['/feel-it'] as const;
+const VISION_PATHS = ['/vision', '/our-vision'] as const;
 const TEAM_PATHS = ['/team', '/our-team'] as const;
 const LOGIN_PATHS = ['/login', '/sign-in'] as const;
 const SIGNUP_PATHS = ['/signup', '/sign-up', '/register'] as const;
@@ -126,6 +128,10 @@ const getInitialPageFromPath = (): Page => {
   }
 
   if (FEEL_IT_PATHS.includes(pathname as (typeof FEEL_IT_PATHS)[number])) {
+    return 'service-hub';
+  }
+
+  if (VISION_PATHS.includes(pathname as (typeof VISION_PATHS)[number])) {
     return 'service-hub';
   }
 
@@ -685,6 +691,9 @@ function App() {
   const isTeamPath = TEAM_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof TEAM_PATHS)[number]
   );
+  const isVisionPath = VISION_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof VISION_PATHS)[number]
+  );
   const isLoginPath = LOGIN_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof LOGIN_PATHS)[number]
   );
@@ -753,6 +762,9 @@ function App() {
   }
   if (isFeelItPath) {
     return withFloatingContactTab(<FeelItPage />);
+  }
+  if (isVisionPath) {
+    return withFloatingContactTab(<VisionPage />);
   }
   if (isTeamPath) {
     window.location.replace('/team-page.html');
