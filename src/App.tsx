@@ -31,6 +31,7 @@ import StandaloneAuthPage from './components/StandaloneAuthPage';
 import FeelItPage from './components/FeelItPage';
 import RequestForServicesPage from './components/RequestForServicesPage';
 import WebsiteFeedbackPage from './components/WebsiteFeedbackPage';
+import FloatingContactTab from './components/FloatingContactTab';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import { logAdminSignInEvent } from './lib/adminActivity';
 import {
@@ -717,34 +718,41 @@ function App() {
     }
   }, [hasProfile, loading, user]);
 
+  const withFloatingContactTab = (page: JSX.Element) => (
+    <>
+      {page}
+      <FloatingContactTab />
+    </>
+  );
+
   if (window.location.pathname === '/auth/callback') return <AuthCallback />;
   if (window.location.pathname === '/payment/callback') return <PaymentCallback />;
   if (isTermsPath) {
-    return <TermsAndConditions />;
+    return withFloatingContactTab(<TermsAndConditions />);
   }
   if (isPrivacyPath) {
-    return <PrivacyPolicy />;
+    return withFloatingContactTab(<PrivacyPolicy />);
   }
   if (isRefundPath) {
-    return <RefundCancellationPolicy />;
+    return withFloatingContactTab(<RefundCancellationPolicy />);
   }
   if (isShippingPath) {
-    return <ShippingPolicy />;
+    return withFloatingContactTab(<ShippingPolicy />);
   }
   if (isSupportPath) {
-    return <SupportChatPage />;
+    return withFloatingContactTab(<SupportChatPage />);
   }
   if (isContactPath) {
-    return <ContactUs />;
+    return withFloatingContactTab(<ContactUs />);
   }
   if (isRequestServicesPath) {
-    return <RequestForServicesPage />;
+    return withFloatingContactTab(<RequestForServicesPage />);
   }
   if (isWebsiteFeedbackPath) {
-    return <WebsiteFeedbackPage />;
+    return withFloatingContactTab(<WebsiteFeedbackPage />);
   }
   if (isFeelItPath) {
-    return <FeelItPage />;
+    return withFloatingContactTab(<FeelItPage />);
   }
   if (isTeamPath) {
     window.location.replace('/team-page.html');
@@ -757,10 +765,11 @@ function App() {
     return <StandaloneAuthPage mode="signup" />;
   }
   if (isCareersPath) {
-    return <JobApplication />;
+    return withFloatingContactTab(<JobApplication />);
   }
   if (isFounderPath && !user) {
-    return (
+    return withFloatingContactTab(
+      (
       <FounderPage
         publicView
         onNavigate={(page) => {
@@ -769,6 +778,7 @@ function App() {
           window.dispatchEvent(new CustomEvent(VAJRA_INTERNAL_PATH_CHANGE_EVENT));
         }}
       />
+      )
     );
   }
   if (loading) {
@@ -1024,6 +1034,7 @@ function App() {
             <ContinueOrderPill currentPage={currentPage} onNavigate={handleNavigate} />
           )}
           {appMode === 'customer' && <Footer />}
+          {appMode === 'customer' ? <FloatingContactTab /> : null}
         </div>
       </DeliveryVoiceCallProvider>
     </CartProvider>

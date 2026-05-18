@@ -43,7 +43,7 @@ const secondaryLinks = [
   },
   {
     label: 'Careers',
-    href: '/careers',
+    href: '/job-application',
   },
   {
     label: 'Partnerships',
@@ -56,15 +56,17 @@ const secondaryLinks = [
 ] as const;
 
 const topNavLinks = [
-  'What we do',
-  'Who we are',
-  'Insights',
-  'Careers',
-  'Newsroom',
-  'Investors',
+  { label: 'What we do', href: '/#benefits' },
+  { label: 'Who we are', href: '/founder' },
+  { label: 'Insights', href: '/#specifications' },
+  { label: 'Careers', href: '/careers' },
+  { label: 'Newsroom', href: `mailto:${CONTACT_EMAIL}?subject=Media%20Request%20for%20The%20Vajra` },
+  { label: 'Investors', href: 'mailto:founder-thevajra@vajracognixia.in?subject=Investor%20Enquiry' },
 ] as const;
 
-const navDropdownItems: Record<(typeof topNavLinks)[number], readonly { label: string; href: string }[]> = {
+type TopNavLabel = (typeof topNavLinks)[number]['label'];
+
+const navDropdownItems: Record<TopNavLabel, readonly { label: string; href: string }[]> = {
   'What we do': [
     { label: 'Why Vajra', href: '/#benefits' },
     { label: 'Delivery Model', href: '/#specifications' },
@@ -122,7 +124,7 @@ const siteSearchItems = [
 ] as const;
 
 export default function ContactUs() {
-  const [activeDropdown, setActiveDropdown] = useState<(typeof topNavLinks)[number] | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<TopNavLabel | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -608,22 +610,22 @@ export default function ContactUs() {
             <div className="vajra-contact-center" aria-label="Primary contact navigation">
               {topNavLinks.map((item) => (
                 <div
-                  key={item}
+                  key={item.label}
                   className="vajra-contact-nav-item"
-                  onMouseEnter={() => setActiveDropdown(item)}
-                  onMouseLeave={() => setActiveDropdown((current) => (current === item ? null : current))}
+                  onMouseEnter={() => setActiveDropdown(item.label)}
+                  onMouseLeave={() => setActiveDropdown((current) => (current === item.label ? null : current))}
                 >
-                  <a href="/" className="vajra-contact-nav-link">
-                    <span>{item}</span>
+                  <a href={item.href} className="vajra-contact-nav-link">
+                    <span>{item.label}</span>
                     <ChevronDown size={14} strokeWidth={2.1} />
                   </a>
                   <div
-                    className={`vajra-contact-mini-dropdown${activeDropdown === item ? ' is-open' : ''}`}
-                    aria-hidden={activeDropdown !== item}
+                    className={`vajra-contact-mini-dropdown${activeDropdown === item.label ? ' is-open' : ''}`}
+                    aria-hidden={activeDropdown !== item.label}
                   >
-                    {navDropdownItems[item].map((dropdownItem) => (
+                    {navDropdownItems[item.label].map((dropdownItem) => (
                       <a
-                        key={`${item}-${dropdownItem.label}`}
+                        key={`${item.label}-${dropdownItem.label}`}
                         href={dropdownItem.href}
                         className="vajra-contact-mini-link"
                       >
@@ -649,7 +651,7 @@ export default function ContactUs() {
                 <span>Global (En)</span>
                 <ChevronDown size={14} strokeWidth={2.1} />
               </span>
-              <a href="/" className="vajra-contact-home">
+              <a href="/contact-us" className="vajra-contact-home">
                 Contact Us
               </a>
             </div>

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applyDefaultSeo } from '../lib/seo';
+import FloatingContactTab from './FloatingContactTab';
 import LandingFooter from './LandingFooter';
 
 // Support and company constants are defined in shared footer components.
@@ -3100,6 +3101,8 @@ export default function Login() {
           </div>
         </div>
       )}
+
+      {!modalOpen ? <FloatingContactTab /> : null}
     </>
   );
 }

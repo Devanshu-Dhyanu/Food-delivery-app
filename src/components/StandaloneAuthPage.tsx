@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applySeo } from '../lib/seo';
+import FloatingContactTab from './FloatingContactTab';
 import LandingFooter from './LandingFooter';
 
 
@@ -177,154 +178,154 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   const altLinkLabel = mode === 'signin' ? 'Sign up for free!' : 'Sign in';
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden text-[#111111]">
-      <img
-        src="/auth-drone-bg.jpeg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover object-center"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.76)_0%,rgba(10,10,10,0.5)_34%,rgba(8,8,8,0.3)_100%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_50%,rgba(255,255,255,0.05),transparent_24%),radial-gradient(circle_at_84%_28%,rgba(255,255,255,0.035),transparent_22%)]" />
+    <>
+      <div className="relative flex min-h-screen flex-col overflow-hidden text-[#111111]">
+        <img
+          src="/auth-drone-bg.jpeg"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.76)_0%,rgba(10,10,10,0.5)_34%,rgba(8,8,8,0.3)_100%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_50%,rgba(255,255,255,0.05),transparent_24%),radial-gradient(circle_at_84%_28%,rgba(255,255,255,0.035),transparent_22%)]" />
 
-      <header className="fixed left-0 right-0 top-0 z-50 px-4 pt-5 sm:px-6 md:px-8 lg:px-10">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between rounded-full border border-white/28 bg-[rgba(18,18,18,0.42)] px-5 py-3 text-white shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-          <a href="/" className="inline-flex items-center gap-3 text-white">
-            <span className="h-2.5 w-2.5 rotate-45 rounded-sm border border-white bg-white/35" />
-            <span className="text-sm font-semibold tracking-[0.28em] uppercase">The Vajra</span>
-          </a>
-
-          <nav className="hidden items-center gap-6 text-sm font-medium text-white/90 md:flex">
-            <a href="/" className="transition hover:text-white">
-              Home
+        <header className="fixed left-0 right-0 top-0 z-50 px-4 pt-5 sm:px-6 md:px-8 lg:px-10">
+          <div className="mx-auto flex max-w-[1180px] items-center justify-between rounded-full border border-white/28 bg-[rgba(18,18,18,0.42)] px-5 py-3 text-white shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <a href="/" className="inline-flex items-center gap-3 text-white">
+              <span className="h-2.5 w-2.5 rotate-45 rounded-sm border border-white bg-white/35" />
+              <span className="text-sm font-semibold tracking-[0.28em] uppercase">The Vajra</span>
             </a>
-            <a href="/founder" className="transition hover:text-white">
-              Founder
+
+            <nav className="hidden items-center gap-6 text-sm font-medium text-white/90 md:flex">
+              <a href="/" className="transition hover:text-white">
+                Home
+              </a>
+              <a href="/founder" className="transition hover:text-white">
+                Founder
+              </a>
+              <a href="/careers" className="transition hover:text-white">
+                Careers
+              </a>
+              <a href="/support" className="transition hover:text-white">
+                Support
+              </a>
+            </nav>
+
+            <a
+              href={mode === 'signin' ? '/signup' : '/login'}
+              className="inline-flex items-center rounded-full border border-white/26 bg-white/16 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/22"
+            >
+              {mode === 'signin' ? 'Sign Up' : 'Login'}
             </a>
-            <a href="/careers" className="transition hover:text-white">
-              Careers
-            </a>
-            <a href="/support" className="transition hover:text-white">
-              Support
-            </a>
-          </nav>
+          </div>
+        </header>
 
-          <a
-            href={mode === 'signin' ? '/signup' : '/login'}
-            className="inline-flex items-center rounded-full border border-white/26 bg-white/16 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/22"
-          >
-            {mode === 'signin' ? 'Sign Up' : 'Login'}
-          </a>
-        </div>
-      </header>
-
-      <div className="relative z-10 flex flex-1 flex-col px-4 pb-6 pt-28 sm:px-6 md:px-8 lg:px-10 lg:pb-8 lg:pt-32">
-        <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-[1280px] flex-1 items-center justify-center">
-          <div className="grid min-h-[590px] w-full max-w-[1040px] overflow-hidden rounded-[30px] border border-white/14 bg-[rgba(255,255,255,0.94)] shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-sm lg:grid-cols-[0.9fr_1.1fr]">
-            <section className="flex items-center justify-center px-8 py-10 sm:px-12 lg:px-14">
-              <div className="w-full max-w-[350px]">
-                <a
-                  href="/"
-                  className="mb-12 inline-flex items-center gap-2 text-sm font-medium text-[#536071] transition hover:text-black"
-                >
-                  <ArrowLeft size={16} />
-                  Back to The Vajra
-                </a>
-
-                <h1 className="text-[38px] font-semibold tracking-[0.01em] text-[#111111] sm:text-[44px]">
-                  {heading}
-                </h1>
-                <p className="mt-3 max-w-[320px] text-[15px] leading-7 text-[#6f7785]">{subheading}</p>
-
-                <form onSubmit={handleSubmit} className="mt-9">
-                  <label className="mb-3 block text-[14px] font-semibold text-[#1f2530]">Email</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    placeholder="Enter your email"
-                    className="h-[52px] w-full rounded-[16px] border border-[#d7dce3] bg-white/92 px-5 text-[16px] text-[#111111] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] outline-none transition placeholder:text-[#a2a9b6] focus:border-[#f0444a] focus:ring-2 focus:ring-[#f0444a]/10"
-                    autoComplete="email"
-                    required
-                  />
-
-                  {message && (
-                    <div
-                      className={`mt-5 rounded-[14px] px-4 py-3 text-sm ${message.type === 'success'
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-red-50 text-red-600'
-                        }`}
-                    >
-                      {message.text}
-                    </div>
-                  )}
-
-                  {mode === 'signin' && (
-                    <div className="mt-5 flex items-center justify-between gap-4 text-[14px] text-[#1f2530]">
-                      <label className="inline-flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border border-[#cfcfcf]"
-                        />
-                        <span>Remember me</span>
-                      </label>
-
-                      <button
-                        type="button"
-                        onClick={() => void handleForgotPassword()}
-                        className="font-medium transition hover:text-[#f0444a]"
-                      >
-                        Forgot password
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Turnstile removed: preserving layout and spacing */}
-
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="mt-6 h-[52px] w-full rounded-[16px] bg-[#f0444a] text-[16px] font-semibold text-white shadow-[0_16px_30px_rgba(240,68,74,0.28)] transition hover:bg-[#e53b42] disabled:cursor-not-allowed disabled:opacity-70"
+        <div className="relative z-10 flex flex-1 flex-col px-4 pb-6 pt-28 sm:px-6 md:px-8 lg:px-10 lg:pb-8 lg:pt-32">
+          <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-[1280px] flex-1 items-center justify-center">
+            <div className="grid min-h-[590px] w-full max-w-[1040px] overflow-hidden rounded-[30px] border border-white/14 bg-[rgba(255,255,255,0.94)] shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-sm lg:grid-cols-[0.9fr_1.1fr]">
+              <section className="flex items-center justify-center px-8 py-10 sm:px-12 lg:px-14">
+                <div className="w-full max-w-[350px]">
+                  <a
+                    href="/"
+                    className="mb-12 inline-flex items-center gap-2 text-sm font-medium text-[#536071] transition hover:text-black"
                   >
-                    {loading ? 'Please wait...' : mode === 'signin' ? 'Sign in' : buttonLabel}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => void handleGoogleLogin()}
-                    disabled={loading}
-                    className="mt-4 flex h-[52px] w-full items-center justify-center gap-3 rounded-[16px] border border-[#d7dce3] bg-white text-[16px] font-medium text-[#111111] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    <GoogleIcon />
-                    <span>{mode === 'signin' ? 'Sign in with Google' : 'Continue with Google'}</span>
-                  </button>
-                </form>
-
-                <p className="mt-5 text-center text-[14px] text-[#69707d]">
-                  {altPrompt}{' '}
-                  <a href={altLinkHref} className="font-medium text-[#f0444a] hover:underline">
-                    {altLinkLabel}
+                    <ArrowLeft size={16} />
+                    Back to The Vajra
                   </a>
-                </p>
-              </div>
-            </section>
 
-            <section className="relative hidden overflow-hidden bg-[#ececec] lg:block">
-              <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01))]" />
-              <img
-                src="/auth-right-side.png"
-                alt="The Vajra authentication illustration"
-                className="relative h-full w-full object-contain object-center p-8"
-              />
-            </section>
+                  <h1 className="text-[38px] font-semibold tracking-[0.01em] text-[#111111] sm:text-[44px]">
+                    {heading}
+                  </h1>
+                  <p className="mt-3 max-w-[320px] text-[15px] leading-7 text-[#6f7785]">{subheading}</p>
+
+                  <form onSubmit={handleSubmit} className="mt-9">
+                    <label className="mb-3 block text-[14px] font-semibold text-[#1f2530]">Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="Enter your email"
+                      className="h-[52px] w-full rounded-[16px] border border-[#d7dce3] bg-white/92 px-5 text-[16px] text-[#111111] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] outline-none transition placeholder:text-[#a2a9b6] focus:border-[#f0444a] focus:ring-2 focus:ring-[#f0444a]/10"
+                      autoComplete="email"
+                      required
+                    />
+
+                    {message && (
+                      <div
+                        className={`mt-5 rounded-[14px] px-4 py-3 text-sm ${message.type === 'success'
+                          ? 'bg-green-50 text-green-700'
+                          : 'bg-red-50 text-red-600'
+                          }`}
+                      >
+                        {message.text}
+                      </div>
+                    )}
+
+                    {mode === 'signin' && (
+                      <div className="mt-5 flex items-center justify-between gap-4 text-[14px] text-[#1f2530]">
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border border-[#cfcfcf]"
+                          />
+                          <span>Remember me</span>
+                        </label>
+
+                        <button
+                          type="button"
+                          onClick={() => void handleForgotPassword()}
+                          className="font-medium transition hover:text-[#f0444a]"
+                        >
+                          Forgot password
+                        </button>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="mt-6 h-[52px] w-full rounded-[16px] bg-[#f0444a] text-[16px] font-semibold text-white shadow-[0_16px_30px_rgba(240,68,74,0.28)] transition hover:bg-[#e53b42] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      {loading ? 'Please wait...' : mode === 'signin' ? 'Sign in' : buttonLabel}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => void handleGoogleLogin()}
+                      disabled={loading}
+                      className="mt-4 flex h-[52px] w-full items-center justify-center gap-3 rounded-[16px] border border-[#d7dce3] bg-white text-[16px] font-medium text-[#111111] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-70"
+                    >
+                      <GoogleIcon />
+                      <span>{mode === 'signin' ? 'Sign in with Google' : 'Continue with Google'}</span>
+                    </button>
+                  </form>
+
+                  <p className="mt-5 text-center text-[14px] text-[#69707d]">
+                    {altPrompt}{' '}
+                    <a href={altLinkHref} className="font-medium text-[#f0444a] hover:underline">
+                      {altLinkLabel}
+                    </a>
+                  </p>
+                </div>
+              </section>
+
+              <section className="relative hidden overflow-hidden bg-[#ececec] lg:block">
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01))]" />
+                <img
+                  src="/auth-right-side.png"
+                  alt="The Vajra authentication illustration"
+                  className="relative h-full w-full object-contain object-center p-8"
+                />
+              </section>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="relative z-10 mt-auto">
-        <LandingFooter />
+        <div className="relative z-10 mt-auto">
+          <LandingFooter />
+        </div>
       </div>
-    </div>
+      <FloatingContactTab />
+    </>
   );
 }
