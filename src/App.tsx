@@ -30,6 +30,7 @@ import PostLoginServiceHub from './components/PostLoginServiceHub';
 import StandaloneAuthPage from './components/StandaloneAuthPage';
 import FeelItPage from './components/FeelItPage';
 import RequestForServicesPage from './components/RequestForServicesPage';
+import WebsiteFeedbackPage from './components/WebsiteFeedbackPage';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import { logAdminSignInEvent } from './lib/adminActivity';
 import {
@@ -74,6 +75,7 @@ const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
 const SUPPORT_PATHS = ['/support', '/get-support'] as const;
 const CONTACT_US_PATHS = ['/contact-us', '/contact'] as const;
 const REQUEST_SERVICES_PATHS = ['/request-services'] as const;
+const WEBSITE_FEEDBACK_PATHS = ['/website-feedback'] as const;
 const FEEL_IT_PATHS = ['/feel-it'] as const;
 const TEAM_PATHS = ['/team', '/our-team'] as const;
 const LOGIN_PATHS = ['/login', '/sign-in'] as const;
@@ -115,6 +117,10 @@ const getInitialPageFromPath = (): Page => {
   }
 
   if (REQUEST_SERVICES_PATHS.includes(pathname as (typeof REQUEST_SERVICES_PATHS)[number])) {
+    return 'contact-us';
+  }
+
+  if (WEBSITE_FEEDBACK_PATHS.includes(pathname as (typeof WEBSITE_FEEDBACK_PATHS)[number])) {
     return 'contact-us';
   }
 
@@ -669,6 +675,9 @@ function App() {
   const isRequestServicesPath = REQUEST_SERVICES_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof REQUEST_SERVICES_PATHS)[number]
   );
+  const isWebsiteFeedbackPath = WEBSITE_FEEDBACK_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof WEBSITE_FEEDBACK_PATHS)[number]
+  );
   const isFeelItPath = FEEL_IT_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof FEEL_IT_PATHS)[number]
   );
@@ -730,6 +739,9 @@ function App() {
   }
   if (isRequestServicesPath) {
     return <RequestForServicesPage />;
+  }
+  if (isWebsiteFeedbackPath) {
+    return <WebsiteFeedbackPage />;
   }
   if (isFeelItPath) {
     return <FeelItPage />;

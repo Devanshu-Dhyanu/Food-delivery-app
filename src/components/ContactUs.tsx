@@ -51,7 +51,7 @@ const secondaryLinks = [
   },
   {
     label: 'Website feedback',
-    href: `mailto:${CONTACT_EMAIL}?subject=Website%20Feedback`,
+    href: '/website-feedback',
   },
 ] as const;
 
@@ -87,7 +87,7 @@ const navDropdownItems: Record<(typeof topNavLinks)[number], readonly { label: s
     { label: 'Open Roles', href: '/careers' },
     { label: 'Apply Now', href: '/apply' },
     { label: 'Founder Relations', href: '/founder' },
-    { label: 'Website Feedback', href: 'mailto:info@vajracognixia.in?subject=Career%20Question' },
+    { label: 'Website Feedback', href: '/website-feedback' },
   ],
   Newsroom: [
     { label: 'Media Contacts', href: 'mailto:info@vajracognixia.in?subject=Media%20Request%20for%20The%20Vajra' },
@@ -111,6 +111,7 @@ const siteSearchItems = [
   { label: 'How It Works', description: 'Steps and process section', href: '/#how-to' },
   { label: 'Contact Section', description: 'Landing page contact block', href: '/#contact' },
   { label: 'Contact Us', description: 'Dedicated contact page', href: '/contact-us' },
+  { label: 'Website Feedback', description: 'Share your experience and suggestions', href: '/website-feedback' },
   { label: 'Founder', description: 'Founder profile and story', href: '/founder' },
   { label: 'Careers', description: 'Apply and role information', href: '/careers' },
   { label: 'Support', description: 'Support assistant and help page', href: '/support' },
