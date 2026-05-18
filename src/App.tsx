@@ -29,6 +29,7 @@ import DeliveryPartnerHub from './components/DeliveryPartnerHub';
 import PostLoginServiceHub from './components/PostLoginServiceHub';
 import StandaloneAuthPage from './components/StandaloneAuthPage';
 import FeelItPage from './components/FeelItPage';
+import RequestForServicesPage from './components/RequestForServicesPage';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import { logAdminSignInEvent } from './lib/adminActivity';
 import {
@@ -72,6 +73,7 @@ const REFUND_PATHS = ['/refund-cancellation', '/refund-cancellation-policy'] as 
 const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
 const SUPPORT_PATHS = ['/support', '/get-support'] as const;
 const CONTACT_US_PATHS = ['/contact-us', '/contact'] as const;
+const REQUEST_SERVICES_PATHS = ['/request-services'] as const;
 const FEEL_IT_PATHS = ['/feel-it'] as const;
 const TEAM_PATHS = ['/team', '/our-team'] as const;
 const LOGIN_PATHS = ['/login', '/sign-in'] as const;
@@ -109,6 +111,10 @@ const getInitialPageFromPath = (): Page => {
   }
 
   if (CONTACT_US_PATHS.includes(pathname as (typeof CONTACT_US_PATHS)[number])) {
+    return 'contact-us';
+  }
+
+  if (REQUEST_SERVICES_PATHS.includes(pathname as (typeof REQUEST_SERVICES_PATHS)[number])) {
     return 'contact-us';
   }
 
@@ -660,6 +666,9 @@ function App() {
   const isContactPath = CONTACT_US_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof CONTACT_US_PATHS)[number]
   );
+  const isRequestServicesPath = REQUEST_SERVICES_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof REQUEST_SERVICES_PATHS)[number]
+  );
   const isFeelItPath = FEEL_IT_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof FEEL_IT_PATHS)[number]
   );
@@ -718,6 +727,9 @@ function App() {
   }
   if (isContactPath) {
     return <ContactUs />;
+  }
+  if (isRequestServicesPath) {
+    return <RequestForServicesPage />;
   }
   if (isFeelItPath) {
     return <FeelItPage />;

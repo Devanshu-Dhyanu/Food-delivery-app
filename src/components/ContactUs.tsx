@@ -3,12 +3,12 @@ import {
   Building2,
   ChevronDown,
   Globe,
-  Newspaper,
   RadioTower,
   Search,
   Sparkles,
+  X,
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { applySeo } from '../lib/seo';
 import LandingFooter from './LandingFooter';
 
@@ -19,7 +19,7 @@ const primaryCards = [
   {
     title: 'Request for Services',
     body: 'Product questions, operational discussions, and platform interest.',
-    href: `mailto:${CONTACT_EMAIL}?subject=Service%20Request%20for%20The%20Vajra`,
+    href: '/request-services',
     icon: Building2,
   },
   {
@@ -64,7 +64,67 @@ const topNavLinks = [
   'Investors',
 ] as const;
 
+const navDropdownItems: Record<(typeof topNavLinks)[number], readonly { label: string; href: string }[]> = {
+  'What we do': [
+    { label: 'Why Vajra', href: '/#benefits' },
+    { label: 'Delivery Model', href: '/#specifications' },
+    { label: 'How It Works', href: '/#how-to' },
+    { label: 'Get Support', href: '/support' },
+  ],
+  'Who we are': [
+    { label: 'Founder', href: '/founder' },
+    { label: 'Our Story', href: '/#top' },
+    { label: 'Contact Us', href: '/contact-us' },
+    { label: 'Careers', href: '/careers' },
+  ],
+  Insights: [
+    { label: 'Vision', href: '/#specifications' },
+    { label: 'Campus Experience', href: '/#benefits' },
+    { label: 'Phone Showcase', href: '/#vajra-showcase-title' },
+    { label: 'Support Chat', href: '/support' },
+  ],
+  Careers: [
+    { label: 'Open Roles', href: '/careers' },
+    { label: 'Apply Now', href: '/apply' },
+    { label: 'Founder Relations', href: '/founder' },
+    { label: 'Website Feedback', href: 'mailto:info@vajracognixia.in?subject=Career%20Question' },
+  ],
+  Newsroom: [
+    { label: 'Media Contacts', href: 'mailto:info@vajracognixia.in?subject=Media%20Request%20for%20The%20Vajra' },
+    { label: 'Brand Partnerships', href: 'mailto:founder-thevajra@vajracognixia.in?subject=Brand%20Partnership' },
+    { label: 'Founder Story', href: '/founder' },
+    { label: 'Support Updates', href: '/support' },
+  ],
+  Investors: [
+    { label: 'Delivery Vision', href: '/#specifications' },
+    { label: 'Founder Overview', href: '/founder' },
+    { label: 'Contact Founder', href: 'mailto:founder-thevajra@vajracognixia.in?subject=Investor%20Enquiry' },
+    { label: 'Policy Pages', href: '/privacy' },
+  ],
+};
+
+const siteSearchItems = [
+  { label: 'Home', description: 'Landing page and main hero section', href: '/#top' },
+  { label: 'Why Vajra', description: 'Core benefits and comparison section', href: '/#benefits' },
+  { label: 'Delivery Model', description: 'How Vajra plans smart delivery', href: '/#specifications' },
+  { label: 'Phone Showcase', description: 'Edited phone design section', href: '/#vajra-showcase-title' },
+  { label: 'How It Works', description: 'Steps and process section', href: '/#how-to' },
+  { label: 'Contact Section', description: 'Landing page contact block', href: '/#contact' },
+  { label: 'Contact Us', description: 'Dedicated contact page', href: '/contact-us' },
+  { label: 'Founder', description: 'Founder profile and story', href: '/founder' },
+  { label: 'Careers', description: 'Apply and role information', href: '/careers' },
+  { label: 'Support', description: 'Support assistant and help page', href: '/support' },
+  { label: 'Privacy Policy', description: 'Privacy and data handling', href: '/privacy' },
+  { label: 'Refund & Cancellation', description: 'Refund rules and complaint process', href: '/refund-cancellation' },
+  { label: 'Shipping Policy', description: 'Delivery timelines and support', href: '/shipping-policy' },
+  { label: 'Terms & Conditions', description: 'Platform terms and rules', href: '/terms' },
+] as const;
+
 export default function ContactUs() {
+  const [activeDropdown, setActiveDropdown] = useState<(typeof topNavLinks)[number] | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
   useEffect(() => {
     applySeo({
       title: 'Contact | The Vajra',
@@ -73,6 +133,28 @@ export default function ContactUs() {
       canonical: 'https://www.vajracognixia.in/contact-us',
     });
   }, []);
+
+  useEffect(() => {
+    if (!searchOpen) {
+      return;
+    }
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSearchOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [searchOpen]);
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredSearchItems = normalizedQuery
+    ? siteSearchItems.filter((item) =>
+        `${item.label} ${item.description} ${item.href}`.toLowerCase().includes(normalizedQuery)
+      )
+    : siteSearchItems.slice(0, 8);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -125,10 +207,17 @@ export default function ContactUs() {
           padding-left: 72px;
         }
 
+        .vajra-contact-nav-item {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+        }
+
         .vajra-contact-nav-link {
           display: inline-flex;
           align-items: center;
           gap: 4px;
+          padding: 10px 0;
           color: rgba(255, 255, 255, 0.9);
           text-decoration: none;
           font-family: 'Manrope', sans-serif;
@@ -139,6 +228,47 @@ export default function ContactUs() {
         }
 
         .vajra-contact-nav-link:hover {
+          color: #ffffff;
+        }
+
+        .vajra-contact-mini-dropdown {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          min-width: 210px;
+          padding: 10px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(18, 18, 18, 0.96);
+          box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+          opacity: 0;
+          transform: translateY(8px);
+          pointer-events: none;
+          transition: opacity 180ms ease, transform 180ms ease;
+          z-index: 30;
+        }
+
+        .vajra-contact-mini-dropdown.is-open {
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events: auto;
+        }
+
+        .vajra-contact-mini-link {
+          display: block;
+          padding: 10px 12px;
+          border-radius: 10px;
+          color: rgba(255, 255, 255, 0.88);
+          text-decoration: none;
+          font-family: 'Manrope', sans-serif;
+          font-size: 14px;
+          font-weight: 600;
+          letter-spacing: -0.03em;
+          transition: background 160ms ease, color 160ms ease;
+        }
+
+        .vajra-contact-mini-link:hover {
+          background: rgba(255, 255, 255, 0.08);
           color: #ffffff;
         }
 
@@ -153,6 +283,10 @@ export default function ContactUs() {
           align-items: center;
           justify-content: center;
           color: #ffffff;
+          background: transparent;
+          border: 0;
+          padding: 0;
+          cursor: pointer;
         }
 
         .vajra-contact-global {
@@ -299,6 +433,108 @@ export default function ContactUs() {
           background: #f6f1e7;
         }
 
+        .vajra-search-overlay {
+          position: fixed;
+          inset: 0;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          padding: 48px 20px;
+          background: rgba(0, 0, 0, 0.76);
+          backdrop-filter: blur(10px);
+          z-index: 120;
+        }
+
+        .vajra-search-modal {
+          width: min(760px, 100%);
+          border-radius: 26px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: #0d0d0d;
+          box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+          overflow: hidden;
+        }
+
+        .vajra-search-topbar {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 22px 24px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .vajra-search-input {
+          flex: 1;
+          border: 0;
+          outline: 0;
+          background: transparent;
+          color: #ffffff;
+          font-family: 'Manrope', sans-serif;
+          font-size: 1.05rem;
+          font-weight: 600;
+          letter-spacing: -0.03em;
+        }
+
+        .vajra-search-input::placeholder {
+          color: rgba(255, 255, 255, 0.38);
+        }
+
+        .vajra-search-close {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 42px;
+          height: 42px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: transparent;
+          color: rgba(255, 255, 255, 0.84);
+          cursor: pointer;
+        }
+
+        .vajra-search-results {
+          padding: 12px;
+          max-height: min(70vh, 620px);
+          overflow-y: auto;
+        }
+
+        .vajra-search-result {
+          display: block;
+          padding: 16px 16px;
+          border-radius: 16px;
+          color: #ffffff;
+          text-decoration: none;
+          transition: background 160ms ease;
+        }
+
+        .vajra-search-result:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .vajra-search-result strong {
+          display: block;
+          font-family: 'Manrope', sans-serif;
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+        }
+
+        .vajra-search-result span {
+          display: block;
+          margin-top: 6px;
+          color: rgba(255, 255, 255, 0.58);
+          font-family: 'Manrope', sans-serif;
+          font-size: 0.93rem;
+          line-height: 1.6;
+        }
+
+        .vajra-search-empty {
+          padding: 28px 18px 34px;
+          color: rgba(255, 255, 255, 0.58);
+          font-family: 'Manrope', sans-serif;
+          font-size: 0.95rem;
+          line-height: 1.7;
+        }
+
         @media (max-width: 1180px) {
           .vajra-contact-grid,
           .vajra-contact-links,
@@ -352,6 +588,14 @@ export default function ContactUs() {
           .vajra-contact-link {
             min-height: 64px;
           }
+
+          .vajra-search-overlay {
+            padding: 18px 10px;
+          }
+
+          .vajra-search-topbar {
+            padding: 18px 16px;
+          }
         }
       `}</style>
 
@@ -362,17 +606,43 @@ export default function ContactUs() {
 
             <div className="vajra-contact-center" aria-label="Primary contact navigation">
               {topNavLinks.map((item) => (
-                <a key={item} href="/" className="vajra-contact-nav-link">
-                  <span>{item}</span>
-                  <ChevronDown size={14} strokeWidth={2.1} />
-                </a>
+                <div
+                  key={item}
+                  className="vajra-contact-nav-item"
+                  onMouseEnter={() => setActiveDropdown(item)}
+                  onMouseLeave={() => setActiveDropdown((current) => (current === item ? null : current))}
+                >
+                  <a href="/" className="vajra-contact-nav-link">
+                    <span>{item}</span>
+                    <ChevronDown size={14} strokeWidth={2.1} />
+                  </a>
+                  <div
+                    className={`vajra-contact-mini-dropdown${activeDropdown === item ? ' is-open' : ''}`}
+                    aria-hidden={activeDropdown !== item}
+                  >
+                    {navDropdownItems[item].map((dropdownItem) => (
+                      <a
+                        key={`${item}-${dropdownItem.label}`}
+                        href={dropdownItem.href}
+                        className="vajra-contact-mini-link"
+                      >
+                        {dropdownItem.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
 
             <div className="vajra-contact-right">
-              <span className="vajra-contact-search" aria-hidden="true">
+              <button
+                type="button"
+                className="vajra-contact-search"
+                aria-label="Search across The Vajra website"
+                onClick={() => setSearchOpen(true)}
+              >
                 <Search size={34} strokeWidth={1.8} />
-              </span>
+              </button>
               <span className="vajra-contact-global">
                 <Globe size={20} strokeWidth={1.9} />
                 <span>Global (En)</span>
@@ -418,6 +688,53 @@ export default function ContactUs() {
           </section>
         </div>
       </div>
+
+      {searchOpen ? (
+        <div className="vajra-search-overlay" onClick={() => setSearchOpen(false)}>
+          <div className="vajra-search-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="vajra-search-topbar">
+              <Search size={22} strokeWidth={2} />
+              <input
+                autoFocus
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Search pages, sections, careers, support..."
+                className="vajra-search-input"
+              />
+              <button
+                type="button"
+                className="vajra-search-close"
+                aria-label="Close search"
+                onClick={() => setSearchOpen(false)}
+              >
+                <X size={18} strokeWidth={2} />
+              </button>
+            </div>
+
+            <div className="vajra-search-results">
+              {filteredSearchItems.length > 0 ? (
+                filteredSearchItems.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="vajra-search-result"
+                    onClick={() => setSearchOpen(false)}
+                  >
+                    <strong>{item.label}</strong>
+                    <span>{item.description}</span>
+                  </a>
+                ))
+              ) : (
+                <div className="vajra-search-empty">
+                  Koi result nahi mila. `founder`, `support`, `careers`, `privacy`, ya `why vajra`
+                  jaisa kuch search karke dekho.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <LandingFooter />
     </div>
