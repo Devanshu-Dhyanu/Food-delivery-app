@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';

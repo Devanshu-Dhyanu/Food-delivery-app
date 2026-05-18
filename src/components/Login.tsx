@@ -1,39 +1,21 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   ArrowUpRight,
-  BatteryFull,
-  Bell,
   Briefcase,
   Check,
-  ChevronRight,
-  Clock3,
-  Globe2,
-  Home,
-  Instagram,
   Mail,
-  MessageCircle,
   Menu,
   MapPin,
   Package,
-  Search,
-  ShieldCheck,
-  SignalHigh,
   Sparkles,
-  Store,
-  Users,
-  UserCircle2,
-  Wifi,
   X,
   Zap,
-  type LucideIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { applyDefaultSeo } from '../lib/seo';
 import LandingFooter from './LandingFooter';
 
-const SUPPORT_EMAIL = 'support@vajracognixia.in';
-const COMPANY_WEBSITE_URL = 'https://www.vajracognixia.in/';
-const COMPANY_INSTAGRAM_URL = 'https://www.instagram.com/vajracognixia.in/';
+// Support and company constants are defined in shared footer components.
 const LAUNCH_DATE_ISO = '2026-08-15T10:00:00+05:30';
 const LAUNCH_DATE_LABEL = '15 August 2026, 10:00 AM IST';
 
@@ -65,19 +47,11 @@ const getLaunchCountdown = () => {
   };
 };
 
-const getMockPhoneTime = () =>
-  new Intl.DateTimeFormat('en-IN', {
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Asia/Kolkata',
-  }).format(new Date());
-
 const navLinks = [
   { label: 'Why Vajra', href: '#benefits' },
   { label: 'Delivery Model', href: '#specifications' },
   { label: 'Vision', href: '#how-to' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Contact', href: '/contact-us' },
   { label: 'Founder', href: '/founder' },
   { label: 'Careers', href: '/careers' },
 ] as const;
@@ -173,122 +147,6 @@ const deliverySignals = [
   'Future Logistics',
 ] as const;
 
-type ShowcaseSideCard = {
-  title: string;
-  subtitle: string;
-  icon?: LucideIcon;
-  image?: string;
-  tone?: 'soft' | 'accent';
-};
-
-const showcaseSideCards: ShowcaseSideCard[] = [
-  {
-    title: 'Track order live',
-    subtitle: 'Follow every dispatch step with clearer delivery visibility.',
-    icon: MapPin,
-    tone: 'soft',
-  },
-  {
-    title: 'Food delivery',
-    subtitle: 'Show restaurant menus, delivery tracking, and fast ordering in one clean flow.',
-    image: '/founder.png',
-  },
-  {
-    title: 'AI support',
-    subtitle: 'Ask about The Vajra, careers, founder details, or any general question.',
-    icon: ShieldCheck,
-    tone: 'accent',
-  },
-  {
-    title: 'Marketplace',
-    subtitle: 'Highlight product listings, buyer-seller discovery, and trusted commerce signals.',
-    icon: Briefcase,
-    tone: 'soft',
-  },
-  {
-    title: 'Everyday services',
-    subtitle: 'Present transport, support, and connected service access in one ecosystem.',
-    image: '/area/podium.png',
-  },
-  {
-    title: 'Launch access',
-    subtitle: 'Join early and stay close to a smarter platform for delivery, marketplace, and daily services.',
-    icon: Zap,
-    tone: 'accent',
-  },
-] as const;
-
-const showcasePhoneHighlights = [
-  'Food delivery, marketplace, and services in one app',
-  'Support assistant available now',
-  'Smart delivery and everyday convenience in one flow',
-] as const;
-
-const showcaseCommunityPosts = [
-  {
-    author: 'Aarav Jain',
-    avatar: '/founder.png',
-    title: 'Campus creators meetup',
-    time: '2m ago',
-    body: 'See founder notes, seller stories, and launch updates shared in one active community stream.',
-    metric: '184 joined',
-    replies: '26 replies',
-    image: '/area/podium.png',
-  },
-  {
-    author: 'Neha Verma',
-    avatar: '/founder.png',
-    title: 'Marketplace buzz',
-    time: '11m ago',
-    body: 'Trending listings, local demand, and quick buyer activity keep the platform feeling alive.',
-    metric: '92 posts',
-    replies: '14 comments',
-    image: '/area/vajra-hero-drone.jpg',
-  },
-] as const;
-
-const showcaseSupportItems = [
-  {
-    title: 'Track my order',
-    body: 'Live ETA, rider visibility, and issue updates in a single help thread.',
-    tone: 'primary',
-  },
-  {
-    title: 'Payments and refunds',
-    body: 'Quick answers for failed payments, refund status, and wallet credits.',
-    tone: 'soft',
-  },
-  {
-    title: 'Seller and service help',
-    body: 'Listing support, account review, and service onboarding from one place.',
-    tone: 'soft',
-  },
-] as const;
-
-const showcaseQuickActions = [
-  { label: 'Food', icon: Package },
-  { label: 'Sell', icon: Store },
-  { label: 'Ride', icon: MapPin },
-  { label: 'Help', icon: MessageCircle },
-] as const;
-
-const showcaseHomeStats = [
-  { label: 'Active orders', value: '24' },
-  { label: 'Sellers live', value: '108' },
-  { label: 'Avg ETA', value: '14m' },
-] as const;
-
-const showcaseOrderTimeline = [
-  { title: 'Order placed', body: 'Paneer wrap combo confirmed for Sector 14.' },
-  { title: 'Kitchen preparing', body: 'Estimated dispatch in 6 minutes.' },
-  { title: 'Rider assigned', body: 'Arjun is heading to pickup now.' },
-] as const;
-
-const showcaseSupportReplies = ['Track order', 'Refund update', 'Talk to support'] as const;
-const showcaseTopNavLinks = ['Search meals', 'Notifications', 'Profile', 'Saved places'] as const;
-
-type ShowcaseTab = 'home' | 'community' | 'support';
-
 function GoogleIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" style={{ flexShrink: 0 }} aria-hidden="true">
@@ -312,9 +170,9 @@ function GoogleIcon() {
   );
 }
 
+import AiOrbitAnimation from './AiOrbitAnimation';
+
 export default function Login() {
-  const [activeShowcaseTab, setActiveShowcaseTab] = useState<ShowcaseTab>('home');
-  const [showcaseTopPanelOpen, setShowcaseTopPanelOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -324,22 +182,9 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const [benefitsAudioEnabled, setBenefitsAudioEnabled] = useState(false);
   const [launchCountdown, setLaunchCountdown] = useState(getLaunchCountdown);
-  const [mockPhoneTime, setMockPhoneTime] = useState(getMockPhoneTime);
   const benefitsVideoRef = useRef<HTMLVideoElement | null>(null);
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
-  const showcaseScrollRef = useRef<HTMLDivElement | null>(null);
   const redirectTo = `${window.location.origin}/auth/callback`;
-
-  const handleShowcaseTabChange = (tab: ShowcaseTab) => {
-    setActiveShowcaseTab(tab);
-    setShowcaseTopPanelOpen(false);
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    showcaseScrollRef.current?.scrollTo({
-      top: 0,
-      behavior: prefersReducedMotion ? 'auto' : 'smooth',
-    });
-  };
 
   useEffect(() => {
     applyDefaultSeo();
@@ -352,19 +197,6 @@ export default function Login() {
 
     syncCountdown();
     const timer = window.setInterval(syncCountdown, 1000);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    const syncMockPhoneTime = () => {
-      setMockPhoneTime(getMockPhoneTime());
-    };
-
-    syncMockPhoneTime();
-    const timer = window.setInterval(syncMockPhoneTime, 60_000);
 
     return () => {
       window.clearInterval(timer);
@@ -1294,964 +1126,914 @@ export default function Login() {
 
         .area-showcase {
           position: relative;
-          padding: 76px 0 88px;
+          margin: 28px 0 0;
           overflow: hidden;
+          border-radius: 42px;
+          background: linear-gradient(180deg, #ff860f 0%, #ff7003 100%);
+          box-shadow: 0 34px 70px rgba(255, 115, 0, 0.22);
         }
 
         .area-showcase::before {
           content: '';
           position: absolute;
-          inset: 18% 12% auto;
-          height: 58%;
-          border-radius: 999px;
-          background: radial-gradient(circle, rgba(217, 226, 194, 0.68) 0%, rgba(248, 246, 240, 0) 72%);
+          inset: auto 0 0;
+          height: 140px;
+          background: linear-gradient(180deg, rgba(183, 76, 0, 0), rgba(183, 76, 0, 0.2));
           pointer-events: none;
-          filter: blur(18px);
+        }
+
+        .area-showcase-shell {
+          position: relative;
+          min-height: 920px;
+          padding: 34px 24px 0;
+        }
+
+        .area-showcase-toolbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .area-showcase-menu {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 52px;
+          height: 52px;
+          border: none;
+          border-radius: 18px;
+          background: transparent;
+          color: #141414;
+          cursor: pointer;
+        }
+
+        .area-showcase-app-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          min-height: 58px;
+          padding: 0 24px;
+          border-radius: 999px;
+          background: #080808;
+          color: #fff;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: -0.03em;
+          text-decoration: none;
+          box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+        }
+
+        .area-showcase-app-cta-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
         }
 
         .area-showcase-head {
-          max-width: 760px;
-          margin: 0 auto 42px;
+          max-width: 820px;
+          margin: 12px auto 0;
           text-align: center;
         }
 
         .area-showcase-head .area-title {
-          margin: 18px 0 18px;
-          font-size: clamp(3rem, 5vw, 4.2rem);
-          line-height: 0.98;
-        }
-
-        .area-showcase-head .area-copy {
-          max-width: 680px;
-          margin: 0 auto;
+          margin: 0;
+          color: #fff;
+          font-size: clamp(3.6rem, 7vw, 6rem);
+          font-weight: 900;
+          line-height: 0.96;
+          letter-spacing: -0.06em;
+          text-transform: uppercase;
         }
 
         .area-showcase-stage {
           position: relative;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-          align-items: center;
-          gap: 22px;
+          min-height: 720px;
+          margin-top: 30px;
         }
 
-        .area-showcase-column {
-          display: grid;
-          gap: 22px;
-        }
-
-        .area-showcase-column.is-left {
-          padding-right: 14px;
-        }
-
-        .area-showcase-column.is-right {
-          padding-left: 14px;
-        }
-
-        .area-showcase-card {
-          display: grid;
-          grid-template-columns: 92px minmax(0, 1fr);
-          align-items: stretch;
-          min-height: 168px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 32px;
-          background: rgba(255, 253, 248, 0.84);
-          box-shadow: 0 18px 44px rgba(17, 17, 17, 0.08);
-          overflow: hidden;
-          backdrop-filter: blur(12px);
-        }
-
-        .area-showcase-card-media {
+        .area-showcase-phone {
           position: relative;
-          min-height: 100%;
-          background: linear-gradient(135deg, #dce9b6, #f4ebd4);
-        }
-
-        .area-showcase-card-media img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .area-showcase-card-media.is-soft {
-          background: linear-gradient(135deg, rgba(220, 233, 182, 0.94), rgba(255, 253, 248, 0.82));
-        }
-
-        .area-showcase-card-media.is-accent {
-          background: linear-gradient(135deg, rgba(95, 118, 22, 0.94), rgba(129, 152, 51, 0.92));
-        }
-
-        .area-showcase-card-icon {
-          position: absolute;
-          inset: 50% auto auto 50%;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 54px;
-          height: 54px;
-          border-radius: 50%;
-          transform: translate(-50%, -50%);
-          background: rgba(255, 255, 255, 0.88);
-          color: #223006;
-          box-shadow: 0 14px 26px rgba(17, 17, 17, 0.12);
-        }
-
-        .area-showcase-card-copy {
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          gap: 10px;
-          padding: 20px 20px 22px;
-        }
-
-        .area-showcase-card-copy h3 {
-          font-size: 1.55rem;
-          line-height: 1.05;
-          letter-spacing: -0.05em;
-        }
-
-        .area-showcase-card-copy p {
-          color: var(--area-muted);
-          font-size: 14px;
-          line-height: 1.65;
-        }
-
-        .area-showcase-device-wrap {
-          position: relative;
-          display: flex;
-          justify-content: center;
-          padding: 10px 6px;
-        }
-
-        .area-showcase-device-glow {
-          position: absolute;
-          inset: 16% 8% 12%;
-          background: radial-gradient(circle, rgba(243, 239, 228, 0.96) 0%, rgba(243, 239, 228, 0.1) 72%, rgba(243, 239, 228, 0) 100%);
-          filter: blur(14px);
-          pointer-events: none;
-        }
-
-        .area-showcase-device {
-          position: relative;
-          width: min(100%, 356px);
-          padding: 12px;
-          border-radius: 42px;
-          background: linear-gradient(180deg, #1f1f1d 0%, #050505 100%);
+          z-index: 1;
+          width: min(100%, 492px);
+          margin: 0 auto;
+          padding: 10px;
+          border-radius: 58px;
+          background: linear-gradient(180deg, #3d3d3d 0%, #090909 42%, #202020 100%);
           box-shadow:
-            0 28px 60px rgba(17, 17, 17, 0.22),
-            inset 0 0 0 2px rgba(255, 255, 255, 0.08);
-          overflow: hidden;
+            0 24px 54px rgba(0, 0, 0, 0.28),
+            inset 0 0 0 2px rgba(255, 255, 255, 0.16);
         }
 
-        .area-showcase-device::before {
+        .area-showcase-phone::before {
           content: '';
           position: absolute;
-          inset: 10px 12px auto auto;
-          width: 38%;
-          height: 22%;
-          border-radius: 999px;
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0));
-          filter: blur(8px);
-          opacity: 0.6;
+          inset: 8px;
+          border-radius: 50px;
+          box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08);
           pointer-events: none;
         }
 
-        .area-showcase-device-screen {
+        .area-showcase-phone-screen {
           position: relative;
-          height: 660px;
-          padding: 20px 16px 14px;
-          border-radius: 34px;
+          min-height: 560px;
+          padding: 24px 22px 28px;
+          border-radius: 48px;
           background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 244, 236, 0.98)),
-            #ffffff;
+            radial-gradient(circle at 100% 100%, rgba(254, 224, 201, 0.82), transparent 34%),
+            linear-gradient(180deg, #f6e9d6 0%, #fff7ef 100%);
           overflow: hidden;
         }
 
-        .area-showcase-device-screen::before {
+        .area-showcase-phone-screen::before {
           content: '';
           position: absolute;
           inset: 0;
-          background:
-            radial-gradient(circle at 20% 12%, rgba(111, 78, 246, 0.09), transparent 28%),
-            radial-gradient(circle at 82% 18%, rgba(164, 198, 73, 0.14), transparent 20%);
+          opacity: 0.4;
+          background-image:
+            radial-gradient(circle at 22px 22px, rgba(240, 183, 126, 0.14) 2px, transparent 2.5px),
+            linear-gradient(45deg, transparent 48%, rgba(240, 183, 126, 0.12) 49%, rgba(240, 183, 126, 0.12) 51%, transparent 52%);
+          background-size: 36px 36px, 78px 78px;
           pointer-events: none;
         }
 
-        .area-showcase-device-body {
+        .area-showcase-phone-status {
           position: relative;
-          height: calc(100% - 92px);
-          padding-bottom: 66px;
-        }
-
-        .area-showcase-device-scroll {
-          height: 100%;
-          padding: 2px 2px 18px;
-          overflow-y: auto;
-          overscroll-behavior: contain;
-          scrollbar-width: none;
-        }
-
-        .area-showcase-device-scroll::-webkit-scrollbar {
-          display: none;
-        }
-
-        .area-showcase-device-panel {
-          display: grid;
-          gap: 14px;
-          animation: areaShowcasePanelIn 220ms ease;
-        }
-
-        .area-showcase-scroll-fade {
-          position: absolute;
-          left: 0;
-          right: 0;
-          height: 26px;
-          pointer-events: none;
-          z-index: 2;
-        }
-
-        .area-showcase-scroll-fade.is-top {
-          top: 0;
-          background: linear-gradient(180deg, rgba(249, 247, 241, 0.96), rgba(249, 247, 241, 0));
-        }
-
-        .area-showcase-scroll-fade.is-bottom {
-          bottom: 64px;
-          background: linear-gradient(0deg, rgba(249, 247, 241, 0.98), rgba(249, 247, 241, 0));
-        }
-
-        @keyframes areaShowcasePanelIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .area-showcase-notch {
-          position: absolute;
-          top: 12px;
-          left: 50%;
-          width: 124px;
-          height: 28px;
-          border-radius: 999px;
-          background: #050505;
-          transform: translateX(-50%);
-          box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
-        }
-
-        .area-showcase-status {
+          z-index: 1;
           display: flex;
           align-items: center;
           justify-content: space-between;
-          margin-top: 10px;
           margin-bottom: 14px;
-          color: #111111;
-          font-size: 15px;
+          padding: 0 6px;
+          color: #4e4b46;
+          font-size: 14px;
           font-weight: 700;
         }
 
-        .area-showcase-status-right {
+        .area-showcase-phone-status-icons {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 6px;
         }
 
-        .area-showcase-status-battery {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          padding: 4px 7px;
+        .area-showcase-phone-status-icons span {
+          display: block;
+          width: 8px;
+          height: 8px;
           border-radius: 999px;
-          background: rgba(17, 17, 17, 0.06);
-          font-size: 11px;
-          font-weight: 700;
+          background: #4e4b46;
+          opacity: 0.8;
         }
 
-        .area-showcase-appbar {
+        .area-showcase-phone-topbar {
+          position: relative;
+          z-index: 1;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 12px;
           margin-bottom: 12px;
+          padding: 0 8px 0 10px;
         }
 
-        .area-showcase-appbar-copy {
-          display: grid;
-          gap: 4px;
+        .area-showcase-phone-menu {
+          color: #686868;
         }
 
-        .area-showcase-wordmark {
-          color: #6f4ef6;
-          font-size: 1.72rem;
-          font-weight: 800;
-          letter-spacing: -0.06em;
-        }
-
-        .area-showcase-subtitle {
-          color: #77736d;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .area-showcase-appicons {
+        .area-showcase-jobs-pill {
           display: inline-flex;
           align-items: center;
           gap: 10px;
+          padding: 7px;
+          border-radius: 999px;
+          background: rgba(232, 222, 208, 0.92);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
         }
 
-        .area-showcase-appicon {
-          position: relative;
+        .area-showcase-jobs-pill-brand,
+        .area-showcase-jobs-pill-tab {
+          display: inline-flex;
+          align-items: center;
+          min-height: 54px;
+          padding: 0 22px;
+          border-radius: 999px;
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: -0.04em;
+        }
+
+        .area-showcase-jobs-pill-brand {
+          gap: 10px;
+          background: #fff;
+          color: #272727;
+        }
+
+        .area-showcase-jobs-pill-avatar {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          width: 36px;
-          height: 36px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 50%;
-          color: #252525;
-          background: rgba(255, 255, 255, 0.92);
-          box-shadow: 0 6px 14px rgba(17, 17, 17, 0.06);
-          cursor: pointer;
-          transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+          width: 44px;
+          height: 44px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, #ffb042 0%, #eb7f08 100%);
+          color: #fff;
+          font-size: 20px;
+          box-shadow: 0 10px 18px rgba(235, 127, 8, 0.28);
         }
 
-        .area-showcase-appicon:hover,
-        .area-showcase-appicon.is-active {
-          transform: translateY(-1px);
-          background: rgba(111, 78, 246, 0.08);
-          box-shadow: 0 10px 20px rgba(17, 17, 17, 0.08);
+        .area-showcase-jobs-pill-tab {
+          color: rgba(39, 39, 39, 0.7);
         }
 
-        .area-showcase-appicon-badge {
-          position: absolute;
-          top: 1px;
-          right: 1px;
-          width: 9px;
-          height: 9px;
-          border: 2px solid #ffffff;
-          border-radius: 50%;
-          background: #6f4ef6;
-        }
-
-        .area-showcase-top-panel {
-          margin-bottom: 12px;
-          padding: 14px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 22px;
-          background: rgba(255, 255, 255, 0.96);
-          box-shadow: 0 12px 28px rgba(17, 17, 17, 0.07);
-          animation: areaShowcasePanelIn 220ms ease;
-        }
-
-        .area-showcase-top-panel-head {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 12px;
-        }
-
-        .area-showcase-top-panel-head h3 {
-          color: #171717;
-          font-size: 0.96rem;
-          font-weight: 700;
-        }
-
-        .area-showcase-top-panel-head p {
-          color: #7d7971;
-          font-size: 12px;
-        }
-
-        .area-showcase-top-links {
+        .area-showcase-chat {
+          position: relative;
+          z-index: 1;
           display: grid;
-          gap: 8px;
-        }
-
-        .area-showcase-top-link {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
           gap: 10px;
-          padding: 10px 12px;
-          border-radius: 16px;
-          color: #34322d;
-          font-size: 13px;
-          font-weight: 600;
-          background: rgba(17, 17, 17, 0.04);
+          padding: 8px 6px 0;
         }
 
-        .area-showcase-feed-card {
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.92);
-          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
-          overflow: hidden;
+        .area-showcase-chat-bubble {
+          width: 100%;
+          max-width: 356px;
+          padding: 18px 18px 16px;
+          border-radius: 22px;
+          background: rgba(255, 255, 255, 0.9);
+          color: #2c2c2c;
+          font-size: 22px;
+          line-height: 1.12;
+          letter-spacing: -0.05em;
+          box-shadow: 0 3px 0 rgba(0, 0, 0, 0.08);
         }
 
-        .area-showcase-feed-card + .area-showcase-feed-card {
-          margin-top: 16px;
+        .area-showcase-chat-bubble.is-short {
+          max-width: 322px;
+          padding-top: 14px;
+          padding-bottom: 14px;
         }
 
-        .area-showcase-feed-head {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 18px 18px 10px;
+        .area-showcase-couch-wrap {
+          position: relative;
+          z-index: 3;
+          width: min(100%, 860px);
+          margin: -94px auto 0;
         }
 
-        .area-showcase-avatar {
+        .area-showcase-couch {
+          position: absolute;
+          inset: 0 0 18px;
+          height: 282px;
+          border-radius: 28px 28px 18px 18px;
+          background:
+            linear-gradient(180deg, rgba(164, 90, 39, 0.28), rgba(109, 48, 15, 0.08)),
+            linear-gradient(180deg, #9a5728 0%, #6a3418 100%);
+          box-shadow:
+            0 22px 40px rgba(93, 39, 7, 0.34),
+            inset 0 2px 10px rgba(255, 255, 255, 0.18);
+        }
+
+        .area-showcase-couch::before,
+        .area-showcase-couch::after {
+          content: '';
+          position: absolute;
+          top: 62px;
+          width: 18px;
+          height: 126px;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #86471f 0%, #5a2811 100%);
+        }
+
+        .area-showcase-couch::before {
+          left: -8px;
+        }
+
+        .area-showcase-couch::after {
+          right: -8px;
+        }
+
+        .area-showcase-couch-seat {
+          position: relative;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          height: 100%;
+          gap: 2px;
+          padding: 0 14px 14px;
+        }
+
+        .area-showcase-couch-cushion {
+          position: relative;
+          margin-top: 14px;
+          border-radius: 20px;
+          background:
+            linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 26%),
+            linear-gradient(180deg, #975427 0%, #6b3618 100%);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        }
+
+        .area-showcase-couch-cushion::before {
+          content: '';
+          position: relative;
+          display: block;
+          width: 100%;
+          height: 100%;
+          border-radius: inherit;
+          box-shadow:
+            inset 0 -18px 24px rgba(52, 21, 9, 0.22),
+            inset 0 14px 22px rgba(255, 255, 255, 0.05);
+        }
+
+        .area-showcase-laptop {
+          position: absolute;
+          left: 46%;
+          bottom: 126px;
+          width: 124px;
+          height: 84px;
+          border-radius: 10px 10px 8px 8px;
+          transform: translateX(-50%);
+          background: linear-gradient(180deg, #c8c0b8 0%, #8e877f 100%);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+        }
+
+        .area-showcase-laptop::before {
+          content: '';
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 14px;
+          height: 14px;
+          border-radius: 999px;
+          transform: translate(-50%, -50%);
+          background: rgba(255, 255, 255, 0.72);
+        }
+
+        .area-showcase-laptop::after {
+          content: '';
+          position: absolute;
+          left: -22px;
+          right: -18px;
+          bottom: -8px;
+          height: 12px;
+          border-radius: 10px;
+          background: linear-gradient(180deg, #7c766f 0%, #5c5752 100%);
+        }
+
+        .area-showcase-papers {
+          position: absolute;
+          left: 25%;
+          bottom: 110px;
+          width: 92px;
+          height: 18px;
+          transform: rotate(-8deg);
+          border-radius: 4px;
+          background: #fff7ef;
+          box-shadow:
+            0 10px 14px rgba(0, 0, 0, 0.08),
+            12px 8px 0 0 rgba(239, 236, 230, 0.92);
+        }
+
+        .area-showcase-pillow {
+          position: absolute;
+          right: 84px;
+          bottom: 98px;
+          width: 142px;
+          height: 122px;
+          border-radius: 38px;
+          background: radial-gradient(circle at 30% 30%, #8cff46 0%, #34d110 72%);
+          box-shadow:
+            inset 0 10px 18px rgba(255, 255, 255, 0.22),
+            0 18px 24px rgba(72, 145, 27, 0.24);
+        }
+
+        .area-showcase-mascot {
+          position: absolute;
+          right: 126px;
+          bottom: 18px;
+          width: 280px;
+          height: 402px;
+        }
+
+        .area-showcase-mascot-head {
+          position: absolute;
+          left: 84px;
+          top: 0;
+          width: 142px;
+          height: 132px;
+          border-radius: 46% 46% 42% 42%;
+          background: linear-gradient(180deg, #ffb23f 0%, #ea8600 100%);
+          box-shadow: inset 0 -10px 16px rgba(161, 77, 0, 0.18);
+        }
+
+        .area-showcase-mascot-head::before,
+        .area-showcase-mascot-head::after {
+          content: '';
+          position: absolute;
+          top: -18px;
           width: 42px;
           height: 42px;
-          border-radius: 50%;
-          object-fit: cover;
+          border-radius: 10px 10px 4px 4px;
+          background: linear-gradient(180deg, #ffab2b 0%, #e67c00 100%);
+          transform: rotate(45deg);
         }
 
-        .area-showcase-feed-name {
-          color: #111111;
-          font-size: 1rem;
-          font-weight: 700;
+        .area-showcase-mascot-head::before {
+          left: 12px;
         }
 
-        .area-showcase-feed-time {
-          color: #8d8d88;
-          font-size: 12px;
+        .area-showcase-mascot-head::after {
+          right: 12px;
         }
 
-        .area-showcase-feed-text {
-          padding: 0 18px 14px;
-          color: #373731;
-          font-size: 13px;
-          line-height: 1.6;
+        .area-showcase-mascot-face {
+          position: absolute;
+          inset: 0;
         }
 
-        .area-showcase-feed-image {
-          display: block;
-          width: calc(100% - 28px);
-          height: 206px;
-          margin: 0 auto;
+        .area-showcase-mascot-brow {
+          position: absolute;
+          top: 42px;
+          width: 34px;
+          height: 8px;
+          border-radius: 999px;
+          background: #5a2709;
+        }
+
+        .area-showcase-mascot-brow.is-left {
+          left: 30px;
+          transform: rotate(-14deg);
+        }
+
+        .area-showcase-mascot-brow.is-right {
+          right: 30px;
+          transform: rotate(14deg);
+        }
+
+        .area-showcase-mascot-eye {
+          position: absolute;
+          top: 62px;
+          width: 18px;
+          height: 12px;
+          border-radius: 999px;
+          background: #201814;
+        }
+
+        .area-showcase-mascot-eye.is-left {
+          left: 42px;
+        }
+
+        .area-showcase-mascot-eye.is-right {
+          right: 42px;
+        }
+
+        .area-showcase-mascot-snout {
+          position: absolute;
+          left: 50%;
+          bottom: 18px;
+          width: 76px;
+          height: 54px;
+          border-radius: 999px;
+          transform: translateX(-50%);
+          background: linear-gradient(180deg, #f8d0a6 0%, #efbf8a 100%);
+        }
+
+        .area-showcase-mascot-nose {
+          position: absolute;
+          left: 50%;
+          top: 12px;
+          width: 22px;
+          height: 16px;
+          border-radius: 10px;
+          transform: translateX(-50%);
+          background: #1d1715;
+        }
+
+        .area-showcase-mascot-mouth {
+          position: absolute;
+          left: 50%;
+          top: 30px;
+          width: 30px;
+          height: 14px;
+          border-bottom: 3px solid #1d1715;
+          border-radius: 0 0 999px 999px;
+          transform: translateX(-50%);
+        }
+
+        .area-showcase-mascot-body {
+          position: absolute;
+          left: 58px;
+          top: 94px;
+          width: 190px;
+          height: 238px;
+        }
+
+        .area-showcase-mascot-shirt {
+          position: absolute;
+          left: 58px;
+          top: 42px;
+          width: 88px;
+          height: 126px;
+          border-radius: 28px 28px 22px 22px;
+          background: linear-gradient(180deg, #f8f0dd 0%, #dcccb0 100%);
+        }
+
+        .area-showcase-mascot-vest {
+          position: absolute;
+          top: 18px;
+          width: 64px;
+          height: 138px;
+          border-radius: 24px;
+          background: linear-gradient(180deg, #4e412f 0%, #2a241d 100%);
+        }
+
+        .area-showcase-mascot-vest.is-left {
+          left: 36px;
+          transform: rotate(8deg);
+        }
+
+        .area-showcase-mascot-vest.is-right {
+          right: 12px;
+          transform: rotate(-8deg);
+        }
+
+        .area-showcase-mascot-arm {
+          position: absolute;
+          top: 100px;
+          width: 34px;
+          height: 102px;
           border-radius: 20px;
-          object-fit: cover;
+          background: linear-gradient(180deg, #f9b03f 0%, #dc8400 100%);
         }
 
-        .area-showcase-feed-actions {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 14px 18px 18px;
+        .area-showcase-mascot-arm.is-left {
+          left: 18px;
+          transform: rotate(16deg);
         }
 
-        .area-showcase-pill {
+        .area-showcase-mascot-arm.is-right {
+          right: -2px;
+          height: 84px;
+          transform: rotate(4deg);
+        }
+
+        .area-showcase-mascot-leg {
+          position: absolute;
+          bottom: 16px;
+          width: 54px;
+          height: 118px;
+          border-radius: 26px;
+          background: linear-gradient(180deg, #35312a 0%, #191714 100%);
+        }
+
+        .area-showcase-mascot-leg.is-left {
+          left: 58px;
+          transform: rotate(16deg);
+        }
+
+        .area-showcase-mascot-leg.is-right {
+          right: 34px;
+          transform: rotate(-6deg);
+        }
+
+        .area-showcase-mascot-shoe {
+          position: absolute;
+          bottom: -10px;
+          width: 56px;
+          height: 30px;
+          border-radius: 18px 18px 12px 12px;
+          background: linear-gradient(180deg, #ff9228 0%, #e16e00 100%);
+          box-shadow: inset 0 -6px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .area-showcase-mascot-shoe.is-left {
+          left: 44px;
+          transform: rotate(10deg);
+        }
+
+        .area-showcase-mascot-shoe.is-right {
+          right: 18px;
+          transform: rotate(-4deg);
+        }
+
+        .area-showcase-badge {
+          position: absolute;
+          z-index: 4;
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          height: 36px;
-          padding: 0 14px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
+          gap: 12px;
+          min-height: 56px;
+          padding: 0 22px;
           border-radius: 999px;
-          color: #3c3c38;
-          font-size: 14px;
-          font-weight: 600;
-          background: rgba(255, 255, 255, 0.94);
-        }
-
-        .area-showcase-quick-actions {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-        }
-
-        .area-showcase-quick-action {
-          display: grid;
-          justify-items: center;
-          gap: 8px;
-          padding: 12px 8px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 20px;
-          color: #36352f;
-          font-size: 12px;
+          color: #fff;
+          font-size: 16px;
           font-weight: 700;
-          background: rgba(255, 255, 255, 0.82);
-          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.04);
-          transition: transform 180ms ease, box-shadow 180ms ease;
+          letter-spacing: -0.02em;
+          box-shadow: 0 18px 30px rgba(95, 30, 0, 0.16);
         }
 
-        .area-showcase-quick-action:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 14px 28px rgba(17, 17, 17, 0.08);
-        }
-
-        .area-showcase-quick-icon {
+        .area-showcase-badge span {
           display: inline-flex;
           align-items: center;
           justify-content: center;
           width: 34px;
           height: 34px;
-          border-radius: 14px;
-          color: #6f4ef6;
-          background: rgba(111, 78, 246, 0.08);
-        }
-
-        .area-showcase-order-card {
-          padding: 18px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 24px;
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 240, 233, 0.94));
-          box-shadow: 0 12px 28px rgba(17, 17, 17, 0.06);
-        }
-
-        .area-showcase-order-head {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 12px;
-          margin-bottom: 14px;
-        }
-
-        .area-showcase-order-eyebrow {
-          color: #77736d;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-        }
-
-        .area-showcase-order-head h3 {
-          margin-top: 6px;
-          color: #171717;
-          font-size: 1.05rem;
-          font-weight: 700;
-        }
-
-        .area-showcase-order-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 10px;
           border-radius: 999px;
-          color: #6f4ef6;
-          font-size: 12px;
-          font-weight: 700;
-          background: rgba(111, 78, 246, 0.1);
+          background: rgba(255, 215, 94, 0.95);
+          color: #2d2300;
+          font-size: 18px;
+          box-shadow: 0 8px 14px rgba(255, 184, 0, 0.18);
         }
 
-        .area-showcase-stats {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 16px;
+        .area-showcase-badge.is-left-top {
+          left: 14%;
+          bottom: 214px;
+          transform: rotate(-6deg);
+          background: linear-gradient(90deg, #6d7dff 0%, #7f8eff 100%);
         }
 
-        .area-showcase-stat {
-          padding: 12px 10px;
-          border-radius: 18px;
-          background: rgba(255, 255, 255, 0.82);
+        .area-showcase-badge.is-left-bottom {
+          left: 18%;
+          bottom: 100px;
+          transform: rotate(-8deg);
+          background: linear-gradient(90deg, #d994f6 0%, #bb8fe9 100%);
         }
 
-        .area-showcase-stat-value {
-          color: #111111;
-          font-size: 1rem;
-          font-weight: 800;
+        .area-showcase-badge.is-right {
+          right: 14%;
+          bottom: 204px;
+          transform: rotate(6deg);
+          background: linear-gradient(90deg, #7c88ff 0%, #8a93ff 100%);
         }
 
-        .area-showcase-stat-label {
-          margin-top: 4px;
-          color: #7b7771;
-          font-size: 11px;
-          line-height: 1.35;
-        }
-
-        .area-showcase-order-timeline {
-          display: grid;
-          gap: 12px;
-        }
-
-        .area-showcase-order-step {
-          display: grid;
-          grid-template-columns: 22px minmax(0, 1fr);
-          gap: 10px;
-          align-items: start;
-        }
-
-        .area-showcase-order-step-dot {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          color: #6f4ef6;
-          background: rgba(111, 78, 246, 0.1);
-        }
-
-        .area-showcase-order-step-dot::after {
-          content: '';
+        .area-showcase-floor {
           position: absolute;
-          top: 22px;
-          left: 50%;
-          width: 1px;
-          height: calc(100% + 14px);
-          background: rgba(111, 78, 246, 0.18);
-          transform: translateX(-50%);
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 44px;
+          background: rgba(233, 105, 0, 0.42);
+          filter: blur(10px);
         }
 
-        .area-showcase-order-step:last-child .area-showcase-order-step-dot::after {
+        .area-showcase-frame {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+        }
+
+        .area-showcase-image {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
+
+        .area-showcase-image-mobile {
           display: none;
         }
 
-        .area-showcase-order-step-title {
-          color: #161616;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .area-showcase-order-step-body {
-          margin-top: 3px;
-          color: #6f6b64;
-          font-size: 12px;
-          line-height: 1.5;
-        }
-
-        .area-showcase-highlight {
-          position: relative;
-          margin-top: 0;
-          padding: 16px 16px 18px;
-          border-radius: 24px;
-          background: linear-gradient(135deg, #6f4ef6, #8b6fff);
-          color: #ffffff;
-          overflow: hidden;
-        }
-
-        .area-showcase-highlight::after {
-          content: '';
-          position: absolute;
-          right: -18px;
-          bottom: -18px;
-          width: 108px;
-          height: 108px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.12);
-        }
-
-        .area-showcase-highlight-label {
-          display: inline-flex;
-          margin-bottom: 12px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          opacity: 0.84;
-        }
-
-        .area-showcase-highlight h3 {
-          max-width: 14ch;
-          margin-bottom: 14px;
-          font-size: 1.9rem;
-          line-height: 0.98;
-          letter-spacing: -0.05em;
-        }
-
-        .area-showcase-highlight-list {
-          display: grid;
-          gap: 10px;
-          position: relative;
-          z-index: 1;
-        }
-
-        .area-showcase-highlight-item {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          font-size: 13px;
-          line-height: 1.45;
-        }
-
-        .area-showcase-highlight-item::before {
-          content: '';
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background: rgba(255, 255, 255, 0.88);
-        }
-
-        .area-showcase-bottom-nav {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 12px;
-          margin-top: 14px;
-          padding: 14px 8px 2px;
-        }
-
-        .area-showcase-bottom-nav button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-          height: 38px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 999px;
-          color: #8d8d88;
-          font-size: 12px;
-          font-weight: 600;
-          text-align: center;
-          background: rgba(255, 255, 255, 0.9);
-          transition: all 180ms ease;
-          cursor: pointer;
-        }
-
-        .area-showcase-bottom-nav button:hover {
-          transform: translateY(-1px);
-        }
-
-        .area-showcase-bottom-nav button.is-active {
-          color: #6f4ef6;
-          border-color: rgba(111, 78, 246, 0.18);
-          background: rgba(111, 78, 246, 0.08);
-          box-shadow: inset 0 0 0 1px rgba(111, 78, 246, 0.08);
-        }
-
-        .area-showcase-panel-stack {
-          display: grid;
-          gap: 14px;
-        }
-
-        .area-showcase-community-card {
-          overflow: hidden;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.92);
-          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
-        }
-
-        .area-showcase-community-thumb {
-          width: 100%;
-          height: 118px;
-          object-fit: cover;
-        }
-
-        .area-showcase-community-meta {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 16px 18px 10px;
-        }
-
-        .area-showcase-community-author {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .area-showcase-community-author img {
-          width: 38px;
-          height: 38px;
-          border-radius: 50%;
-          object-fit: cover;
-        }
-
-        .area-showcase-community-title {
-          color: #151515;
-          font-size: 0.94rem;
-          font-weight: 700;
-        }
-
-        .area-showcase-community-time {
-          color: #8d8d88;
-          font-size: 12px;
-        }
-
-        .area-showcase-community-body {
-          padding: 0 18px;
-          color: #45453f;
-          font-size: 13px;
-          line-height: 1.6;
-        }
-
-        .area-showcase-community-stats {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          padding: 14px 18px 18px;
-        }
-
-        .area-showcase-community-metric {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 8px 12px;
-          border-radius: 999px;
-          color: #4b4741;
-          font-size: 12px;
-          font-weight: 700;
-          background: rgba(17, 17, 17, 0.05);
-        }
-
-        .area-showcase-community-metric.is-accent {
-          color: #6f4ef6;
-          background: rgba(111, 78, 246, 0.09);
-        }
-
-        .area-showcase-support-card {
-          padding: 16px 18px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.94);
-          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
-        }
-
-        .area-showcase-support-card.is-primary {
-          color: #ffffff;
-          border-color: transparent;
-          background: linear-gradient(135deg, #6f4ef6, #8b6fff);
-        }
-
-        .area-showcase-support-label {
-          display: inline-flex;
-          margin-bottom: 10px;
-          font-size: 11px;
-          font-weight: 700;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          opacity: 0.78;
-        }
-
-        .area-showcase-support-card h3 {
-          margin-bottom: 10px;
-          font-size: 1rem;
-          font-weight: 700;
-        }
-
-        .area-showcase-support-card p {
-          font-size: 13px;
-          line-height: 1.6;
-          color: inherit;
-        }
-
-        .area-showcase-support-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          padding: 16px 18px;
-          border: 1px solid rgba(17, 17, 17, 0.08);
-          border-radius: 24px;
-          background: rgba(255, 255, 255, 0.94);
-          box-shadow: 0 10px 24px rgba(17, 17, 17, 0.05);
-        }
-
-        .area-showcase-support-presence {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .area-showcase-support-presence-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: #6dbd45;
-          box-shadow: 0 0 0 6px rgba(109, 189, 69, 0.12);
-        }
-
-        .area-showcase-support-presence h3 {
-          color: #181818;
-          font-size: 0.98rem;
-          font-weight: 700;
-        }
-
-        .area-showcase-support-presence p {
-          color: #7c786f;
-          font-size: 12px;
-        }
-
-        .area-showcase-support-chat {
-          display: grid;
-          gap: 10px;
-        }
-
-        .area-showcase-chat-bubble {
-          max-width: 86%;
-          padding: 12px 14px;
-          border-radius: 18px;
-          font-size: 13px;
-          line-height: 1.55;
-          box-shadow: 0 8px 20px rgba(17, 17, 17, 0.05);
-        }
-
-        .area-showcase-chat-bubble.is-user {
-          margin-left: auto;
-          border-bottom-right-radius: 6px;
-          color: #ffffff;
-          background: linear-gradient(135deg, #6f4ef6, #8b6fff);
-        }
-
-        .area-showcase-chat-bubble.is-assistant {
-          border-bottom-left-radius: 6px;
-          color: #2f2e29;
-          background: rgba(255, 255, 255, 0.98);
-        }
-
-        .area-showcase-support-replies {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .area-showcase-support-reply {
-          display: inline-flex;
-          align-items: center;
-          height: 34px;
-          padding: 0 12px;
-          border: 1px solid rgba(111, 78, 246, 0.16);
-          border-radius: 999px;
-          color: #6f4ef6;
-          font-size: 12px;
-          font-weight: 700;
-          background: rgba(111, 78, 246, 0.06);
-        }
-
-        .area-showcase-support-typing {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          color: #7b776f;
-          font-size: 12px;
-          font-weight: 600;
-        }
-
-        .area-showcase-support-typing span {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #6f4ef6;
-          animation: areaTypingPulse 1.2s infinite ease-in-out;
-        }
-
-        .area-showcase-support-typing span:nth-child(2) {
-          animation-delay: 120ms;
-        }
-
-        .area-showcase-support-typing span:nth-child(3) {
-          animation-delay: 240ms;
-        }
-
-        @keyframes areaTypingPulse {
-          0%,
-          80%,
-          100% {
-            opacity: 0.35;
-            transform: scale(0.9);
+        @media (max-width: 1100px) {
+          .area-showcase-shell {
+            min-height: 980px;
           }
 
-          40% {
-            opacity: 1;
-            transform: scale(1);
+          .area-showcase-badge.is-left-top {
+            left: 4%;
+          }
+
+          .area-showcase-badge.is-left-bottom {
+            left: 8%;
+          }
+
+          .area-showcase-badge.is-right {
+            right: 4%;
+          }
+        }
+
+        @media (max-width: 860px) {
+          .area-showcase {
+            border-radius: 30px;
+          }
+
+          .area-showcase-shell {
+            min-height: auto;
+            padding: 20px 16px 24px;
+          }
+
+          .area-showcase-toolbar {
+            align-items: flex-start;
+          }
+
+          .area-showcase-app-cta {
+            min-height: 50px;
+            padding: 0 18px;
+            font-size: 16px;
+          }
+
+          .area-showcase-stage {
+            min-height: auto;
+            padding-bottom: 280px;
+          }
+
+          .area-showcase-phone {
+            width: min(100%, 420px);
+          }
+
+          .area-showcase-phone-screen {
+            min-height: 490px;
+          }
+
+          .area-showcase-chat-bubble {
+            font-size: 18px;
+          }
+
+          .area-showcase-couch-wrap {
+            width: min(100%, 620px);
+            margin-top: -66px;
+          }
+
+          .area-showcase-couch {
+            height: 214px;
+          }
+
+          .area-showcase-mascot {
+            right: 66px;
+            bottom: -4px;
+            transform: scale(0.78);
+            transform-origin: bottom right;
+          }
+
+          .area-showcase-pillow {
+            right: 34px;
+            bottom: 68px;
+            width: 108px;
+            height: 94px;
+          }
+
+          .area-showcase-laptop {
+            width: 96px;
+            height: 68px;
+            bottom: 90px;
+          }
+
+          .area-showcase-papers {
+            left: 22%;
+            bottom: 82px;
+          }
+
+          .area-showcase-badge {
+            min-height: 50px;
+            padding: 0 18px;
+            font-size: 14px;
+          }
+
+          .area-showcase-badge.is-left-top {
+            left: 0;
+            bottom: 194px;
+          }
+
+          .area-showcase-badge.is-left-bottom {
+            left: 8%;
+            bottom: 112px;
+          }
+
+          .area-showcase-badge.is-right {
+            right: 0;
+            bottom: 188px;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .area-showcase-head .area-title {
+            font-size: 3rem;
+          }
+
+          .area-showcase-toolbar {
+            gap: 12px;
+          }
+
+          .area-showcase-menu {
+            width: 44px;
+            height: 44px;
+          }
+
+          .area-showcase-app-cta {
+            gap: 10px;
+            padding: 0 14px;
+            font-size: 14px;
+          }
+
+          .area-showcase-app-cta-icon {
+            width: 24px;
+            height: 24px;
+          }
+
+          .area-showcase-stage {
+            margin-top: 18px;
+            padding-bottom: 286px;
+          }
+
+          .area-showcase-phone {
+            width: 100%;
+            padding: 8px;
+            border-radius: 34px;
+          }
+
+          .area-showcase-phone-screen {
+            min-height: 422px;
+            padding: 18px 14px 20px;
+            border-radius: 28px;
+          }
+
+          .area-showcase-jobs-pill {
+            gap: 6px;
+            padding: 5px;
+          }
+
+          .area-showcase-jobs-pill-brand,
+          .area-showcase-jobs-pill-tab {
+            min-height: 44px;
+            padding: 0 14px;
+            font-size: 17px;
+          }
+
+          .area-showcase-jobs-pill-avatar {
+            width: 34px;
+            height: 34px;
+            font-size: 16px;
+          }
+
+          .area-showcase-chat-bubble {
+            max-width: 280px;
+            padding: 14px;
+            font-size: 16px;
+          }
+
+          .area-showcase-couch-wrap {
+            margin-top: -40px;
+          }
+
+          .area-showcase-couch {
+            height: 160px;
+            border-radius: 22px 22px 16px 16px;
+          }
+
+          .area-showcase-laptop {
+            left: 44%;
+            bottom: 66px;
+            width: 72px;
+            height: 52px;
+          }
+
+          .area-showcase-papers {
+            left: 18%;
+            bottom: 62px;
+            width: 60px;
+            height: 12px;
+          }
+
+          .area-showcase-pillow {
+            right: 14px;
+            bottom: 44px;
+            width: 76px;
+            height: 68px;
+            border-radius: 24px;
+          }
+
+          .area-showcase-mascot {
+            right: 14px;
+            bottom: -8px;
+            width: 220px;
+            transform: scale(0.54);
+          }
+
+          .area-showcase-badge {
+            min-height: 40px;
+            padding: 0 12px;
+            gap: 8px;
+            font-size: 11px;
+          }
+
+          .area-showcase-badge span {
+            width: 26px;
+            height: 26px;
+            font-size: 14px;
+          }
+
+          .area-showcase-badge.is-left-top {
+            left: -4px;
+            bottom: 160px;
+          }
+
+          .area-showcase-badge.is-left-bottom {
+            left: 8%;
+            bottom: 100px;
+          }
+
+          .area-showcase-badge.is-right {
+            right: -8px;
+            bottom: 160px;
           }
         }
 
@@ -2654,21 +2436,14 @@ export default function Login() {
           }
 
           .area-showcase {
-            padding-top: 62px;
-            padding-bottom: 72px;
+            margin-top: 18px;
+            padding: 0;
+            border-radius: 28px;
           }
 
-          .area-showcase-card {
-            grid-template-columns: 82px minmax(0, 1fr);
-            min-height: 148px;
-          }
-
-          .area-showcase-device {
-            width: min(100%, 340px);
-          }
-
-          .area-showcase-device-screen {
-            height: 620px;
+          .area-showcase-frame {
+            border-radius: inherit;
+            overflow: hidden;
           }
 
           .area-howto-head {
@@ -2806,108 +2581,54 @@ export default function Login() {
             font-size: 14px;
           }
 
+          .area-table-wrap {
+            overflow: visible;
+            padding-bottom: 0;
+          }
+
           .area-table {
-            min-width: 760px;
-          }
-
-          .area-showcase-head {
-            margin-bottom: 30px;
-          }
-
-          .area-showcase-stage {
-            gap: 18px;
-          }
-
-          .area-showcase-column {
-            gap: 18px;
-          }
-
-          .area-showcase-card {
+            min-width: 0;
             grid-template-columns: 1fr;
-            min-height: auto;
+            gap: 14px;
           }
 
-          .area-showcase-card-media {
-            min-height: 124px;
+          .area-table-column {
+            border: 1px solid var(--area-line);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.82);
+            overflow: hidden;
           }
 
-          .area-showcase-card-copy {
-            padding: 18px 18px 20px;
+          .area-table-column:last-child {
+            border-right: 1px solid var(--area-line);
           }
 
-          .area-showcase-card-copy h3 {
-            font-size: 1.4rem;
-          }
-
-          .area-showcase-device {
-            width: min(100%, 296px);
-            border-radius: 34px;
-            padding: 10px;
-          }
-
-          .area-showcase-device-screen {
-            height: 560px;
-            padding: 18px 14px 12px;
-            border-radius: 28px;
-          }
-
-          .area-showcase-notch {
-            width: 104px;
-            height: 24px;
-          }
-
-          .area-showcase-wordmark {
-            font-size: 1.55rem;
-          }
-
-          .area-showcase-subtitle {
-            font-size: 11px;
-          }
-
-          .area-showcase-appicons {
-            gap: 8px;
-          }
-
-          .area-showcase-appicon {
-            width: 32px;
-            height: 32px;
-          }
-
-          .area-showcase-quick-actions,
-          .area-showcase-stats {
-            gap: 8px;
-          }
-
-          .area-showcase-quick-action,
-          .area-showcase-stat {
-            padding-left: 8px;
-            padding-right: 8px;
-          }
-
-          .area-showcase-feed-image {
-            width: calc(100% - 20px);
-            height: 190px;
-            border-radius: 20px;
-          }
-
-          .area-showcase-highlight h3 {
-            font-size: 1.55rem;
-          }
-
-          .area-showcase-community-stats,
-          .area-showcase-support-replies {
-            flex-wrap: wrap;
+          .area-table-column.highlighted {
+            border-color: rgba(17, 17, 17, 0.08);
           }
 
           .area-table-heading {
             min-height: 84px;
+            padding: 0 20px;
             font-size: 18px;
           }
 
           .area-table-row {
-            min-height: 78px;
+            min-height: 72px;
             padding: 0 16px;
             font-size: 13px;
+          }
+
+          .area-showcase {
+            border-radius: 22px;
+          }
+
+          .area-showcase-image-desktop {
+            display: none;
+          }
+
+          .area-showcase-image-mobile {
+            display: block;
           }
 
           .area-testimonial-quote {
@@ -3226,348 +2947,20 @@ export default function Login() {
             </section>
 
             <section className="area-showcase" aria-labelledby="vajra-showcase-title">
-              <div className="area-showcase-head">
-                <p className="area-section-label">Inside The Experience</p>
-                <h2 id="vajra-showcase-title" className="area-title">A closer look at how The Vajra could feel in your hand.</h2>
-                <p className="area-copy">
-                  Right after Why Vajra, this preview makes the platform feel tangible: support, careers, live tracking, and founder context all presented like one polished mobile flow.
-                </p>
-              </div>
-
-              <div className="area-showcase-stage">
-                <div className="area-showcase-column is-left">
-                  {showcaseSideCards.slice(0, 3).map((card) => {
-                    const Icon = card.icon;
-
-                    return (
-                      <article key={card.title} className="area-showcase-card">
-                        <div className={`area-showcase-card-media ${card.tone ? `is-${card.tone}` : ''}`}>
-                          {card.image ? (
-                            <img src={card.image} alt={card.title} />
-                          ) : Icon ? (
-                            <span className="area-showcase-card-icon">
-                              <Icon size={24} strokeWidth={1.9} />
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="area-showcase-card-copy">
-                          <h3>{card.title}</h3>
-                          <p>{card.subtitle}</p>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-
-                <div className="area-showcase-device-wrap">
-                  <div className="area-showcase-device-glow" aria-hidden="true" />
-                  <div className="area-showcase-device">
-                    <div className="area-showcase-device-screen">
-                      <div className="area-showcase-notch" aria-hidden="true" />
-
-                      <div className="area-showcase-status">
-                        <span>{mockPhoneTime}</span>
-                        <div className="area-showcase-status-right" aria-hidden="true">
-                          <SignalHigh size={14} strokeWidth={2.1} />
-                          <Wifi size={14} strokeWidth={2.1} />
-                          <span className="area-showcase-status-battery">
-                            <BatteryFull size={14} strokeWidth={2} />
-                            92%
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="area-showcase-appbar">
-                        <div className="area-showcase-appbar-copy">
-                          <div className="area-showcase-wordmark">The Vajra.</div>
-                          <p className="area-showcase-subtitle">Your daily delivery layer</p>
-                        </div>
-                        <div className="area-showcase-appicons">
-                          <button
-                            type="button"
-                            className={`area-showcase-appicon ${showcaseTopPanelOpen ? 'is-active' : ''}`}
-                            onClick={() => setShowcaseTopPanelOpen((current) => !current)}
-                            aria-label="Open top navigation panel"
-                            aria-expanded={showcaseTopPanelOpen}
-                          >
-                            <Search size={16} strokeWidth={2.2} />
-                          </button>
-                          <button
-                            type="button"
-                            className={`area-showcase-appicon ${showcaseTopPanelOpen ? 'is-active' : ''}`}
-                            onClick={() => setShowcaseTopPanelOpen((current) => !current)}
-                            aria-label="Open notifications and shortcuts"
-                            aria-expanded={showcaseTopPanelOpen}
-                          >
-                            <Bell size={16} strokeWidth={2.2} />
-                            <span className="area-showcase-appicon-badge" />
-                          </button>
-                          <button
-                            type="button"
-                            className={`area-showcase-appicon ${showcaseTopPanelOpen ? 'is-active' : ''}`}
-                            onClick={() => setShowcaseTopPanelOpen((current) => !current)}
-                            aria-label="Open profile shortcuts"
-                            aria-expanded={showcaseTopPanelOpen}
-                          >
-                            <UserCircle2 size={17} strokeWidth={2} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="area-showcase-device-body">
-                        <div className="area-showcase-scroll-fade is-top" aria-hidden="true" />
-                        <div className="area-showcase-scroll-fade is-bottom" aria-hidden="true" />
-
-                        <div className="area-showcase-device-scroll" ref={showcaseScrollRef}>
-                          {showcaseTopPanelOpen ? (
-                            <div className="area-showcase-top-panel">
-                              <div className="area-showcase-top-panel-head">
-                                <div>
-                                  <h3>Quick navigation</h3>
-                                  <p>Jump into key parts of the experience.</p>
-                                </div>
-                                <Sparkles size={16} strokeWidth={2.1} color="#6f4ef6" />
-                              </div>
-                              <div className="area-showcase-top-links">
-                                {showcaseTopNavLinks.map((item) => (
-                                  <div key={item} className="area-showcase-top-link">
-                                    <span>{item}</span>
-                                    <ChevronRight size={14} strokeWidth={2.1} color="#8f8a83" />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {activeShowcaseTab === 'home' ? (
-                            <div className="area-showcase-device-panel">
-                              <div className="area-showcase-quick-actions">
-                                {showcaseQuickActions.map(({ label, icon: Icon }) => (
-                                  <div key={label} className="area-showcase-quick-action">
-                                    <span className="area-showcase-quick-icon">
-                                      <Icon size={16} strokeWidth={2.1} />
-                                    </span>
-                                    <span>{label}</span>
-                                  </div>
-                                ))}
-                              </div>
-
-                              <section className="area-showcase-order-card">
-                                <div className="area-showcase-order-head">
-                                  <div>
-                                    <span className="area-showcase-order-eyebrow">Live dispatch</span>
-                                    <h3>Dinner order is moving</h3>
-                                  </div>
-                                  <span className="area-showcase-order-chip">
-                                    <Clock3 size={13} strokeWidth={2.1} />
-                                    14 min
-                                  </span>
-                                </div>
-
-                                <div className="area-showcase-stats">
-                                  {showcaseHomeStats.map((item) => (
-                                    <div key={item.label} className="area-showcase-stat">
-                                      <div className="area-showcase-stat-value">{item.value}</div>
-                                      <div className="area-showcase-stat-label">{item.label}</div>
-                                    </div>
-                                  ))}
-                                </div>
-
-                                <div className="area-showcase-order-timeline">
-                                  {showcaseOrderTimeline.map((item) => (
-                                    <div key={item.title} className="area-showcase-order-step">
-                                      <span className="area-showcase-order-step-dot">
-                                        <Check size={12} strokeWidth={2.4} />
-                                      </span>
-                                      <div>
-                                        <p className="area-showcase-order-step-title">{item.title}</p>
-                                        <p className="area-showcase-order-step-body">{item.body}</p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </section>
-
-                              <article className="area-showcase-feed-card">
-                                <div className="area-showcase-feed-head">
-                                  <img
-                                    src="/founder.png"
-                                    alt="Founder profile"
-                                    className="area-showcase-avatar"
-                                  />
-                                  <div>
-                                    <p className="area-showcase-feed-name">Founder Signal</p>
-                                    <p className="area-showcase-feed-time">12m ago</p>
-                                  </div>
-                                </div>
-                                <p className="area-showcase-feed-text">
-                                  Building one connected platform where ordering, marketplace access, and everyday services feel like one clean system.
-                                </p>
-                                <img
-                                  src="/area/vajra-hero-drone.jpg"
-                                  alt="Drone showcase preview"
-                                  className="area-showcase-feed-image"
-                                />
-                                <div className="area-showcase-feed-actions">
-                                  <span className="area-showcase-pill">12k</span>
-                                  <span className="area-showcase-pill">48</span>
-                                  <span className="area-showcase-pill">Share</span>
-                                </div>
-                              </article>
-
-                              <div className="area-showcase-highlight">
-                                <span className="area-showcase-highlight-label">Live inside Vajra</span>
-                                <h3>Support, updates, and launch signals in one flow.</h3>
-                                <div className="area-showcase-highlight-list">
-                                  {showcasePhoneHighlights.map((item) => (
-                                    <div key={item} className="area-showcase-highlight-item">
-                                      {item}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          ) : null}
-
-                          {activeShowcaseTab === 'community' ? (
-                            <div className="area-showcase-device-panel">
-                              {showcaseCommunityPosts.map((post) => (
-                                <article key={post.title} className="area-showcase-community-card">
-                                  <img src={post.image} alt={post.title} className="area-showcase-community-thumb" />
-                                  <div className="area-showcase-community-meta">
-                                    <div className="area-showcase-community-author">
-                                      <img src={post.avatar} alt={post.author} />
-                                      <div>
-                                        <p className="area-showcase-community-title">{post.title}</p>
-                                        <span className="area-showcase-community-time">{post.author} - {post.time}</span>
-                                      </div>
-                                    </div>
-                                    <ChevronRight size={16} strokeWidth={2.1} color="#9b9791" />
-                                  </div>
-                                  <p className="area-showcase-community-body">{post.body}</p>
-                                  <div className="area-showcase-community-stats">
-                                    <span className="area-showcase-community-metric is-accent">
-                                      <Users size={13} strokeWidth={2.1} />
-                                      {post.metric}
-                                    </span>
-                                    <span className="area-showcase-community-metric">
-                                      <MessageCircle size={13} strokeWidth={2.1} />
-                                      {post.replies}
-                                    </span>
-                                  </div>
-                                </article>
-                              ))}
-                            </div>
-                          ) : null}
-
-                          {activeShowcaseTab === 'support' ? (
-                            <div className="area-showcase-device-panel">
-                              <section className="area-showcase-support-header">
-                                <div className="area-showcase-support-presence">
-                                  <span className="area-showcase-support-presence-dot" />
-                                  <div>
-                                    <h3>Vajra Support AI</h3>
-                                    <p>Instant help, order updates, seller guidance</p>
-                                  </div>
-                                </div>
-                                <Sparkles size={18} strokeWidth={2.1} color="#6f4ef6" />
-                              </section>
-
-                              <div className="area-showcase-support-chat">
-                                <div className="area-showcase-chat-bubble is-user">
-                                  My order is late. Can you check the live status?
-                                </div>
-                                <div className="area-showcase-chat-bubble is-assistant">
-                                  Your rider has reached the restaurant and pickup is being packed now. Updated arrival is 14 minutes.
-                                </div>
-                              </div>
-
-                              {showcaseSupportItems.map((item) => (
-                                <article
-                                  key={item.title}
-                                  className={`area-showcase-support-card ${item.tone === 'primary' ? 'is-primary' : ''}`}
-                                >
-                                  <span className="area-showcase-support-label">Quick help</span>
-                                  <h3>{item.title}</h3>
-                                  <p>{item.body}</p>
-                                </article>
-                              ))}
-
-                              <div className="area-showcase-support-replies">
-                                {showcaseSupportReplies.map((reply) => (
-                                  <span key={reply} className="area-showcase-support-reply">
-                                    {reply}
-                                  </span>
-                                ))}
-                              </div>
-
-                              <div className="area-showcase-support-typing" aria-hidden="true">
-                                <span />
-                                <span />
-                                <span />
-                                Support is typing...
-                              </div>
-                            </div>
-                          ) : null}
-
-                          <div className="area-showcase-bottom-nav" role="tablist" aria-label="Phone preview tabs">
-                            <button
-                              type="button"
-                              className={activeShowcaseTab === 'home' ? 'is-active' : ''}
-                              onClick={() => handleShowcaseTabChange('home')}
-                              aria-selected={activeShowcaseTab === 'home'}
-                            >
-                              <Home size={14} strokeWidth={2.15} />
-                              <span>Home</span>
-                            </button>
-                            <button
-                              type="button"
-                              className={activeShowcaseTab === 'community' ? 'is-active' : ''}
-                              onClick={() => handleShowcaseTabChange('community')}
-                              aria-selected={activeShowcaseTab === 'community'}
-                            >
-                              <Users size={14} strokeWidth={2.15} />
-                              <span>Community</span>
-                            </button>
-                            <button
-                              type="button"
-                              className={activeShowcaseTab === 'support' ? 'is-active' : ''}
-                              onClick={() => handleShowcaseTabChange('support')}
-                              aria-selected={activeShowcaseTab === 'support'}
-                            >
-                              <MessageCircle size={14} strokeWidth={2.15} />
-                              <span>Support</span>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="area-showcase-column is-right">
-                  {showcaseSideCards.slice(3).map((card) => {
-                    const Icon = card.icon;
-
-                    return (
-                      <article key={card.title} className="area-showcase-card">
-                        <div className={`area-showcase-card-media ${card.tone ? `is-${card.tone}` : ''}`}>
-                          {card.image ? (
-                            <img src={card.image} alt={card.title} />
-                          ) : Icon ? (
-                            <span className="area-showcase-card-icon">
-                              <Icon size={24} strokeWidth={1.9} />
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="area-showcase-card-copy">
-                          <h3>{card.title}</h3>
-                          <p>{card.subtitle}</p>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
+              <div className="area-showcase-frame">
+                <h2 id="vajra-showcase-title" className="sr-only">
+                  Job search showcase
+                </h2>
+                <img
+                  src="/area/job-search-showcase.png"
+                  alt="Orange job search showcase with phone, couch, mascot, and get the app call to action"
+                  className="area-showcase-image area-showcase-image-desktop"
+                />
+                <img
+                  src="/area/job-search-showcase.png"
+                  alt="Orange job search showcase with phone, couch, mascot, and get the app call to action"
+                  className="area-showcase-image area-showcase-image-mobile"
+                />
               </div>
             </section>
 
@@ -3589,6 +2982,9 @@ export default function Login() {
             </section>
 
             <div className="area-divider" />
+
+            {/* Premium AI orbit animation inserted above Vision (how-to) section */}
+            <AiOrbitAnimation />
 
             <section id="how-to" className="area-howto">
               <div className="area-howto-head">

@@ -28,6 +28,7 @@ import PaymentCallback from './components/PaymentCallback';
 import DeliveryPartnerHub from './components/DeliveryPartnerHub';
 import PostLoginServiceHub from './components/PostLoginServiceHub';
 import StandaloneAuthPage from './components/StandaloneAuthPage';
+import FeelItPage from './components/FeelItPage';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
 import { logAdminSignInEvent } from './lib/adminActivity';
 import {
@@ -70,6 +71,8 @@ const PRIVACY_PATHS = ['/privacy', '/privacy-policy'] as const;
 const REFUND_PATHS = ['/refund-cancellation', '/refund-cancellation-policy'] as const;
 const SHIPPING_PATHS = ['/shipping-policy', '/shipping'] as const;
 const SUPPORT_PATHS = ['/support', '/get-support'] as const;
+const CONTACT_US_PATHS = ['/contact-us', '/contact'] as const;
+const FEEL_IT_PATHS = ['/feel-it'] as const;
 const TEAM_PATHS = ['/team', '/our-team'] as const;
 const LOGIN_PATHS = ['/login', '/sign-in'] as const;
 const SIGNUP_PATHS = ['/signup', '/sign-up', '/register'] as const;
@@ -105,6 +108,14 @@ const getInitialPageFromPath = (): Page => {
     return 'support';
   }
 
+  if (CONTACT_US_PATHS.includes(pathname as (typeof CONTACT_US_PATHS)[number])) {
+    return 'contact-us';
+  }
+
+  if (FEEL_IT_PATHS.includes(pathname as (typeof FEEL_IT_PATHS)[number])) {
+    return 'service-hub';
+  }
+
   return 'service-hub';
 };
 
@@ -131,6 +142,7 @@ function App() {
 
   useEffect(() => {
     const bump = () => {
+      
       syncPathToReact();
     };
     window.addEventListener('popstate', bump);
@@ -172,11 +184,13 @@ function App() {
 
   useEffect(() => {
     let isMounted = true;
+    // Keep the branded splash visible slightly longer for a cinematic feel
+    // without freezing the UI — this is a gentle increase from 2s → 3.8s.
     const loadingFallback = window.setTimeout(() => {
       if (isMounted) {
         setLoading(false);
       }
-    }, 2000);
+    }, 3800);
 
     const loadUserProfile = async (userId: string) => {
       if (!isMounted) return;
@@ -210,8 +224,8 @@ function App() {
           setAppMode(
             deliveryPartnerData
               ? normalizeDeliveryAccountMode(
-                  (deliveryPartnerData as { account_mode?: string | null }).account_mode
-                )
+                (deliveryPartnerData as { account_mode?: string | null }).account_mode
+              )
               : 'customer'
           );
         }
@@ -594,6 +608,11 @@ function App() {
         return;
       }
 
+      if (CONTACT_US_PATHS.includes(path as (typeof CONTACT_US_PATHS)[number])) {
+        setCurrentPage('contact-us');
+        return;
+      }
+
       if (path === '/menu' && restaurantIdFromQuery) {
         setSelectedRestaurantId(restaurantIdFromQuery);
         setCurrentPage('menu');
@@ -637,6 +656,12 @@ function App() {
   );
   const isSupportPath = SUPPORT_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof SUPPORT_PATHS)[number]
+  );
+  const isContactPath = CONTACT_US_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof CONTACT_US_PATHS)[number]
+  );
+  const isFeelItPath = FEEL_IT_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof FEEL_IT_PATHS)[number]
   );
   const isTeamPath = TEAM_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof TEAM_PATHS)[number]
@@ -690,6 +715,12 @@ function App() {
   }
   if (isSupportPath) {
     return <SupportChatPage />;
+  }
+  if (isContactPath) {
+    return <ContactUs />;
+  }
+  if (isFeelItPath) {
+    return <FeelItPage />;
   }
   if (isTeamPath) {
     window.location.replace('/team-page.html');
