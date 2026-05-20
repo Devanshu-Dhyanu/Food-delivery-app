@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { applySeo } from '../lib/seo';
 import FloatingContactTab from './FloatingContactTab';
 import LandingFooter from './LandingFooter';
+import TurnstileWidget from './TurnstileWidget';
 
 
 type StandaloneAuthPageProps = {
@@ -38,7 +39,11 @@ function GoogleIcon() {
 }
 
 export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
+  const captchaEnabled = turnstileSiteKey.length > 0;
   const [email, setEmail] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaResetCount, setCaptchaResetCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -113,12 +118,20 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
       return;
     }
 
+    if (captchaEnabled && !captchaToken) {
+      setMessage({ type: 'error', text: 'Please complete the captcha first.' });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
 
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
-      options: { emailRedirectTo: redirectTo },
+      options: {
+        emailRedirectTo: redirectTo,
+        ...(captchaEnabled ? { captchaToken } : {}),
+      },
     });
 
     if (error) {
@@ -130,6 +143,10 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
       });
     }
 
+    if (captchaEnabled) {
+      setCaptchaToken('');
+      setCaptchaResetCount((current) => current + 1);
+    }
     setLoading(false);
   };
 
@@ -141,17 +158,30 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
       setMessage({ type: 'error', text: 'Please enter your email address.' });
       return;
     }
+
+    if (captchaEnabled && !captchaToken) {
+      setMessage({ type: 'error', text: 'Please complete the captcha first.' });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
     persistRememberedEmail(trimmedEmail);
 
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmedEmail,
-      options: { emailRedirectTo: redirectTo },
+      options: {
+        emailRedirectTo: redirectTo,
+        ...(captchaEnabled ? { captchaToken } : {}),
+      },
     });
 
     if (error) {
       setMessage({ type: 'error', text: 'We could not send the magic link right now.' });
+      if (captchaEnabled) {
+        setCaptchaToken('');
+        setCaptchaResetCount((current) => current + 1);
+      }
       setLoading(false);
       return;
     }
@@ -163,6 +193,10 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
           ? 'Magic link sent. Check your email to continue.'
           : 'Sign-up link sent. Check your email to continue.',
     });
+    if (captchaEnabled) {
+      setCaptchaToken('');
+      setCaptchaResetCount((current) => current + 1);
+    }
     setLoading(false);
   };
 
@@ -278,6 +312,27 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                         >
                           Forgot password
                         </button>
+                      </div>
+                    )}
+
+                    {captchaEnabled && (
+                      <div className="mt-5 overflow-hidden rounded-[16px] border border-[#d7dce3] bg-white px-3 py-3">
+                        <TurnstileWidget
+                          siteKey={turnstileSiteKey}
+                          resetSignal={captchaResetCount}
+                          onVerify={(token) => {
+                            setCaptchaToken(token);
+                            setMessage(null);
+                          }}
+                          onExpire={() => setCaptchaToken('')}
+                          onError={() => {
+                            setCaptchaToken('');
+                            setMessage({
+                              type: 'error',
+                              text: 'Captcha could not be loaded. Please refresh and try again.',
+                            });
+                          }}
+                        />
                       </div>
                     )}
 

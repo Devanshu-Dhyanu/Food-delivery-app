@@ -15,6 +15,7 @@ import { supabase } from '../lib/supabase';
 import { applyDefaultSeo } from '../lib/seo';
 import FloatingContactTab from './FloatingContactTab';
 import LandingFooter from './LandingFooter';
+import TurnstileWidget from './TurnstileWidget';
 
 // Support and company constants are defined in shared footer components.
 const LAUNCH_DATE_ISO = '2026-08-15T10:00:00+05:30';
@@ -173,11 +174,15 @@ function GoogleIcon() {
 import AiOrbitAnimation from './AiOrbitAnimation';
 
 export default function Login() {
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
+  const captchaEnabled = turnstileSiteKey.length > 0;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<'signup' | 'signin'>('signup');
   const [email, setEmail] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaResetCount, setCaptchaResetCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [benefitsAudioEnabled, setBenefitsAudioEnabled] = useState(false);
@@ -275,11 +280,15 @@ export default function Login() {
     setMobileMenuOpen(false);
     setMessage('');
     setEmail('');
+    setCaptchaToken('');
+    setCaptchaResetCount((current) => current + 1);
     setLoading(false);
   };
 
   const closeModal = () => {
     setModalOpen(false);
+    setCaptchaToken('');
+    setCaptchaResetCount((current) => current + 1);
     setLoading(false);
   };
 
@@ -305,12 +314,27 @@ export default function Login() {
 
   const handleEmailSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      setMessage('Please enter your email first.');
+      return;
+    }
+
+    if (captchaEnabled && !captchaToken) {
+      setMessage('Please complete the captcha first.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
 
     const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: redirectTo },
+      email: trimmedEmail,
+      options: {
+        emailRedirectTo: redirectTo,
+        ...(captchaEnabled ? { captchaToken } : {}),
+      },
     });
 
     if (error) {
@@ -319,6 +343,10 @@ export default function Login() {
       setMessage('Success: Magic link sent. Check your email.');
     }
 
+    if (captchaEnabled) {
+      setCaptchaToken('');
+      setCaptchaResetCount((current) => current + 1);
+    }
     setLoading(false);
   };
 
@@ -3064,6 +3092,24 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+
+              {captchaEnabled && (
+                <div className="mt-4 overflow-hidden rounded-[18px] border border-[#e8e3d7] bg-white px-3 py-3">
+                  <TurnstileWidget
+                    siteKey={turnstileSiteKey}
+                    resetSignal={captchaResetCount}
+                    onVerify={(token) => {
+                      setCaptchaToken(token);
+                      setMessage('');
+                    }}
+                    onExpire={() => setCaptchaToken('')}
+                    onError={() => {
+                      setCaptchaToken('');
+                      setMessage('Captcha could not be loaded. Please refresh and try again.');
+                    }}
+                  />
+                </div>
+              )}
 
               <button className="login-submit-btn" type="submit" disabled={loading}>
                 {loading ? 'Sending...' : mode === 'signup' ? 'Continue with email' : 'Sign in with email'}
