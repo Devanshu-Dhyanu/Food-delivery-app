@@ -1,6 +1,6 @@
-const SHELL_CACHE_NAME = 'the-vajra-shell-v3';
+const SHELL_CACHE_NAME = 'the-vajra-shell-v4';
 const IMAGE_CACHE_NAME = 'the-vajra-images-v1';
-const APP_SHELL = ['/', '/site.webmanifest', '/the-vajra-mark.svg'];
+const APP_SHELL = ['/site.webmanifest', '/the-vajra-mark.svg'];
 
 const isCacheableImageRequest = (request, url) => {
   if (request.destination !== 'image') {
@@ -83,20 +83,6 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (shouldCacheResponse(response)) {
-            const responseClone = response.clone();
-            void caches.open(SHELL_CACHE_NAME).then((cache) => cache.put('/', responseClone));
-          }
-          return response;
-        })
-        .catch(async () => {
-          const cachedResponse = await caches.match(request);
-          return cachedResponse || caches.match('/');
-        })
-    );
     return;
   }
 
