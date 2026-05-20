@@ -41,6 +41,7 @@ function GoogleIcon() {
 export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
   const captchaEnabled = turnstileSiteKey.length > 0;
+  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const [email, setEmail] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
   const [captchaResetCount, setCaptchaResetCount] = useState(0);
@@ -357,12 +358,18 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                     <button
                       type="button"
                       onClick={() => void handleGoogleLogin()}
-                      disabled={loading}
-                      className="mt-4 flex h-[52px] w-full items-center justify-center gap-3 rounded-[16px] border border-[#d7dce3] bg-white text-[16px] font-medium text-[#111111] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-70"
+                      disabled={loading || googleBlockedByCaptcha}
+                      className={`mt-4 flex h-[52px] w-full items-center justify-center gap-3 rounded-[16px] border border-[#d7dce3] bg-white text-[16px] font-medium text-[#111111] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-70 ${googleBlockedByCaptcha ? 'opacity-60 shadow-none' : ''}`}
                     >
                       <GoogleIcon />
                       <span>{mode === 'signin' ? 'Sign in with Google' : 'Continue with Google'}</span>
                     </button>
+
+                    {googleBlockedByCaptcha ? (
+                      <p className="mt-3 text-xs font-medium text-[#7a5f3f]">
+                        Complete the captcha first to continue with Google.
+                      </p>
+                    ) : null}
                   </form>
 
                   <p className="mt-5 text-center text-[14px] text-[#69707d]">

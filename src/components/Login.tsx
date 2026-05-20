@@ -173,9 +173,10 @@ function GoogleIcon() {
 
 import AiOrbitAnimation from './AiOrbitAnimation';
 
-export default function Login() {
-  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
+  export default function Login() {
+    const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
   const captchaEnabled = turnstileSiteKey.length > 0;
+  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -2256,6 +2257,12 @@ export default function Login() {
           margin-bottom: 14px;
         }
 
+        .login-social-btn.is-blocked {
+          opacity: 0.58;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+
         .login-divider {
           display: flex;
           align-items: center;
@@ -3082,7 +3089,11 @@ export default function Login() {
               {mode === 'signup' ? 'Join The Vajra.' : 'Welcome back to The Vajra.'}
             </h2>
 
-            <button className="login-social-btn" onClick={handleGoogleLogin} disabled={loading}>
+            <button
+              className={`login-social-btn${googleBlockedByCaptcha ? ' is-blocked' : ''}`}
+              onClick={handleGoogleLogin}
+              disabled={loading || googleBlockedByCaptcha}
+            >
               <GoogleIcon />
               {loading ? 'Preparing Google...' : 'Continue with Google'}
             </button>
@@ -3104,8 +3115,8 @@ export default function Login() {
               />
 
               {captchaEnabled && (
-                <div className="mt-4 overflow-hidden rounded-[18px] border border-[#e8e3d7] bg-white px-3 py-3">
-                  <TurnstileWidget
+                  <div className="mt-4 overflow-hidden rounded-[18px] border border-[#e8e3d7] bg-white px-3 py-3">
+                    <TurnstileWidget
                     siteKey={turnstileSiteKey}
                     resetSignal={captchaResetCount}
                     onVerify={(token) => {
@@ -3117,11 +3128,17 @@ export default function Login() {
                       setCaptchaToken('');
                       setMessage('Captcha could not be loaded. Please refresh and try again.');
                     }}
-                  />
-                </div>
-              )}
+                    />
+                  </div>
+                )}
 
-              <button className="login-submit-btn" type="submit" disabled={loading}>
+                {googleBlockedByCaptcha ? (
+                  <p className="mt-3 text-xs font-medium text-[#7a5f3f]">
+                    Complete the captcha first to continue with Google.
+                  </p>
+                ) : null}
+
+                <button className="login-submit-btn" type="submit" disabled={loading}>
                 {loading ? 'Sending...' : mode === 'signup' ? 'Continue with email' : 'Sign in with email'}
               </button>
             </form>
