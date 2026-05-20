@@ -174,9 +174,7 @@ function GoogleIcon() {
 import AiOrbitAnimation from './AiOrbitAnimation';
 
   export default function Login() {
-    const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
-  const captchaEnabled = turnstileSiteKey.length > 0;
-  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
+  const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [floatingNavVisible, setFloatingNavVisible] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -190,6 +188,8 @@ import AiOrbitAnimation from './AiOrbitAnimation';
   const [launchCountdown, setLaunchCountdown] = useState(getLaunchCountdown);
   const benefitsVideoRef = useRef<HTMLVideoElement | null>(null);
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
+  const captchaEnabled = turnstileSiteKey.length > 0;
+  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   useEffect(() => {
@@ -2187,8 +2187,18 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           margin: 24px auto 34px;
         }
 
+        .area-contact-actions {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 14px;
+          width: min(100%, 1280px);
+          margin: 0 auto;
+        }
+
         .area-contact-button {
-          width: min(100%, 610px);
+          width: 100%;
+          min-height: 54px;
+          padding-inline: clamp(20px, 3vw, 34px);
         }
 
         .login-overlay {
@@ -2692,6 +2702,10 @@ import AiOrbitAnimation from './AiOrbitAnimation';
             width: 100%;
           }
 
+          .area-contact-actions {
+            gap: 12px;
+          }
+
           .login-overlay {
             padding: 16px;
           }
@@ -2703,6 +2717,13 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
           .login-modal-title {
             font-size: 1.9rem;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .area-contact-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
           }
         }
 
@@ -3062,15 +3083,17 @@ import AiOrbitAnimation from './AiOrbitAnimation';
                 If you want to follow the journey, explore partnerships, or learn how The Vajra is being built, reach out to The VajraCognixia Technologies Private Limited.
               </p>
 
-              <button type="button" className="area-button area-button-primary area-contact-button" onClick={() => openModal('signup')}>
-                Request early access
-                <ArrowUpRight size={16} />
-              </button>
+              <div className="area-contact-actions">
+                <button type="button" className="area-button area-button-primary area-contact-button" onClick={() => openModal('signup')}>
+                  Request early access
+                  <ArrowUpRight size={16} />
+                </button>
 
-              <a href="/support" className="area-button area-support-cta area-contact-button">
-                Get Support
-                <Mail size={16} />
-              </a>
+                <a href="/support" className="area-button area-support-cta area-contact-button">
+                  Get Support
+                  <Mail size={16} />
+                </a>
+              </div>
             </section>
           </main>
 
