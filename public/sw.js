@@ -19,7 +19,10 @@ const isCacheableImageRequest = (request, url) => {
 };
 
 const shouldCacheResponse = (response) =>
-  response && (response.ok || response.type === 'opaque');
+  response &&
+  response.status !== 206 &&
+  response.status !== 304 &&
+  (response.ok || response.type === 'opaque');
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -83,8 +86,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const responseClone = response.clone();
-          void caches.open(SHELL_CACHE_NAME).then((cache) => cache.put('/', responseClone));
+          if (shouldCacheResponse(response)) {
+            const responseClone = response.clone();
+            void caches.open(SHELL_CACHE_NAME).then((cache) => cache.put('/', responseClone));
+          }
           return response;
         })
         .catch(async () => {
