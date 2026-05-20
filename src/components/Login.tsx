@@ -293,18 +293,28 @@ export default function Login() {
   };
 
   const handleGoogleLogin = async () => {
+    if (captchaEnabled && !captchaToken) {
+      setMessage('Please complete the captcha first.');
+      return;
+    }
+
     setLoading(true);
     setMessage('');
-
+  
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo,
+        ...(captchaEnabled ? { captchaToken } : {}),
       },
     });
-
+  
     if (error) {
       setMessage('Something went wrong. Try again.');
+      if (captchaEnabled) {
+        setCaptchaToken('');
+        setCaptchaResetCount((current) => current + 1);
+      }
       setLoading(false);
       return;
     }

@@ -90,19 +90,29 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
 
   const handleGoogleLogin = async () => {
+    if (captchaEnabled && !captchaToken) {
+      setMessage({ type: 'error', text: 'Please complete the captcha first.' });
+      return;
+    }
+
     setLoading(true);
     setMessage(null);
-
-
+  
+  
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo,
+        ...(captchaEnabled ? { captchaToken } : {}),
       },
     });
-
+  
     if (error) {
       setMessage({ type: 'error', text: 'Google sign-in could not start. Please try again.' });
+      if (captchaEnabled) {
+        setCaptchaToken('');
+        setCaptchaResetCount((current) => current + 1);
+      }
       setLoading(false);
       return;
     }
