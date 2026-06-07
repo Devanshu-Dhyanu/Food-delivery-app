@@ -41,9 +41,9 @@ function GoogleIcon() {
 export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY?.trim() ?? '';
   const captchaEnabled = turnstileSiteKey.length > 0;
-  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const [email, setEmail] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
+  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const [captchaResetCount, setCaptchaResetCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);

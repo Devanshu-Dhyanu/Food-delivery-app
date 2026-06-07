@@ -7,7 +7,6 @@ import {
   Menu,
   MapPin,
   Package,
-  Sparkles,
   X,
   Zap,
 } from 'lucide-react';
@@ -50,7 +49,7 @@ const getLaunchCountdown = () => {
 };
 
 const navLinks = [
-  { label: 'Why Vajra', href: '#benefits' },
+  { label: 'What We Do', href: '/what-we-do' },
   { label: 'Delivery Model', href: '#specifications' },
   { label: 'Contact', href: '/contact-us' },
   { label: 'Founder', href: '/founder' },
@@ -184,16 +183,28 @@ import AiOrbitAnimation from './AiOrbitAnimation';
   const [captchaResetCount, setCaptchaResetCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [storeNotice, setStoreNotice] = useState('');
+  const [appPromoVisible, setAppPromoVisible] = useState(false);
   const [benefitsAudioEnabled, setBenefitsAudioEnabled] = useState(false);
   const [launchCountdown, setLaunchCountdown] = useState(getLaunchCountdown);
+  const appPromoRef = useRef<HTMLElement | null>(null);
   const benefitsVideoRef = useRef<HTMLVideoElement | null>(null);
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
+  const storeNoticeTimerRef = useRef<number | null>(null);
   const captchaEnabled = turnstileSiteKey.length > 0;
   const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   useEffect(() => {
     applyDefaultSeo();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (storeNoticeTimerRef.current) {
+        window.clearTimeout(storeNoticeTimerRef.current);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -206,6 +217,30 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
     return () => {
       window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const section = appPromoRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setAppPromoVisible(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: '0px 0px -18% 0px',
+        threshold: 0.18,
+      }
+    );
+
+    observer.observe(section);
+
+    return () => {
+      observer.disconnect();
     };
   }, []);
 
@@ -379,6 +414,19 @@ import AiOrbitAnimation from './AiOrbitAnimation';
         setBenefitsAudioEnabled(false);
       }
     }
+  };
+
+  const showStoreComingSoon = (storeName: string) => {
+    setStoreNotice(`${storeName} is coming soon.`);
+
+    if (storeNoticeTimerRef.current) {
+      window.clearTimeout(storeNoticeTimerRef.current);
+    }
+
+    storeNoticeTimerRef.current = window.setTimeout(() => {
+      setStoreNotice('');
+      storeNoticeTimerRef.current = null;
+    }, 2600);
   };
 
   const countdownUnits = [
@@ -888,6 +936,365 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           padding: 56px 0 76px;
         }
 
+        .area-app-promo {
+          position: relative;
+          overflow: hidden;
+          min-height: clamp(340px, 40vh, 430px);
+          margin: 42px 0 0;
+          margin-right: calc(50% - 50vw);
+          margin-left: calc(50% - 50vw);
+          border-radius: 0;
+          background:
+            linear-gradient(90deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.78) 37%, rgba(0, 0, 0, 0.32) 100%),
+            url('/area/dornepath.png?v=2') center / cover no-repeat;
+          color: #ffffff;
+          isolation: isolate;
+          opacity: 0;
+          transform: translateX(120px);
+          transition:
+            opacity 760ms cubic-bezier(0.22, 1, 0.36, 1),
+            transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: opacity, transform;
+        }
+
+        .area-app-promo.is-visible {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .area-app-promo::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at 72% 25%, rgba(255, 255, 255, 0.16), transparent 22%),
+            linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.52));
+          pointer-events: none;
+          z-index: -1;
+        }
+
+        .area-app-promo-inner {
+          position: relative;
+          display: grid;
+          grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+          align-items: center;
+          min-height: inherit;
+          gap: clamp(28px, 5vw, 74px);
+          padding: clamp(34px, 4vw, 46px) 0;
+        }
+
+        .area-app-promo-copy {
+          max-width: 680px;
+          padding-left: clamp(0px, 1vw, 10px);
+          opacity: 0;
+          transform: translateX(42px);
+          transition:
+            opacity 620ms ease 220ms,
+            transform 760ms cubic-bezier(0.22, 1, 0.36, 1) 220ms;
+        }
+
+        .area-app-promo.is-visible .area-app-promo-copy {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .area-app-promo-kicker {
+          margin-bottom: 22px;
+          font-family: 'Inter', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .area-app-promo-title {
+          max-width: 620px;
+          font-family: 'Inter', sans-serif;
+          font-size: clamp(2rem, 3.2vw, 3.5rem);
+          font-weight: 800;
+          line-height: 1.15;
+          color: #f7f7f3;
+          text-wrap: balance;
+        }
+
+        .area-app-store-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 18px 24px;
+          margin-top: 28px;
+        }
+
+        .area-store-button {
+          min-width: 198px;
+          height: 60px;
+          display: inline-flex;
+          align-items: center;
+          gap: 14px;
+          padding: 0 18px;
+          border: 1px solid rgba(255, 255, 255, 0.82);
+          border-radius: 9px;
+          background: rgba(10, 10, 10, 0.72);
+          color: #ffffff;
+          font-family: inherit;
+          text-align: left;
+          box-shadow: 0 18px 46px rgba(0, 0, 0, 0.24);
+          transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
+        }
+
+        .area-store-button:hover {
+          transform: translateY(-2px);
+          border-color: #ffffff;
+          background: rgba(18, 18, 18, 0.9);
+        }
+
+        .area-store-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          flex: 0 0 36px;
+          width: 36px;
+          height: 36px;
+          color: #ffffff;
+        }
+
+        .area-store-icon svg {
+          width: 100%;
+          height: 100%;
+        }
+
+        .area-store-icon.is-vajra {
+          border: 1px solid rgba(255, 255, 255, 0.72);
+          border-radius: 50%;
+          background: radial-gradient(circle at 42% 35%, rgba(255, 255, 255, 0.22), rgba(95, 118, 22, 0.72));
+          font-family: 'Prata', serif;
+          font-size: 17px;
+          letter-spacing: 0.08em;
+        }
+
+        .area-store-eyebrow {
+          display: block;
+          font-size: 13px;
+          line-height: 1;
+          color: rgba(255, 255, 255, 0.86);
+        }
+
+        .area-store-name {
+          display: block;
+          margin-top: 5px;
+          font-size: 21px;
+          font-weight: 700;
+          line-height: 1;
+          letter-spacing: -0.02em;
+        }
+
+        .area-app-promo-visual {
+          position: relative;
+          min-height: clamp(300px, 35vh, 390px);
+          width: min(100%, 740px);
+          justify-self: end;
+          opacity: 0;
+          transform: translateX(140px) scale(0.96);
+          transition:
+            opacity 720ms ease 120ms,
+            transform 960ms cubic-bezier(0.22, 1, 0.36, 1) 120ms;
+        }
+
+        .area-app-promo.is-visible .area-app-promo-visual {
+          opacity: 1;
+          transform: translateX(0) scale(1);
+        }
+
+        .area-app-phone {
+          position: absolute;
+          overflow: visible;
+          width: clamp(218px, 21vw, 315px);
+          aspect-ratio: 9 / 19.5;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          border-radius: clamp(34px, 4vw, 52px);
+          background:
+            linear-gradient(135deg, #4d5355 0%, #16191a 13%, #070808 48%, #313638 100%),
+            #080909;
+          padding: clamp(8px, 0.9vw, 12px);
+          box-shadow:
+            inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+            inset 0 0 0 8px rgba(0, 0, 0, 0.62),
+            0 34px 80px rgba(0, 0, 0, 0.54);
+        }
+
+        .area-app-phone::before {
+          content: '';
+          position: absolute;
+          top: clamp(16px, 2.2vw, 26px);
+          left: 50%;
+          z-index: 5;
+          width: 28%;
+          height: 4.7%;
+          border-radius: 999px;
+          background:
+            radial-gradient(circle at 76% 50%, #2b3032 0 3px, transparent 4px),
+            linear-gradient(180deg, #111415, #060707);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.12),
+            0 1px 8px rgba(0, 0, 0, 0.45);
+          transform: translateX(-50%);
+        }
+
+        .area-app-phone::after {
+          content: '';
+          position: absolute;
+          inset: clamp(9px, 0.9vw, 13px);
+          z-index: 4;
+          border-radius: clamp(26px, 3.4vw, 42px);
+          background:
+            linear-gradient(115deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.04) 16%, transparent 38%),
+            linear-gradient(270deg, rgba(255, 255, 255, 0.09), transparent 20%);
+          pointer-events: none;
+          mix-blend-mode: screen;
+        }
+
+        .area-app-phone-main {
+          z-index: 2;
+          top: 0;
+          left: 10%;
+          transform: rotate(-2deg);
+        }
+
+        .area-app-phone-back {
+          z-index: 1;
+          top: 12%;
+          right: 3%;
+          width: clamp(210px, 20vw, 300px);
+          opacity: 0.9;
+          transform: rotate(4deg) scale(0.98);
+        }
+
+        .area-app-phone-screen {
+          position: absolute;
+          inset: clamp(10px, 1vw, 14px);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          padding: clamp(58px, 6vw, 78px) clamp(14px, 1.4vw, 20px) clamp(16px, 1.8vw, 24px);
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          border-radius: clamp(24px, 3vw, 38px);
+          background:
+            linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.72)),
+            url('/area/reference-login-hub.png') center / cover no-repeat;
+          box-shadow:
+            inset 0 0 0 1px rgba(0, 0, 0, 0.7),
+            inset 0 20px 36px rgba(0, 0, 0, 0.42);
+        }
+
+        .area-app-phone-screen::before {
+          content: '10:15';
+          position: absolute;
+          top: 18px;
+          left: 20px;
+          z-index: 2;
+          color: rgba(255, 255, 255, 0.92);
+          font-size: 13px;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+        }
+
+        .area-app-phone-screen::after {
+          content: '';
+          position: absolute;
+          top: 19px;
+          right: 18px;
+          z-index: 2;
+          width: 48px;
+          height: 14px;
+          border-radius: 999px;
+          background:
+            linear-gradient(90deg, #ffffff 0 8px, transparent 8px 13px, #ffffff 13px 21px, transparent 21px 26px, #ffffff 26px 34px, transparent 34px),
+            linear-gradient(#ffffff, #ffffff) right center / 18px 9px no-repeat;
+          opacity: 0.9;
+        }
+
+        .area-app-phone-back .area-app-phone-screen {
+          justify-content: flex-end;
+          background:
+            linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.86)),
+            url('/area/Hero2.png') center / cover no-repeat;
+        }
+
+        .area-phone-brand {
+          margin-bottom: 22px;
+          text-align: center;
+          font-size: 19px;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-shadow: 0 2px 18px rgba(0, 0, 0, 0.46);
+        }
+
+        .area-phone-card {
+          margin-top: auto;
+          padding: 18px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 24px;
+          background: linear-gradient(180deg, rgba(8, 9, 9, 0.18), rgba(8, 9, 9, 0.78));
+          color: #ffffff;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.08),
+            0 16px 34px rgba(0, 0, 0, 0.32);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+          text-shadow: 0 2px 12px rgba(0, 0, 0, 0.42);
+        }
+
+        .area-phone-card small {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 14px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.86);
+        }
+
+        .area-phone-card strong {
+          display: block;
+          font-size: 24px;
+          line-height: 1.15;
+        }
+
+        .area-phone-card p {
+          margin-top: 10px;
+          font-size: 15px;
+          line-height: 1.45;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .area-phone-pill {
+          align-self: center;
+          margin-top: 18px;
+          padding: 11px 32px;
+          border-radius: 999px;
+          background: #e91645;
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 800;
+          box-shadow: 0 14px 26px rgba(233, 22, 69, 0.28);
+        }
+
+        .area-app-toast {
+          position: fixed;
+          left: 50%;
+          bottom: 28px;
+          z-index: 80;
+          padding: 14px 20px;
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          border-radius: 999px;
+          background: rgba(15, 15, 14, 0.88);
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 700;
+          box-shadow: 0 18px 46px rgba(0, 0, 0, 0.34);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          transform: translateX(-50%);
+        }
+
         .area-benefits-visual-frame {
           position: relative;
           overflow: hidden;
@@ -1079,6 +1486,259 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           height: auto;
         }
 
+        .area-encryption {
+          position: relative;
+          margin: 24px calc(50% - 50vw) 0;
+          padding: 0 max(72px, calc((100vw - 1376px) / 2 + 32px)) 74px;
+          overflow: hidden;
+          border-top: 1px solid rgba(255, 255, 255, 0.12);
+          background: #000;
+          color: #f8f8f8;
+        }
+
+        .area-encryption::before {
+          content: '';
+          position: absolute;
+          left: 47%;
+          top: 70px;
+          width: 150px;
+          height: 520px;
+          pointer-events: none;
+          background:
+            linear-gradient(90deg, transparent 0 16%, rgba(255, 255, 255, 0.035) 16% 34%, transparent 34% 55%, rgba(255, 255, 255, 0.04) 55% 74%, transparent 74% 100%);
+          opacity: 0.75;
+        }
+
+        .area-encryption-kicker {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 14px;
+          margin-top: 28px;
+          color: #8f8f8f;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.42em;
+          text-transform: uppercase;
+        }
+
+        .area-encryption-kicker::before {
+          content: '';
+          width: 10px;
+          height: 10px;
+          background: #ff6a00;
+        }
+
+        .area-encryption-title {
+          position: relative;
+          z-index: 1;
+          max-width: 1060px;
+          margin: 34px 0 0;
+          color: #f7f7f7;
+          font-size: clamp(64px, 6.9vw, 118px);
+          font-weight: 800;
+          line-height: 0.98;
+          letter-spacing: -0.055em;
+        }
+
+        .area-encryption-title span {
+          display: block;
+          color: #a7a7a7;
+        }
+
+        .area-encryption-copy {
+          position: relative;
+          z-index: 1;
+          max-width: 780px;
+          margin: 36px 0 76px;
+          color: #a7a7a7;
+          font-size: 22px;
+          line-height: 1.55;
+          letter-spacing: -0.03em;
+        }
+
+        .area-inference-window {
+          position: relative;
+          z-index: 1;
+          border: 1px solid #242424;
+          background: #121212;
+          min-height: 316px;
+        }
+
+        .area-inference-topbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          min-height: 40px;
+          padding: 0 20px;
+          border-bottom: 1px solid #242424;
+          background: #101010;
+          color: #686868;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .area-inference-topbar-left,
+        .area-inference-lock {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .area-inference-dots {
+          display: inline-flex;
+          gap: 7px;
+        }
+
+        .area-inference-dots span {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: #2f2f2f;
+        }
+
+        .area-inference-lock {
+          color: #ff9a00;
+          letter-spacing: 0.02em;
+          text-transform: none;
+        }
+
+        .area-inference-lock svg {
+          width: 12px;
+          height: 12px;
+        }
+
+        .area-inference-flow {
+          display: grid;
+          grid-template-columns: 180px minmax(180px, 1fr) 180px minmax(180px, 1fr) 270px;
+          align-items: center;
+          min-height: 238px;
+          padding: 50px;
+        }
+
+        .area-inference-card {
+          display: grid;
+          place-items: center;
+          min-height: 96px;
+          border: 1px solid #2c2c2c;
+          background: #141414;
+          text-align: center;
+        }
+
+        .area-inference-card.is-proxy {
+          min-height: 126px;
+          border-color: rgba(255, 106, 0, 0.62);
+          background: rgba(255, 106, 0, 0.06);
+        }
+
+        .area-inference-icon {
+          display: grid;
+          place-items: center;
+          margin-bottom: 18px;
+          color: #d8d8d8;
+        }
+
+        .area-inference-card.is-proxy .area-inference-icon {
+          color: #ffad4f;
+        }
+
+        .area-inference-label {
+          color: #f2f2f2;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .area-inference-sub {
+          margin-top: 8px;
+          color: #6c6c6c;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+        .area-inference-line {
+          position: relative;
+          height: 1px;
+          background: repeating-linear-gradient(90deg, rgba(255, 106, 0, 0.48) 0 7px, transparent 7px 15px);
+        }
+
+        .area-inference-pill {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          height: 24px;
+          padding: 0 14px;
+          border: 1px solid #2d1b08;
+          border-radius: 999px;
+          transform: translate(-50%, -50%);
+          background: #050505;
+          color: #ff9a00;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+        }
+
+        .area-model-stack {
+          min-height: 96px;
+          padding: 18px;
+          border: 1px solid #2c2c2c;
+          background: #141414;
+          text-align: center;
+        }
+
+        .area-model-stack-title {
+          color: #f2f2f2;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+
+        .area-model-icons {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+          margin-top: 16px;
+        }
+
+        .area-model-icons span {
+          display: grid;
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          border: 1px solid #333;
+          border-radius: 999px;
+          background: #1c1c1c;
+          color: #a7a7a7;
+          font-size: 11px;
+          font-weight: 900;
+        }
+
+        .area-inference-footnote {
+          padding: 0 24px 42px;
+          color: #5f5f5f;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+          font-size: 12px;
+          font-weight: 900;
+          letter-spacing: 0.28em;
+          text-align: center;
+          text-transform: uppercase;
+        }
+
         .area-specs {
           padding: 72px 0 84px;
         }
@@ -1161,6 +1821,76 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           width: 16px;
           height: 16px;
           color: #768749;
+        }
+
+        .area-careers-band {
+          margin: 0 calc(50% - 50vw);
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          padding: clamp(72px, 8vw, 112px) max(72px, calc((100vw - 1376px) / 2 + 32px));
+          background: #000000;
+          color: #ffffff;
+        }
+
+        .area-careers-band-grid {
+          width: 100%;
+          display: block;
+        }
+
+        .area-careers-band-kicker {
+          margin-bottom: 22px;
+          font-size: 18px;
+          font-weight: 800;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+        }
+
+        .area-careers-band-title {
+          font-family: 'Inter', sans-serif;
+          max-width: 11ch;
+          font-size: clamp(4rem, 10vw, 9rem);
+          font-weight: 500;
+          line-height: 0.96;
+          letter-spacing: -0.03em;
+        }
+
+        .area-careers-band-copy {
+          max-width: 760px;
+          margin-top: clamp(28px, 4vw, 44px);
+          color: rgba(255, 255, 255, 0.92);
+          font-size: clamp(1.4rem, 2.6vw, 2.35rem);
+          font-weight: 500;
+          line-height: 1.42;
+          letter-spacing: -0.02em;
+        }
+
+        .area-careers-band-cta {
+          display: inline-flex;
+          align-items: center;
+          gap: 22px;
+          margin-top: 46px;
+          color: #ffffff;
+          font-size: clamp(1.4rem, 2vw, 1.9rem);
+          font-weight: 700;
+          letter-spacing: -0.03em;
+        }
+
+        .area-careers-band-cta-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 56px;
+          height: 56px;
+          border-radius: 999px;
+          background: #ffffff;
+          color: #000000;
+          transition: transform 180ms ease, background-color 180ms ease;
+        }
+
+        .area-careers-band-cta:hover .area-careers-band-cta-icon {
+          transform: translateX(4px);
+          background: #f2f2f2;
         }
 
         .area-showcase {
@@ -2389,8 +3119,21 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
           .area-feature-grid,
           .area-testimonial-grid,
+          .area-careers-band-grid,
+          .area-inference-flow,
           .area-showcase-stage {
             grid-template-columns: 1fr;
+          }
+
+          .area-inference-flow {
+            gap: 32px;
+          }
+
+          .area-inference-line {
+            width: 1px;
+            height: 72px;
+            margin: 0 auto;
+            background: repeating-linear-gradient(180deg, rgba(255, 106, 0, 0.48) 0 7px, transparent 7px 15px);
           }
 
           .area-feature-visual {
@@ -2478,8 +3221,20 @@ import AiOrbitAnimation from './AiOrbitAnimation';
             gap: 22px 28px;
           }
 
-          .area-benefits {
+            .area-benefits {
             padding-top: 50px;
+          }
+
+          .area-app-promo-inner {
+            grid-template-columns: 1fr;
+          }
+
+          .area-app-promo-copy {
+            max-width: 720px;
+          }
+
+          .area-app-promo-visual {
+            min-height: 340px;
           }
 
           .area-steps {
@@ -2488,6 +3243,25 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
           .area-specs {
             padding-bottom: 70px;
+          }
+
+          .area-careers-band {
+            min-height: 100vh;
+            margin-right: calc(50% - 50vw);
+            margin-left: calc(50% - 50vw);
+            padding: 64px 20px;
+          }
+
+          .area-careers-band-grid {
+            width: 100%;
+          }
+
+          .area-careers-band-copy {
+            margin-top: 22px;
+          }
+
+          .area-careers-band-cta {
+            margin-top: 30px;
           }
 
           .area-showcase {
@@ -2604,6 +3378,7 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           }
 
           .area-feature,
+          .area-encryption,
           .area-specs,
           .area-showcase,
           .area-testimonial,
@@ -2613,8 +3388,117 @@ import AiOrbitAnimation from './AiOrbitAnimation';
             padding-bottom: 56px;
           }
 
+          .area-encryption {
+            margin-right: calc(50% - 50vw);
+            margin-left: calc(50% - 50vw);
+            padding-right: 20px;
+            padding-left: 20px;
+          }
+
+          .area-encryption-title {
+            font-size: 54px;
+          }
+
+          .area-encryption-copy {
+            margin-bottom: 48px;
+            font-size: 18px;
+          }
+
+          .area-inference-window {
+            min-height: 0;
+          }
+
+          .area-inference-topbar {
+            padding: 0 14px;
+          }
+
+          .area-inference-flow {
+            padding: 34px 18px;
+          }
+
+          .area-model-icons {
+            flex-wrap: wrap;
+          }
+
           .area-feature-grid {
             gap: 26px;
+          }
+
+          .area-app-promo {
+            min-height: auto;
+            margin-top: 30px;
+          }
+
+          .area-app-promo-inner {
+            padding: 34px 0 36px;
+          }
+
+          .area-app-promo-kicker {
+            margin-bottom: 22px;
+            font-size: 12px;
+          }
+
+          .area-app-store-actions {
+            gap: 12px;
+            margin-top: 28px;
+          }
+
+          .area-store-button {
+            width: 100%;
+            min-width: 0;
+            height: 62px;
+          }
+
+          .area-store-name {
+            font-size: 20px;
+          }
+
+          .area-app-promo-visual {
+            min-height: 260px;
+            width: min(100%, 520px);
+            justify-self: center;
+          }
+
+          .area-app-phone-main {
+            left: 1%;
+            width: clamp(156px, 39vw, 204px);
+            border-radius: 34px;
+          }
+
+          .area-app-phone-back {
+            right: 1%;
+            width: clamp(146px, 36vw, 194px);
+            border-radius: 34px;
+          }
+
+          .area-app-phone::before {
+            top: 16px;
+            width: 31%;
+            height: 4.8%;
+          }
+
+          .area-app-phone::after {
+            inset: 9px;
+            border-radius: 30px;
+          }
+
+          .area-app-phone-screen {
+            inset: 10px;
+            padding: 52px 13px 14px;
+            border-radius: 28px;
+          }
+
+          .area-app-phone-screen::before {
+            top: 14px;
+            left: 15px;
+            font-size: 11px;
+          }
+
+          .area-app-phone-screen::after {
+            top: 15px;
+            right: 13px;
+            transform: scale(0.78);
+            transform-origin: top right;
           }
 
           .area-benefits-visual-frame {
@@ -2734,6 +3618,9 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
           .area-button,
           .area-hero-visual,
+          .area-app-promo,
+          .area-app-promo-copy,
+          .area-app-promo-visual,
           .area-benefits-audio-toggle,
           .area-showcase-device-panel,
           .area-showcase-quick-action,
@@ -2741,6 +3628,13 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           .area-showcase-support-typing span {
             transition: none;
             animation: none;
+          }
+
+          .area-app-promo,
+          .area-app-promo-copy,
+          .area-app-promo-visual {
+            opacity: 1;
+            transform: none;
           }
 
           .area-button:hover {
@@ -2902,6 +3796,76 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
             <div className="area-divider" />
 
+            <section
+              ref={appPromoRef}
+              className={`area-app-promo ${appPromoVisible ? 'is-visible' : ''}`}
+              aria-labelledby="vajra-app-promo-title"
+            >
+              <div className="area-shell area-app-promo-inner">
+                <div className="area-app-promo-copy">
+                  <p className="area-app-promo-kicker">The Vajra at your fingertips.</p>
+                  <h2 id="vajra-app-promo-title" className="area-app-promo-title">
+                    Discover food, marketplace, and smart delivery in one Vajra app.
+                  </h2>
+
+                  <div className="area-app-store-actions" aria-label="App availability">
+                    <button type="button" className="area-store-button" onClick={() => showStoreComingSoon('App Store')}>
+                      <span className="area-store-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M16.5 1.8c.1 1.2-.4 2.4-1.2 3.3-.8.9-2 1.6-3.1 1.5-.1-1.2.4-2.4 1.1-3.2.8-.9 2.1-1.6 3.2-1.6Zm3.8 15.8c-.5 1.1-.8 1.6-1.4 2.6-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9s-2.3.9-3.8 1c-1.6.1-2.8-1.5-3.7-2.9-2.6-4-2.9-8.7-1.3-11.1 1.1-1.7 2.8-2.7 4.4-2.7 1.7 0 2.7.9 4 .9 1.3 0 2.1-.9 4-.9 1.4 0 2.9.8 4 2.1-3.5 1.9-2.9 6.9 1.3 8.8Z" />
+                        </svg>
+                      </span>
+                      <span>
+                        <span className="area-store-eyebrow">Download on the</span>
+                        <span className="area-store-name">App Store</span>
+                      </span>
+                    </button>
+
+                    <button type="button" className="area-store-button" onClick={() => showStoreComingSoon('Google Play')}>
+                      <span className="area-store-icon" aria-hidden="true">
+                        <GoogleIcon />
+                      </span>
+                      <span>
+                        <span className="area-store-eyebrow">GET IT ON</span>
+                        <span className="area-store-name">Google Play</span>
+                      </span>
+                    </button>
+
+                    <button type="button" className="area-store-button" onClick={() => showStoreComingSoon('Vajra Apps')}>
+                      <span className="area-store-icon is-vajra" aria-hidden="true">V</span>
+                      <span>
+                        <span className="area-store-eyebrow">Available on</span>
+                        <span className="area-store-name">Vajra Apps</span>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="area-app-promo-visual" aria-hidden="true">
+                  <div className="area-app-phone area-app-phone-main">
+                    <div className="area-app-phone-screen">
+                      <div className="area-phone-brand">THE VAJRA</div>
+                      <div className="area-phone-card">
+                        <small>Platform Preview</small>
+                        <strong>Food, products, and everyday services.</strong>
+                        <p>One connected experience for faster discovery, ordering, tracking, and support.</p>
+                        <div className="area-phone-pill">Coming Soon</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="area-app-phone area-app-phone-back">
+                    <div className="area-app-phone-screen">
+                      <div className="area-phone-card">
+                        <strong>Drone-ready delivery flow</strong>
+                        <p>Order accepted, dispatch coordinated, and delivered with clearer live visibility.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <section id="benefits" className="area-benefits">
               <div className="area-benefits-visual-frame is-video">
                 <div className="area-benefits-video-shell">
@@ -2983,6 +3947,102 @@ import AiOrbitAnimation from './AiOrbitAnimation';
 
             <div className="area-divider" />
 
+            <section className="area-encryption" aria-labelledby="encrypted-inference-title">
+              <p className="area-encryption-kicker">Drone Inference</p>
+              <h2 id="encrypted-inference-title" className="area-encryption-title">
+                All payments. All Orders.
+                <span>End-to-end encrypted.</span>
+              </h2>
+              <p className="area-encryption-copy">
+                One inference path for every user - Every Order on the platform.
+                Encrypted from your device to the server and drone, with customer-managed keys and zero data retention.
+                Your data is Safe with us.
+              </p>
+
+              <div className="area-inference-window">
+                <div className="area-inference-topbar">
+                  <div className="area-inference-topbar-left">
+                    <span className="area-inference-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                    <span>Inference-Path</span>
+                  </div>
+                  <span className="area-inference-lock">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" />
+                      <path d="M7 11h10v8H7z" stroke="currentColor" strokeWidth="2" />
+                    </svg>
+                    end-to-end encrypted
+                  </span>
+                </div>
+
+                <div className="area-inference-flow">
+                  <div className="area-inference-card">
+                    <div>
+                      <span className="area-inference-icon" aria-hidden="true">
+                        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+                          <path d="M8 9h18v12H8z" stroke="currentColor" strokeWidth="1.8" />
+                          <path d="M13 26h8M17 21v5M10 12h4" stroke="currentColor" strokeWidth="1.8" />
+                        </svg>
+                      </span>
+                      <div className="area-inference-label">You Order</div>
+                      <div className="area-inference-sub">User</div>
+                    </div>
+                  </div>
+
+                  <div className="area-inference-line">
+                    <span className="area-inference-pill">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" />
+                        <path d="M7 11h10v8H7z" stroke="currentColor" strokeWidth="2" />
+                      </svg>
+                      Encrypted
+                    </span>
+                  </div>
+
+                  <div className="area-inference-card is-proxy">
+                    <div>
+                      <span className="area-inference-icon" aria-hidden="true">
+                        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+                          <path d="M17 8l7 4v8l-7 4-7-4v-8l7-4z" stroke="currentColor" strokeWidth="1.8" />
+                          <path d="M17 8v8l7-4M17 16l-7-4" stroke="currentColor" strokeWidth="1.8" />
+                        </svg>
+                      </span>
+                      <div className="area-inference-label">Server</div>
+                      <div className="area-inference-sub">Request delivery to drone</div>
+                    </div>
+                  </div>
+
+                  <div className="area-inference-line">
+                    <span className="area-inference-pill">
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" />
+                        <path d="M7 11h10v8H7z" stroke="currentColor" strokeWidth="2" />
+                      </svg>
+                      Encrypted
+                    </span>
+                  </div>
+
+                  <div className="area-model-stack">
+                    <div className="area-model-stack-title">Order accepted</div>
+                    <div className="area-model-icons" aria-hidden="true">
+                      <span>◎</span>
+                      <span>Z</span>
+                      <span>h</span>
+                      <span>|||</span>
+                      <span>+24</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="area-inference-footnote">
+                  Order - Accepted - Drone dispatched - Out for delivery - Delivered
+                </div>
+              </div>
+            </section>
+
             <section id="specifications" className="area-specs">
               <div className="area-specs-header">
                 <p className="area-section-label">Why Vajra</p>
@@ -3008,6 +4068,26 @@ import AiOrbitAnimation from './AiOrbitAnimation';
                       ))}
                     </div>
                   ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="area-careers-band" aria-labelledby="careers-band-title">
+              <div className="area-shell area-careers-band-grid">
+                <div>
+                  <p className="area-careers-band-kicker">Careers</p>
+                  <h2 id="careers-band-title" className="area-careers-band-title">
+                    Seize the future
+                  </h2>
+                  <p className="area-careers-band-copy">
+                    Our teams are building change across food delivery, marketplace access, smart services, and drone-ready logistics for a faster, more connected everyday life.
+                  </p>
+                  <a href="/careers" className="area-careers-band-cta">
+                    Come join us
+                    <span className="area-careers-band-cta-icon" aria-hidden="true">
+                      <ArrowUpRight size={28} />
+                    </span>
+                  </a>
                 </div>
               </div>
             </section>
@@ -3198,6 +4278,12 @@ import AiOrbitAnimation from './AiOrbitAnimation';
       )}
 
       {!modalOpen ? <FloatingContactTab /> : null}
+
+      {storeNotice ? (
+        <div className="area-app-toast" role="status" aria-live="polite">
+          {storeNotice}
+        </div>
+      ) : null}
     </>
   );
 }

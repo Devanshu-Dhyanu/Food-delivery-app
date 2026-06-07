@@ -31,6 +31,7 @@ import StandaloneAuthPage from './components/StandaloneAuthPage';
 import FeelItPage from './components/FeelItPage';
 import RequestForServicesPage from './components/RequestForServicesPage';
 import VisionPage from './components/VisionPage';
+import WhatWeDoPage from './components/WhatWeDoPage';
 import WebsiteFeedbackPage from './components/WebsiteFeedbackPage';
 import FloatingContactTab from './components/FloatingContactTab';
 import { DeliveryVoiceCallProvider } from './context/DeliveryVoiceCallContext';
@@ -80,6 +81,7 @@ const REQUEST_SERVICES_PATHS = ['/request-services'] as const;
 const WEBSITE_FEEDBACK_PATHS = ['/website-feedback'] as const;
 const FEEL_IT_PATHS = ['/feel-it'] as const;
 const VISION_PATHS = ['/vision', '/our-vision'] as const;
+const WHAT_WE_DO_PATHS = ['/what-we-do', '/what-we-do-page'] as const;
 const TEAM_PATHS = ['/team', '/our-team'] as const;
 const LOGIN_PATHS = ['/login', '/sign-in'] as const;
 const SIGNUP_PATHS = ['/signup', '/sign-up', '/register'] as const;
@@ -132,6 +134,10 @@ const getInitialPageFromPath = (): Page => {
   }
 
   if (VISION_PATHS.includes(pathname as (typeof VISION_PATHS)[number])) {
+    return 'service-hub';
+  }
+
+  if (WHAT_WE_DO_PATHS.includes(pathname as (typeof WHAT_WE_DO_PATHS)[number])) {
     return 'service-hub';
   }
 
@@ -694,6 +700,9 @@ function App() {
   const isVisionPath = VISION_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof VISION_PATHS)[number]
   );
+  const isWhatWeDoPath = WHAT_WE_DO_PATHS.includes(
+    window.location.pathname.toLowerCase() as (typeof WHAT_WE_DO_PATHS)[number]
+  );
   const isLoginPath = LOGIN_PATHS.includes(
     window.location.pathname.toLowerCase() as (typeof LOGIN_PATHS)[number]
   );
@@ -765,6 +774,9 @@ function App() {
   }
   if (isVisionPath) {
     return withFloatingContactTab(<VisionPage />);
+  }
+  if (isWhatWeDoPath) {
+    return <WhatWeDoPage />;
   }
   if (isTeamPath) {
     window.location.replace('/team-page.html');
