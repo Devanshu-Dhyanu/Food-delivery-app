@@ -192,7 +192,6 @@ import AiOrbitAnimation from './AiOrbitAnimation';
   const benefitsVideoStageRef = useRef<HTMLDivElement | null>(null);
   const storeNoticeTimerRef = useRef<number | null>(null);
   const captchaEnabled = turnstileSiteKey.length > 0;
-  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const redirectTo = `${window.location.origin}/auth/callback`;
 
   useEffect(() => {
@@ -329,11 +328,6 @@ import AiOrbitAnimation from './AiOrbitAnimation';
   };
 
   const handleGoogleLogin = async () => {
-    if (captchaEnabled && !captchaToken) {
-      setMessage('Please complete the captcha first.');
-      return;
-    }
-
     setLoading(true);
     setMessage('');
   
@@ -341,7 +335,6 @@ import AiOrbitAnimation from './AiOrbitAnimation';
       provider: 'google',
       options: {
         redirectTo,
-        ...(captchaEnabled ? { captchaToken } : {}),
       },
     });
   
@@ -2941,11 +2934,14 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           padding: 24px;
           background: rgba(17, 17, 17, 0.42);
           backdrop-filter: blur(8px);
+          overflow-y: auto;
         }
 
         .login-modal {
           position: relative;
           width: min(100%, 452px);
+          max-height: calc(100vh - 48px);
+          overflow-y: auto;
           padding: 44px 36px 34px;
           border-radius: 30px;
           background: rgba(255, 255, 255, 0.98);
@@ -3591,16 +3587,33 @@ import AiOrbitAnimation from './AiOrbitAnimation';
           }
 
           .login-overlay {
-            padding: 16px;
+            align-items: flex-start;
+            padding: 12px;
+            padding-top: max(12px, env(safe-area-inset-top));
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
           }
 
           .login-modal {
-            padding: 40px 22px 28px;
-            border-radius: 24px;
+            max-height: calc(100svh - 24px);
+            padding: 34px 18px 22px;
+            border-radius: 22px;
           }
 
           .login-modal-title {
-            font-size: 1.9rem;
+            margin-bottom: 20px;
+            font-size: 1.75rem;
+          }
+
+          .login-social-btn,
+          .login-submit-btn,
+          .login-email-input {
+            height: 48px;
+            font-size: 14px;
+          }
+
+          .login-modal-footer,
+          .login-switch-row {
+            margin-top: 14px;
           }
         }
 
@@ -4192,11 +4205,7 @@ import AiOrbitAnimation from './AiOrbitAnimation';
               {mode === 'signup' ? 'Join The Vajra.' : 'Welcome back to The Vajra.'}
             </h2>
 
-            <button
-              className={`login-social-btn${googleBlockedByCaptcha ? ' is-blocked' : ''}`}
-              onClick={handleGoogleLogin}
-              disabled={loading || googleBlockedByCaptcha}
-            >
+            <button className="login-social-btn" onClick={handleGoogleLogin} disabled={loading}>
               <GoogleIcon />
               {loading ? 'Preparing Google...' : 'Continue with Google'}
             </button>
@@ -4234,12 +4243,6 @@ import AiOrbitAnimation from './AiOrbitAnimation';
                     />
                   </div>
                 )}
-
-                {googleBlockedByCaptcha ? (
-                  <p className="mt-3 text-xs font-medium text-[#7a5f3f]">
-                    Complete the captcha first to continue with Google.
-                  </p>
-                ) : null}
 
                 <button className="login-submit-btn" type="submit" disabled={loading}>
                 {loading ? 'Sending...' : mode === 'signup' ? 'Continue with email' : 'Sign in with email'}

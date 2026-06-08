@@ -43,7 +43,6 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
   const captchaEnabled = turnstileSiteKey.length > 0;
   const [email, setEmail] = useState('');
   const [captchaToken, setCaptchaToken] = useState('');
-  const googleBlockedByCaptcha = captchaEnabled && !captchaToken;
   const [captchaResetCount, setCaptchaResetCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -91,11 +90,6 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
 
   const handleGoogleLogin = async () => {
-    if (captchaEnabled && !captchaToken) {
-      setMessage({ type: 'error', text: 'Please complete the captcha first.' });
-      return;
-    }
-
     setLoading(true);
     setMessage(null);
   
@@ -104,7 +98,6 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
       provider: 'google',
       options: {
         redirectTo,
-        ...(captchaEnabled ? { captchaToken } : {}),
       },
     });
   
@@ -234,11 +227,11 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.76)_0%,rgba(10,10,10,0.5)_34%,rgba(8,8,8,0.3)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_50%,rgba(255,255,255,0.05),transparent_24%),radial-gradient(circle_at_84%_28%,rgba(255,255,255,0.035),transparent_22%)]" />
 
-        <header className="fixed left-0 right-0 top-0 z-50 px-4 pt-5 sm:px-6 md:px-8 lg:px-10">
-          <div className="mx-auto flex max-w-[1180px] items-center justify-between rounded-full border border-white/28 bg-[rgba(18,18,18,0.42)] px-5 py-3 text-white shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+        <header className="fixed left-0 right-0 top-0 z-50 px-3 pt-3 sm:px-6 sm:pt-5 md:px-8 lg:px-10">
+          <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-3 rounded-full border border-white/28 bg-[rgba(18,18,18,0.42)] px-3 py-2.5 text-white shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-xl sm:px-5 sm:py-3">
             <a href="/" className="inline-flex items-center gap-3 text-white">
               <span className="h-2.5 w-2.5 rotate-45 rounded-sm border border-white bg-white/35" />
-              <span className="text-sm font-semibold tracking-[0.28em] uppercase">The Vajra</span>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] sm:text-sm sm:tracking-[0.28em]">The Vajra</span>
             </a>
 
             <nav className="hidden items-center gap-6 text-sm font-medium text-white/90 md:flex">
@@ -258,32 +251,32 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
 
             <a
               href={mode === 'signin' ? '/signup' : '/login'}
-              className="inline-flex items-center rounded-full border border-white/26 bg-white/16 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/22"
+              className="inline-flex shrink-0 items-center rounded-full border border-white/26 bg-white/16 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/22 sm:px-4 sm:text-sm"
             >
               {mode === 'signin' ? 'Sign Up' : 'Login'}
             </a>
           </div>
         </header>
 
-        <div className="relative z-10 flex flex-1 flex-col px-4 pb-6 pt-28 sm:px-6 md:px-8 lg:px-10 lg:pb-8 lg:pt-32">
-          <div className="mx-auto flex min-h-[calc(100vh-8rem)] w-full max-w-[1280px] flex-1 items-center justify-center">
-            <div className="grid min-h-[590px] w-full max-w-[1040px] overflow-hidden rounded-[30px] border border-white/14 bg-[rgba(255,255,255,0.94)] shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-sm lg:grid-cols-[0.9fr_1.1fr]">
-              <section className="flex items-center justify-center px-8 py-10 sm:px-12 lg:px-14">
+        <div className="relative z-10 flex flex-1 flex-col px-3 pb-5 pt-24 sm:px-6 sm:pt-28 md:px-8 lg:px-10 lg:pb-8 lg:pt-32">
+          <div className="mx-auto flex w-full max-w-[1280px] flex-1 items-start justify-center sm:min-h-[calc(100vh-8rem)] sm:items-center">
+            <div className="grid w-full max-w-[1040px] overflow-hidden rounded-[24px] border border-white/14 bg-[rgba(255,255,255,0.96)] shadow-[0_30px_100px_rgba(0,0,0,0.42)] backdrop-blur-sm sm:rounded-[30px] lg:min-h-[590px] lg:grid-cols-[0.9fr_1.1fr]">
+              <section className="flex items-center justify-center px-5 py-7 sm:px-12 sm:py-10 lg:px-14">
                 <div className="w-full max-w-[350px]">
                   <a
                     href="/"
-                    className="mb-12 inline-flex items-center gap-2 text-sm font-medium text-[#536071] transition hover:text-black"
+                    className="mb-7 inline-flex items-center gap-2 text-sm font-medium text-[#536071] transition hover:text-black sm:mb-12"
                   >
                     <ArrowLeft size={16} />
                     Back to The Vajra
                   </a>
 
-                  <h1 className="text-[38px] font-semibold tracking-[0.01em] text-[#111111] sm:text-[44px]">
+                  <h1 className="text-[30px] font-semibold tracking-[0.01em] text-[#111111] sm:text-[44px]">
                     {heading}
                   </h1>
-                  <p className="mt-3 max-w-[320px] text-[15px] leading-7 text-[#6f7785]">{subheading}</p>
+                  <p className="mt-2 max-w-[320px] text-[14px] leading-6 text-[#6f7785] sm:mt-3 sm:text-[15px] sm:leading-7">{subheading}</p>
 
-                  <form onSubmit={handleSubmit} className="mt-9">
+                  <form onSubmit={handleSubmit} className="mt-6 sm:mt-9">
                     <label className="mb-3 block text-[14px] font-semibold text-[#1f2530]">Email</label>
                     <input
                       type="email"
@@ -307,7 +300,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                     )}
 
                     {mode === 'signin' && (
-                      <div className="mt-5 flex items-center justify-between gap-4 text-[14px] text-[#1f2530]">
+                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-[14px] text-[#1f2530]">
                         <label className="inline-flex items-center gap-2">
                           <input
                             type="checkbox"
@@ -327,7 +320,7 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                     )}
 
                     {captchaEnabled && (
-                      <div className="mt-5 overflow-hidden rounded-[16px] border border-[#d7dce3] bg-white px-3 py-3">
+                      <div className="mt-5 overflow-hidden rounded-[16px] border border-[#d7dce3] bg-white px-2 py-3 sm:px-3">
                         <TurnstileWidget
                           siteKey={turnstileSiteKey}
                           resetSignal={captchaResetCount}
@@ -358,18 +351,12 @@ export default function StandaloneAuthPage({ mode }: StandaloneAuthPageProps) {
                     <button
                       type="button"
                       onClick={() => void handleGoogleLogin()}
-                      disabled={loading || googleBlockedByCaptcha}
-                      className={`mt-4 flex h-[52px] w-full items-center justify-center gap-3 rounded-[16px] border border-[#d7dce3] bg-white text-[16px] font-medium text-[#111111] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-70 ${googleBlockedByCaptcha ? 'opacity-60 shadow-none' : ''}`}
+                      disabled={loading}
+                      className="mt-4 flex h-[52px] w-full items-center justify-center gap-3 rounded-[16px] border border-[#d7dce3] bg-white text-[16px] font-medium text-[#111111] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition hover:bg-[#fafafa] disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       <GoogleIcon />
                       <span>{mode === 'signin' ? 'Sign in with Google' : 'Continue with Google'}</span>
                     </button>
-
-                    {googleBlockedByCaptcha ? (
-                      <p className="mt-3 text-xs font-medium text-[#7a5f3f]">
-                        Complete the captcha first to continue with Google.
-                      </p>
-                    ) : null}
                   </form>
 
                   <p className="mt-5 text-center text-[14px] text-[#69707d]">
